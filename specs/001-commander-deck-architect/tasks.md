@@ -33,7 +33,7 @@
 
 - [ ] T006 Create shared deck workspace DTO contracts in src/CommandSynergy.Application/Contracts/DeckWorkspaceContracts.cs matching specs/001-commander-deck-architect/contracts/deck-workspace-api.yaml
 - [ ] T007 [P] Create metadata and analysis option models in src/CommandSynergy.Application/Configuration/CardMetadataOptions.cs and src/CommandSynergy.Application/Configuration/BracketOptions.cs
-- [ ] T008 [P] Create application service abstractions in src/CommandSynergy.Application/Abstractions/ICardSearchService.cs, src/CommandSynergy.Application/Abstractions/IDeckValidationService.cs, and src/CommandSynergy.Application/Abstractions/IDeckAnalysisService.cs
+- [ ] T008 [P] Create application service abstractions in src/CommandSynergy.Application/Abstractions/ICardSearchService.cs, src/CommandSynergy.Application/Abstractions/IDeckValidationService.cs, src/CommandSynergy.Application/Abstractions/IDeckAnalysisService.cs, and an extension point in src/CommandSynergy.Application/Abstractions/IDeckAdviceService.cs
 - [ ] T009 Implement typed Scryfall client scaffolding with resiliency and validation in src/CommandSynergy.Infrastructure/Scryfall/ScryfallClient.cs and src/CommandSynergy.Infrastructure/Scryfall/ScryfallServiceCollectionExtensions.cs
 - [ ] T010 Implement Parquet snapshot loading and derived search index generation skeleton in src/CommandSynergy.Infrastructure/CardMetadata/ParquetCardMetadataStore.cs and src/CommandSynergy.Infrastructure/CardMetadata/SearchIndexSnapshotBuilder.cs
 - [ ] T011 Implement application and infrastructure dependency registration in src/CommandSynergy.Application/DependencyInjection.cs, src/CommandSynergy.Infrastructure/DependencyInjection.cs, and update src/CommandSynergy/Program.cs
@@ -113,7 +113,7 @@
 
 - [ ] T038 [P] [US3] Register MudBlazor and client-side workspace services in src/CommandSynergy/Program.cs and src/CommandSynergy.Client/Program.cs
 - [ ] T039 [P] [US3] Implement workspace shell and stateful page composition in src/CommandSynergy/Components/Pages/Home.razor and src/CommandSynergy/Components/Pages/Home.razor.cs
-- [ ] T040 [P] [US3] Implement drag-and-drop pile workspace components in src/CommandSynergy/Components/Decks/DeckWorkspace.razor and src/CommandSynergy/Components/Decks/PileBoard.razor
+- [ ] T040 [P] [US3] Implement drag-and-drop pile workspace components in src/CommandSynergy/Components/Decks/DeckWorkspace.razor and src/CommandSynergy/Components/Decks/PileBoard.razor, ensuring touch device support and debounced rapid-move handling
 - [ ] T041 [P] [US3] Implement commander card display with alternate-face handling and salt badge in src/CommandSynergy/Components/Cards/CommanderCard.razor and src/CommandSynergy/Components/Cards/CommanderCard.razor.css
 - [ ] T042 [US3] Implement custom CSS animation and face-toggle behavior for double-faced cards in src/CommandSynergy/Components/Cards/CommanderCard.razor.css and src/CommandSynergy/Components/Cards/CommanderCard.razor.js
 - [ ] T043 [US3] Implement client search-index loading and deck workspace synchronization in src/CommandSynergy.Client/Services/CardSearchIndexClient.cs and src/CommandSynergy.Client/Services/DeckWorkspaceClient.cs
