@@ -74,6 +74,8 @@
 
 - What happens when [boundary condition]?
 - How does system handle [error scenario]?
+- How does the experience behave during loading, empty, validation, and recovery states?
+- What happens when a user lacks permission, a token expires, or an external dependency fails?
 
 ## Requirements *(mandatory)*
 
@@ -89,6 +91,17 @@
 - **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
 - **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
 - **FR-005**: System MUST [behavior, e.g., "log all security events"]
+
+### Non-Functional Requirements
+
+- **NFR-001**: System MUST define measurable performance expectations for the affected user
+  journey, request path, or rendering path.
+- **NFR-002**: System MUST define required UX behavior for loading, empty, validation, error,
+  and recovery states whenever the feature affects user interaction.
+- **NFR-003**: System MUST define applicable security controls for authentication,
+  authorization, input handling, data protection, dependency use, and audit logging based on
+  relevant OWASP Top 10 risks.
+- **NFR-004**: System MUST identify the automated test evidence required to accept the change.
 
 *Example of marking unclear requirements:*
 
@@ -113,6 +126,7 @@
 - **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
 - **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
 - **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+- **SC-005**: [Security or quality metric, e.g., "No high-severity OWASP-relevant findings remain open for the delivered scope"]
 
 ## Assumptions
 
@@ -126,3 +140,4 @@
 - [Assumption about scope boundaries, e.g., "Mobile support is out of scope for v1"]
 - [Assumption about data/environment, e.g., "Existing authentication system will be reused"]
 - [Dependency on existing system/service, e.g., "Requires access to the existing user profile API"]
+- [Assumption about performance budget, e.g., "Existing infrastructure can meet the stated latency target"]

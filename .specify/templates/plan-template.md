@@ -17,21 +17,30 @@
   the iteration process.
 -->
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: [e.g., .NET 10 / C# 14, Python 3.11, Swift 5.9 or NEEDS CLARIFICATION]  
+**Primary Dependencies**: [e.g., ASP.NET Core, Blazor, xUnit, FastAPI or NEEDS CLARIFICATION]  
+**Storage**: [if applicable, e.g., PostgreSQL, SQL Server, files or N/A]  
+**Testing**: [e.g., xUnit, bUnit, Playwright, pytest or NEEDS CLARIFICATION]  
+**Target Platform**: [e.g., ASP.NET Core on Linux, Blazor Web App, iOS 15+ or NEEDS CLARIFICATION]
+**Project Type**: [e.g., web-app, web-service, library, desktop-app or NEEDS CLARIFICATION]  
+**Performance Goals**: [explicit budgets for the affected journey, e.g., <200ms p95 API, <2s initial page load or NEEDS CLARIFICATION]  
+**Constraints**: [domain-specific, e.g., OWASP controls, accessibility requirements, memory caps or NEEDS CLARIFICATION]  
+**Scale/Scope**: [domain-specific, e.g., 10k users, 50 screens, 5 core workflows or NEEDS CLARIFICATION]
+**Security/Privacy Review**: [required threat, auth, data protection, dependency, and secrets considerations]
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- Code quality approach is defined for the affected .NET/C# surface, including analyzers,
+  nullability, formatting, and any justified deviations.
+- Automated test layers are identified, and the plan states how the change will be proven with
+  failing-then-passing tests.
+- UX impact is described for normal, loading, empty, validation, error, and recovery states.
+- Performance budgets are explicit for the impacted user journey, request path, or render path.
+- Security review identifies applicable OWASP Top 10 risks, auth boundaries, input validation,
+  secret handling, dependency exposure, and logging or audit expectations.
+- Any constitutional exception is listed in Complexity Tracking with justification and owner.
 
 ## Project Structure
 

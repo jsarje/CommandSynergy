@@ -1,50 +1,103 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+Version change: template -> 1.0.0
+Modified principles:
+- template principle 1 -> I. .NET Quality Is The Baseline
+- template principle 2 -> II. Tests Prove The Change
+- template principle 3 -> III. User Experience Must Stay Coherent
+- template principle 4 -> IV. Performance Budgets Are Part Of The Design
+- template principle 5 -> V. Security By Design And OWASP Awareness
+Added sections:
+- Engineering Standards
+- Delivery Workflow
+Removed sections:
+- None
+Templates requiring updates:
+- updated .specify/templates/plan-template.md
+- updated .specify/templates/spec-template.md
+- updated .specify/templates/tasks-template.md
+Follow-up TODOs:
+- None
+-->
+# CommandSynergy Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. .NET Quality Is The Baseline
+All production changes MUST follow current .NET and C# conventions, compile cleanly, and
+keep analyzers, nullability, and formatting enabled. Public APIs, component contracts, and
+non-trivial behavior MUST be readable without reverse-engineering hidden assumptions, and any
+design shortcut MUST be justified in the plan or PR. The rationale is simple: this project is
+.NET-first, so maintainability, correctness, and operational clarity are not optional extras.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Tests Prove The Change
+Every behavior change MUST include automated tests at the lowest useful level, and critical
+paths MUST include integration or end-to-end coverage when a unit test alone cannot prove the
+outcome. A task is not complete until new tests fail before the fix or feature, then pass after
+implementation, and regressions in existing suites are resolved or explicitly waived. The
+rationale is to keep changes demonstrably safe instead of relying on manual confidence.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. User Experience Must Stay Coherent
+User-facing work MUST preserve a consistent interaction model across pages, components, and
+states, including loading, empty, error, validation, and recovery flows. Accessibility,
+terminology, visual hierarchy, and feedback timing MUST be considered part of the feature, not
+deferred polish, because inconsistent UX creates defects even when the code is technically
+correct.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Performance Budgets Are Part Of The Design
+Each feature plan MUST define observable performance expectations for the affected user journey,
+API, or render path, and implementations MUST stay within those budgets or document why not.
+Changes that increase latency, memory, network chatter, rendering cost, or startup time MUST be
+measured and justified before approval. The rationale is to prevent slow degradation from being
+normalized release by release.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Security By Design And OWASP Awareness
+Security review is mandatory for every feature that touches input handling, identity, secrets,
+data storage, or external communication. Designs and implementations MUST actively defend against
+relevant OWASP Top 10 categories, including broken access control, cryptographic failures,
+injection, insecure design, security misconfiguration, vulnerable dependencies, authentication
+failures, integrity failures, logging gaps, and server-side request forgery where applicable.
+The rationale is that preventable security debt compounds faster than functional debt.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Engineering Standards
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- The default implementation stack is modern .NET with current stable SDK, nullable reference
+	types enabled, analyzers active, and dependency injection used through standard ASP.NET Core
+	and Blazor patterns unless a stronger reason is documented.
+- Specifications MUST record security, UX, and performance expectations as requirements rather
+	than leaving them implicit.
+- Plans MUST identify testing strategy, performance budgets, and security considerations before
+	implementation begins.
+- Tasks MUST include work for automated tests, UX state handling, and security or performance
+	validation whenever a feature affects those concerns.
+- Secrets MUST never be committed to source control, and configuration MUST follow environment-
+	specific ASP.NET Core practices.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Delivery Workflow
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- Constitution checks are mandatory in planning and re-checked after design changes.
+- Feature specifications MUST include edge cases for validation failures, empty states,
+	authorization boundaries, and dependency failures when relevant.
+- Implementation plans MUST name the concrete test layers to be used, such as xUnit, bUnit,
+	integration tests, or browser-based end-to-end tests.
+- Pull requests and reviews MUST verify code quality, test evidence, UX consistency, performance
+	impact, and security impact before approval.
+- Any exception to these rules MUST be explicit, time-boxed, and recorded with the reason and
+	owner.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- This constitution overrides conflicting local habits, templates, and informal practice.
+- Amendments require the constitution file and impacted templates to be updated together, with a
+	recorded rationale in the Sync Impact Report.
+- Versioning follows semantic rules for governance: MAJOR for incompatible principle changes or
+	removals, MINOR for new principles or materially expanded obligations, PATCH for clarifications
+	that do not change expected behavior.
+- Compliance review is required at specification, planning, task generation, implementation, and
+	code review time; a failed constitutional gate blocks progress until resolved or explicitly
+	waived.
+- The ratification date for this constitution is the first date it was concretely adopted in this
+	repository, and the last amended date changes whenever constitutional meaning or enforcement is
+	updated.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-04-17 | **Last Amended**: 2026-04-17
