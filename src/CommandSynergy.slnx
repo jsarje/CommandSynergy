@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/SolutionItems/" />
+  <Project Path="CommandSynergy.Client/CommandSynergy.Client.csproj" />
+  <Project Path="CommandSynergy/CommandSynergy.csproj" />
+</Solution>
