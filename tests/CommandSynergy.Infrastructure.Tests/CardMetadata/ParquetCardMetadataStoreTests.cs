@@ -125,6 +125,42 @@ public sealed class ParquetCardMetadataStoreTests
     }
 
     [Fact]
+    public async Task ReplaceSnapshotAsync_replaces_existing_snapshot_contents()
+    {
+        var metadataDirectory = Path.Combine(Path.GetTempPath(), $"cs-store-tests-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(metadataDirectory);
+
+        try
+        {
+            var sut = BuildStore(metadataDirectory);
+            await sut.UpsertCardAsync(CreateCard("existing-card", "Existing Card", "existing-oracle", [ "W" ], "Creature"));
+
+            await sut.ReplaceSnapshotAsync(
+            [
+                CreateCard(
+                    "bulk-card-id",
+                    "Bulk Card",
+                    "bulk-card-oracle",
+                    [ "U" ],
+                    "Legendary Creature — Wizard",
+                    eligibilityBasis: CommanderEligibilityBasis.LegendaryCreature,
+                    metadataSource: CardMetadataSource.BulkSnapshotImport),
+            ]);
+
+            var snapshot = await sut.LoadSnapshotAsync();
+
+            snapshot.Cards.Should().ContainSingle();
+            snapshot.Cards[0].CardId.Should().Be("bulk-card-id");
+            snapshot.Cards[0].MetadataSource.Should().Be(CardMetadataSource.BulkSnapshotImport);
+            snapshot.Cards[0].CommanderEligibilityBasis.Should().Be(CommanderEligibilityBasis.LegendaryCreature);
+        }
+        finally
+        {
+            Directory.Delete(metadataDirectory, true);
+        }
+    }
+
+    [Fact]
     public async Task LoadSnapshotAsync_returns_empty_when_snapshot_file_does_not_exist()
     {
         var metadataDirectory = Path.Combine(Path.GetTempPath(), $"cs-store-tests-{Guid.NewGuid():N}");

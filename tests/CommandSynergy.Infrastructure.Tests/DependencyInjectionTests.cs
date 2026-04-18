@@ -40,6 +40,7 @@ public sealed class DependencyInjectionTests
 
         provider.GetRequiredService<ScryfallClient>().Should().NotBeNull();
         provider.GetRequiredService<ParquetCardMetadataStore>().Should().NotBeNull();
+        provider.GetRequiredService<CardMetadataBulkImportService>().Should().NotBeNull();
         provider.GetRequiredService<SearchIndexSnapshotBuilder>().Should().NotBeNull();
         provider.GetRequiredService<DeckAnalysisCache>().Should().NotBeNull();
         provider.GetRequiredService<AnalysisTelemetry>().Should().NotBeNull();

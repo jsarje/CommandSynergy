@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddSingleton<ParquetCardMetadataStore>();
         services.AddSingleton<SearchIndexSnapshotBuilder>();
         services.AddSingleton<ScryfallCardMapper>();
+        services.AddSingleton<CardMetadataBulkImportService>();
         services.AddSingleton<BracketCatalogLoader>();
         services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<BracketCatalogLoader>().Load());
         services.AddSingleton<DeckAnalysisCache>();

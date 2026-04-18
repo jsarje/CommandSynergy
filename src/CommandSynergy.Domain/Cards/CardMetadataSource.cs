@@ -1,11 +1,11 @@
 namespace CommandSynergy.Domain.Cards;
 
 /// <summary>
-/// Describes the origin of a card's locally stored metadata record.
+/// Describes the origin of a card metadata record.
 /// </summary>
 /// <remarks>
 /// Tracking metadata source allows the application to distinguish curated bulk-imported
-/// records from cards resolved on-demand through Scryfall fallback during user interactions.
+/// records from cards resolved through Scryfall during runtime or server-side refresh workflows.
 /// </remarks>
 public enum CardMetadataSource
 {
@@ -16,8 +16,7 @@ public enum CardMetadataSource
     BulkSnapshotImport,
 
     /// <summary>
-    /// Populated by write-through enrichment from a Scryfall fallback triggered during
-    /// a user interaction. These records reduce future external lookups for the same card.
+    /// Resolved through Scryfall during a user interaction.
     /// </summary>
     UserDrivenScryfallEnrichment,
 

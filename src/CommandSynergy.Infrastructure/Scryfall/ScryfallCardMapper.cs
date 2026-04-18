@@ -25,7 +25,13 @@ public sealed class ScryfallCardMapper
     /// <summary>
     /// Maps a Scryfall document to an authoritative card profile.
     /// </summary>
-    public CardProfile MapCardProfile(ScryfallCardDocument document) => new()
+    public CardProfile MapCardProfile(ScryfallCardDocument document) =>
+        MapCardProfile(document, CardMetadataSource.UserDrivenScryfallEnrichment, DateTimeOffset.UtcNow);
+
+    /// <summary>
+    /// Maps a Scryfall document to an authoritative card profile with explicit metadata provenance.
+    /// </summary>
+    public CardProfile MapCardProfile(ScryfallCardDocument document, CardMetadataSource metadataSource, DateTimeOffset? lastSyncedUtc) => new()
     {
         CardId = document.Id,
         OracleId = document.OracleId,
@@ -42,12 +48,12 @@ public sealed class ScryfallCardMapper
             face.TypeLine ?? document.TypeLine ?? string.Empty,
             face.OracleText,
             face.ImageUri,
-            index == 0)).ToArray(),
+            index == 0)).DefaultIfEmpty(new CardFaceProfile("0", document.Name, document.ManaCost, document.TypeLine ?? string.Empty, document.OracleText, document.ImageUri, true)).ToArray(),
         ImageUri = document.ImageUri,
         IsLegalInCommander = !string.Equals(document.CommanderLegality, "not_legal", StringComparison.OrdinalIgnoreCase),
         CommanderEligibilityBasis = DetermineEligibilityBasis(document),
-        MetadataSource = CardMetadataSource.UserDrivenScryfallEnrichment,
-        LastSyncedUtc = DateTimeOffset.UtcNow,
+        MetadataSource = metadataSource,
+        LastSyncedUtc = lastSyncedUtc,
     };
 
     /// <summary>

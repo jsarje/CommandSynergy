@@ -111,6 +111,48 @@ public sealed class ParquetCardMetadataStore
             .Append(newRow)
             .ToArray();
 
+        await ReplaceRowsAsync(
+            snapshotPath,
+            mergedRows,
+            cancellationToken,
+            successLogTemplate: "Upserted card {CardId} into snapshot {SnapshotPath} ({TotalCardCount} total cards)",
+            successLogArgs: [card.CardId, snapshotPath, mergedRows.Length],
+            failureLogTemplate: "Failed to upsert card {CardId} into snapshot {SnapshotPath}",
+            failureLogArgs: [card.CardId, snapshotPath]).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Replaces the local Parquet snapshot with the supplied card set using deterministic id-based semantics.
+    /// </summary>
+    public async Task ReplaceSnapshotAsync(IEnumerable<CardProfile> cards, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(cards);
+
+        var snapshotPath = Path.Combine(options.SnapshotDirectory, options.SnapshotFileName);
+        var rows = cards
+            .GroupBy(card => card.CardId, StringComparer.OrdinalIgnoreCase)
+            .Select(group => MapToRow(group.Last()))
+            .ToArray();
+
+        await ReplaceRowsAsync(
+            snapshotPath,
+            rows,
+            cancellationToken,
+            successLogTemplate: "Replaced metadata snapshot {SnapshotPath} with {TotalCardCount} cards",
+            successLogArgs: [snapshotPath, rows.Length],
+            failureLogTemplate: "Failed to replace metadata snapshot {SnapshotPath}",
+            failureLogArgs: [snapshotPath]).ConfigureAwait(false);
+    }
+
+    private async Task ReplaceRowsAsync(
+        string snapshotPath,
+        IReadOnlyCollection<ParquetCardMetadataRow> rows,
+        CancellationToken cancellationToken,
+        string successLogTemplate,
+        object?[] successLogArgs,
+        string failureLogTemplate,
+        object?[] failureLogArgs)
+    {
         // Write atomically via a temp file to prevent data loss if the process is interrupted.
         var directory = Path.GetDirectoryName(snapshotPath);
         if (!string.IsNullOrEmpty(directory))
@@ -123,16 +165,12 @@ public sealed class ParquetCardMetadataStore
         {
             await using (var writeStream = File.Create(tempPath))
             {
-                await ParquetSerializer.SerializeAsync(mergedRows, writeStream, cancellationToken: cancellationToken).ConfigureAwait(false);
+                await ParquetSerializer.SerializeAsync(rows, writeStream, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             File.Move(tempPath, snapshotPath, overwrite: true);
 
-            logger.LogInformation(
-                "Upserted card {CardId} into snapshot {SnapshotPath} ({TotalCardCount} total cards)",
-                card.CardId,
-                snapshotPath,
-                mergedRows.Length);
+            logger.LogInformation(successLogTemplate, successLogArgs);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -143,7 +181,7 @@ public sealed class ParquetCardMetadataStore
         catch (Exception exception)
         {
             TryDeleteTempFile(tempPath);
-            logger.LogWarning(exception, "Failed to upsert card {CardId} into snapshot {SnapshotPath}", card.CardId, snapshotPath);
+            logger.LogWarning(exception, failureLogTemplate, failureLogArgs);
         }
     }
 

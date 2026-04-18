@@ -94,15 +94,16 @@
   - Allow only legendary creatures with no exceptions: rejected because it would incorrectly reject
     legal text-based commander exceptions and sanctioned pairing mechanics.
 
-## Decision 8: Write through successful Scryfall resolutions into the local Parquet snapshot
+## Decision 8: Refresh the local Parquet snapshot through a separate Scryfall bulk-ingestion workflow
 
-- **Decision**: Persist each successfully resolved Scryfall card result immediately into the local
-  Parquet snapshot using deterministic id-based upsert behavior during normal user interactions.
-- **Rationale**: Immediate write-through best supports the goal of naturally enriching local
-  metadata, reduces repeat Scryfall traffic over time, and keeps the Parquet store closer to the
-  cards users actually touch.
+- **Decision**: Download Scryfall's `oracle_cards` bulk dataset through a dedicated console tool and
+  replace the local Parquet snapshot atomically; keep runtime Scryfall lookups read-only for cards
+  missing from the current snapshot.
+- **Rationale**: Explicit bulk refreshes keep metadata lifecycle operationally visible, avoid
+  request-time file mutations, and still allow the application to degrade gracefully when a card is
+  absent from the current snapshot.
 - **Alternatives considered**:
-  - Batch writes only on shutdown or timer: rejected because abrupt termination would lose learned
-    metadata and delay the cache benefit.
-  - Keep user-driven Scryfall results in memory only: rejected because it would not improve future
-    cold-start behavior or reduce external calls across sessions.
+  - Keep request-time write-through: rejected because it couples user traffic to file mutation,
+    obscures refresh cadence, and complicates snapshot ownership semantics.
+  - Depend only on live Scryfall with no local refresh workflow: rejected because it weakens
+    availability and makes local search/index generation too fragile.

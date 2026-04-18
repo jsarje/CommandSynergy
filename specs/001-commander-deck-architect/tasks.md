@@ -7,6 +7,8 @@
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
+> Implementation note (2026-04-18): runtime Parquet write-through has been replaced by the separate `CommandSynergy.Ingestion` bulk-import workflow. Existing completed tasks referencing write-through capture the original delivery history; current behavior is bulk snapshot replacement plus read-only runtime fallback.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)

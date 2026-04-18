@@ -18,6 +18,7 @@ CommandSynergy.Client/
 CommandSynergy.Domain/
 CommandSynergy.Application/
 CommandSynergy.Infrastructure/
+CommandSynergy.Ingestion/
 
 tests/
 CommandSynergy.Domain.Tests/
@@ -38,7 +39,7 @@ dotnet test src/CommandSynergy.slnx
 
 ## Recent Changes
 - 001-commander-deck-architect: Added .NET 10 / C# 14 + ASP.NET Core Blazor Web App, Interactive Auto render mode, MudBlazor, Parquet.Net, typed HttpClient for Scryfall, xUnit, bUnit, FluentAssertions
-- 001-commander-deck-architect: **Implementation complete** – all 53 tests passing; Clean Architecture layers fully wired; Parquet-backed write-through card metadata (using `long? LastSyncedUtcTicks` for Parquet.Net 5.x compatibility); commander eligibility basis enum; AnalysisPanel component with loading/empty/error/ready states; OWASP review complete (all high-severity issues resolved or waived).
+- 001-commander-deck-architect: **Implementation complete** – all 53 tests passing; Clean Architecture layers fully wired; Parquet-backed card metadata with bulk `oracle_cards` ingestion and read-only runtime fallback (using `long? LastSyncedUtcTicks` for Parquet.Net 5.x compatibility); commander eligibility basis enum; AnalysisPanel component with loading/empty/error/ready states; OWASP review complete (all high-severity issues resolved or waived).
 
 - 001-build-commander-architect: Added Clean Architecture planning for Blazor Interactive Auto, Parquet-backed card metadata, and commander analysis services
 
@@ -46,7 +47,7 @@ dotnet test src/CommandSynergy.slnx
 - **Parquet.Net 5.2.0 compatibility**: Do NOT use `DateTimeOffset?` or `DateTimeOffset` in Parquet row types – use `long?` (UTC ticks) and convert in mapping code.
 - **AnalysisPanel state order**: Check `IsLoading` first, then `HasError`, then `Analysis is null`, then ready. Putting null-check before HasError causes the error state to be invisible when `Analysis` is null.
 - **Atomic Parquet upserts**: Load all rows → filter by CardId → append new row → write to `.tmp` → `File.Move(overwrite: true)`.
-- **Scryfall write-through**: After a successful Scryfall fallback in `CardMetadataQueryService`, call `UpsertCardAsync` in a try/catch – errors are logged as warnings and never thrown to callers.
+- **Bulk snapshot refresh**: Use `CommandSynergy.Ingestion` to download Scryfall `oracle_cards` and replace `cards.parquet` atomically; runtime fallback in `CardMetadataQueryService` is read-only and must not mutate Parquet during user requests.
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

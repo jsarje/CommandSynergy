@@ -164,6 +164,83 @@ public sealed class ScryfallClient
             ? GetCardByIdAsync(cardIdOrName, cancellationToken)
             : GetNamedCardAsync(cardIdOrName, cancellationToken);
     }
+
+    /// <summary>
+    /// Downloads the current oracle-cards bulk dataset from Scryfall.
+    /// </summary>
+    public async Task<ScryfallBulkDownloadResult?> DownloadOracleCardsAsync(CancellationToken cancellationToken = default)
+    {
+        logger.LogDebug("Loading Scryfall bulk-data manifest for oracle_cards");
+
+        try
+        {
+            var manifest = await httpClient.GetFromJsonAsync<ScryfallBulkDataManifest>("bulk-data", cancellationToken)
+                .ConfigureAwait(false);
+
+            var oracleCardsEntry = manifest?.Data.FirstOrDefault(entry =>
+                string.Equals(entry.Type, "oracle_cards", StringComparison.OrdinalIgnoreCase));
+
+            if (oracleCardsEntry is null || string.IsNullOrWhiteSpace(oracleCardsEntry.DownloadUri))
+            {
+                logger.LogWarning("Scryfall bulk-data manifest did not contain an oracle_cards entry");
+                return null;
+            }
+
+            await using var stream = await httpClient.GetStreamAsync(oracleCardsEntry.DownloadUri, cancellationToken).ConfigureAwait(false);
+            var documents = await JsonSerializer.DeserializeAsync<ScryfallCardDocument[]>(stream, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            return new ScryfallBulkDownloadResult(
+                oracleCardsEntry.Type,
+                oracleCardsEntry.DownloadUri,
+                oracleCardsEntry.UpdatedAt,
+                documents ?? Array.Empty<ScryfallCardDocument>());
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning("Timed out while downloading Scryfall oracle_cards bulk data");
+            return null;
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogWarning(exception, "Failed to download Scryfall oracle_cards bulk data");
+            return null;
+        }
+        catch (JsonException exception)
+        {
+            logger.LogWarning(exception, "Received invalid JSON while downloading Scryfall oracle_cards bulk data");
+            return null;
+        }
+    }
+}
+
+/// <summary>
+/// Represents a downloaded Scryfall bulk dataset.
+/// </summary>
+public sealed record ScryfallBulkDownloadResult(string Type, string DownloadUri, DateTimeOffset? UpdatedAt, IReadOnlyList<ScryfallCardDocument> Cards);
+
+/// <summary>
+/// Represents the Scryfall bulk-data manifest.
+/// </summary>
+public sealed record ScryfallBulkDataManifest
+{
+    [JsonPropertyName("data")]
+    public IReadOnlyList<ScryfallBulkDataItem> Data { get; init; } = Array.Empty<ScryfallBulkDataItem>();
+}
+
+/// <summary>
+/// Represents a single Scryfall bulk-data manifest entry.
+/// </summary>
+public sealed record ScryfallBulkDataItem
+{
+    [JsonPropertyName("type")]
+    public required string Type { get; init; }
+
+    [JsonPropertyName("download_uri")]
+    public string? DownloadUri { get; init; }
+
+    [JsonPropertyName("updated_at")]
+    public DateTimeOffset? UpdatedAt { get; init; }
 }
 
 /// <summary>

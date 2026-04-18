@@ -93,7 +93,7 @@ public sealed class CardMetadataQueryServiceTests
     }
 
     [Fact]
-    public async Task GetCardProfilesAsync_resolves_uuid_card_ids_via_scryfall_when_snapshot_is_missing()
+    public async Task GetCardProfilesAsync_resolves_uuid_card_ids_via_scryfall_when_snapshot_is_missing_without_writing_through()
     {
         var metadataDirectory = Path.Combine(Path.GetTempPath(), $"command-synergy-{Guid.NewGuid():N}");
         Directory.CreateDirectory(metadataDirectory);
@@ -135,6 +135,9 @@ public sealed class CardMetadataQueryServiceTests
             response.Should().ContainKey("824b2d73-2151-4e5e-9f05-8f63e2bdcaa9");
             response["824b2d73-2151-4e5e-9f05-8f63e2bdcaa9"].Name.Should().Be("Atraxa, Praetors' Voice");
             response["824b2d73-2151-4e5e-9f05-8f63e2bdcaa9"].IsLegalInCommander.Should().BeTrue();
+
+            var snapshot = await metadataStore.LoadSnapshotAsync();
+            snapshot.Cards.Should().BeEmpty();
         }
         finally
         {

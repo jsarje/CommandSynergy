@@ -49,7 +49,7 @@ public sealed class CardProfile
         CommanderEligibilityBasis is CommanderEligibilityBasis.LegendaryCreature or CommanderEligibilityBasis.OracleTextException;
 
     /// <summary>
-    /// Gets the source of the locally stored metadata record for this card.
+    /// Gets the source of the metadata record for this card.
     /// </summary>
     public CardMetadataSource MetadataSource { get; init; } = CardMetadataSource.Unknown;
 

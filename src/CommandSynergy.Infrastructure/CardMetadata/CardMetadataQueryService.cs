@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace CommandSynergy.Infrastructure.CardMetadata;
 
 /// <summary>
-/// Searches the derived card index and loads authoritative card profiles with Scryfall fallback.
+/// Searches the derived card index and loads authoritative card profiles with read-only Scryfall fallback.
 /// </summary>
 public sealed class CardMetadataQueryService : ICardCatalogGateway
 {
@@ -18,7 +18,7 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
     private readonly ILogger<CardMetadataQueryService> logger;
 
     /// <summary>
-    /// Creates a card catalog gateway backed by local metadata and Scryfall fallback.
+    /// Creates a card catalog gateway backed by local metadata and read-only Scryfall fallback.
     /// </summary>
     public CardMetadataQueryService(
         ParquetCardMetadataStore metadataStore,
@@ -84,21 +84,6 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
                 logger.LogInformation("Resolved missing card profile {CardId} via Scryfall fallback", missingId);
                 var resolvedProfile = scryfallCardMapper.MapCardProfile(scryfallDocument);
                 fromSnapshot[missingId] = resolvedProfile;
-
-                // Write through to the local Parquet snapshot so future lookups resolve locally.
-                // Errors are swallowed here to preserve user work; a warning is emitted instead.
-                try
-                {
-                    await metadataStore.UpsertCardAsync(resolvedProfile, cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    throw;
-                }
-                catch (Exception upsertException)
-                {
-                    logger.LogWarning(upsertException, "Failed to persist Scryfall card {CardId} to local snapshot; continuing without write-through", missingId);
-                }
             }
             else
             {

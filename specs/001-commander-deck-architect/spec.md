@@ -13,7 +13,7 @@ cards."
 
 - Q: Should bracket and Game Changer constraints be enforced as legality rules or treated as non-blocking analysis guidance? → A: Treat them as non-blocking analysis guidance; legal deck validation remains based on official Commander deck-construction rules.
 - Q: What cards should be eligible for commander selection? → A: Allow legendary creatures by default, plus only cards or pairings explicitly permitted by printed Commander text or official Commander mechanics.
-- Q: How should user-driven Scryfall metadata results populate the local Parquet snapshot? → A: Persist each successfully resolved Scryfall card immediately into the local Parquet snapshot using id-based upsert behavior.
+- Q: How should local Parquet metadata be refreshed from Scryfall? → A: Use a separate console tool to download Scryfall's `oracle_cards` bulk dataset and regenerate the local Parquet snapshot; runtime Scryfall fallback stays read-only.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -132,10 +132,10 @@ faces, and confirming the workspace preserves card meaning and analysis context 
   and analysis feedback in sync after each relevant card action.
 - **FR-010**: The system MUST handle unavailable or incomplete card metadata gracefully by showing
   the affected card state, preserving user work, and identifying what could not be evaluated.
-- **FR-010a**: The system MUST build local card metadata over time by upserting successful
-  Scryfall-resolved card results into the local Parquet snapshot during normal user interactions so
-  subsequent searches, validation, and analysis can prefer local metadata and reduce repeat
-  external calls.
+- **FR-010a**: The system MUST provide an explicit server-side metadata refresh workflow that
+  downloads Scryfall's `oracle_cards` bulk dataset and regenerates the local Parquet snapshot so
+  searches, validation, and analysis can prefer local metadata without mutating Parquet during
+  normal user interactions.
 - **FR-011**: The system MUST reserve an explicit extension point for future deck-advice features
   without requiring the first release to deliver full AI-driven recommendations.
 
@@ -187,9 +187,8 @@ faces, and confirming the workspace preserves card meaning and analysis context 
   syncing, and publishing are out of scope.
 - The product can rely on an authoritative external card source and a locally available searchable
   metadata index for supported card information.
-- User-driven Scryfall lookups are allowed to enrich the local Parquet metadata snapshot
-  incrementally through immediate id-based upserts rather than requiring a separate manual import
-  workflow.
+- Local card metadata is refreshed through a separate bulk-import workflow, while user-driven
+  Scryfall lookups remain a read-only runtime fallback for cards missing from the current snapshot.
 - The official commander bracket definition and weighted high-impact list are maintained as updateable
   inputs rather than hard-coded business assumptions.
 - Commander brackets and Game Changers are treated as optional matchmaking and analysis guidance,
