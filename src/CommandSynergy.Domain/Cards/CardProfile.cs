@@ -27,6 +27,10 @@ public sealed class CardProfile
 
     public decimal? SaltScore { get; init; }
 
+    public IReadOnlyDictionary<string, decimal> PlayRateByCommander { get; init; } = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+
+    public decimal? GenericColorStapleRate { get; init; }
+
     public bool IsLegalInCommander { get; init; } = true;
 
     public bool AllowsMultipleCopies { get; init; }

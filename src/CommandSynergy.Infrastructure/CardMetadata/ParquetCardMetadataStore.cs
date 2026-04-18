@@ -70,4 +70,7 @@ public sealed record CardMetadataRecord(
     decimal ManaValue,
     decimal? SaltScore,
     string? ImageUri,
-    bool HasMultipleFaces);
+    bool HasMultipleFaces,
+    string? OracleText = null,
+    IReadOnlyDictionary<string, decimal>? PlayRateByCommander = null,
+    decimal? GenericColorStapleRate = null);

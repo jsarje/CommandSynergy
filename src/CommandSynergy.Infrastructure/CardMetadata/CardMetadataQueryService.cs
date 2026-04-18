@@ -51,9 +51,12 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
                     ManaCost = card.ManaCost,
                     ManaValue = card.ManaValue,
                     TypeLine = card.TypeLine,
+                    OracleText = card.OracleText,
                     ColorIdentity = card.ColorIdentity,
                     ImageUri = card.ImageUri,
                     SaltScore = card.SaltScore,
+                    PlayRateByCommander = card.PlayRateByCommander ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
+                    GenericColorStapleRate = card.GenericColorStapleRate,
                     FaceProfiles = card.HasMultipleFaces
                         ? new[] { new CardFaceProfile("0", card.Name, card.ManaCost, card.TypeLine, null, card.ImageUri, true), new CardFaceProfile("1", card.Name + " Back", null, card.TypeLine, null, card.ImageUri, false) }
                         : new[] { new CardFaceProfile("0", card.Name, card.ManaCost, card.TypeLine, null, card.ImageUri, true) },

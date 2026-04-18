@@ -38,6 +38,7 @@ app.MapRazorComponents<App>()
     .AddAdditionalAssemblies(typeof(CommandSynergy.Client._Imports).Assembly);
 app.MapCardSearchEndpoints();
 app.MapDeckValidationEndpoints();
+app.MapDeckAnalysisEndpoints();
 
 app.Run();
 

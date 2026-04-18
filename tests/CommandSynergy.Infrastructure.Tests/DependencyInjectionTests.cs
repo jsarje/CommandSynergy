@@ -1,6 +1,8 @@
 using CommandSynergy.Application;
+using CommandSynergy.Application.Abstractions;
 using CommandSynergy.Application.Configuration;
 using CommandSynergy.Infrastructure;
+using CommandSynergy.Infrastructure.Analysis;
 using CommandSynergy.Infrastructure.CardMetadata;
 using CommandSynergy.Infrastructure.Scryfall;
 using FluentAssertions;
@@ -39,6 +41,9 @@ public sealed class DependencyInjectionTests
         provider.GetRequiredService<ScryfallClient>().Should().NotBeNull();
         provider.GetRequiredService<ParquetCardMetadataStore>().Should().NotBeNull();
         provider.GetRequiredService<SearchIndexSnapshotBuilder>().Should().NotBeNull();
+        provider.GetRequiredService<DeckAnalysisCache>().Should().NotBeNull();
+        provider.GetRequiredService<AnalysisTelemetry>().Should().NotBeNull();
+        provider.GetRequiredService<IDeckAnalysisService>().Should().NotBeNull();
         provider.GetRequiredService<IHttpClientFactory>().CreateClient().Should().NotBeNull();
 
         var metadataOptions = provider.GetRequiredService<IOptions<CardMetadataOptions>>().Value;

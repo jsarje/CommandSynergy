@@ -79,19 +79,19 @@
 
 ### Tests for User Story 2
 
-- [ ] T025 [P] [US2] Add bracket engine unit tests in tests/CommandSynergy.Domain.Tests/Analysis/BracketEngineTests.cs for weight mapping, factor accumulation, and 1-5 level boundaries
-- [ ] T026 [P] [US2] Add synergy scoring unit tests in tests/CommandSynergy.Application.Tests/Analysis/SynergyScoringServiceTests.cs for commander-specific hits, staple overload detection, and score normalization
-- [ ] T027 [P] [US2] Add application service tests for analysis orchestration in tests/CommandSynergy.Application.Tests/Analysis/DeckAnalysisServiceTests.cs
-- [ ] T028 [P] [US2] Add host integration tests for POST /api/decks/analyze in tests/CommandSynergy.WebUI.Tests/Endpoints/DeckAnalysisEndpointTests.cs
+- [X] T025 [P] [US2] Add bracket engine unit tests in tests/CommandSynergy.Domain.Tests/Analysis/BracketEngineTests.cs for weight mapping, factor accumulation, and 1-5 level boundaries
+- [X] T026 [P] [US2] Add synergy scoring unit tests in tests/CommandSynergy.Application.Tests/Analysis/SynergyScoringServiceTests.cs for commander-specific hits, staple overload detection, and score normalization
+- [X] T027 [P] [US2] Add application service tests for analysis orchestration in tests/CommandSynergy.Application.Tests/Analysis/DeckAnalysisServiceTests.cs
+- [X] T028 [P] [US2] Add host integration tests for POST /api/decks/analyze in tests/CommandSynergy.WebUI.Tests/Endpoints/DeckAnalysisEndpointTests.cs
 
 ### Implementation for User Story 2
 
-- [ ] T029 [P] [US2] Create analysis domain models in src/CommandSynergy.Domain/Analysis/BracketAssessment.cs, src/CommandSynergy.Domain/Analysis/BracketFactor.cs, and src/CommandSynergy.Domain/Analysis/SynergyAssessment.cs
-- [ ] T030 [P] [US2] Create weighted bracket configuration and game changer catalog support in src/CommandSynergy.Application/Analysis/GameChangerCatalog.cs and src/CommandSynergy.Infrastructure/Configuration/BracketCatalogLoader.cs
-- [ ] T031 [US2] Implement bracket calculation service in src/CommandSynergy.Application/Analysis/BracketCalculationService.cs
-- [ ] T032 [US2] Implement synergy scoring service and explanation builder in src/CommandSynergy.Application/Analysis/SynergyScoringService.cs and src/CommandSynergy.Application/Analysis/AnalysisExplanationBuilder.cs
-- [ ] T033 [US2] Implement deck analysis endpoint and orchestration in src/CommandSynergy/Endpoints/DeckAnalysisEndpoints.cs and src/CommandSynergy.Application/Analysis/DeckAnalysisService.cs
-- [ ] T034 [US2] Add analysis caching, structured logging, and stale-metadata recovery handling in src/CommandSynergy.Infrastructure/Analysis/DeckAnalysisCache.cs and src/CommandSynergy.Infrastructure/Analysis/AnalysisTelemetry.cs
+- [X] T029 [P] [US2] Create analysis domain models in src/CommandSynergy.Domain/Analysis/BracketAssessment.cs, src/CommandSynergy.Domain/Analysis/BracketFactor.cs, and src/CommandSynergy.Domain/Analysis/SynergyAssessment.cs
+- [X] T030 [P] [US2] Create weighted bracket configuration and game changer catalog support in src/CommandSynergy.Application/Analysis/GameChangerCatalog.cs and src/CommandSynergy.Infrastructure/Configuration/BracketCatalogLoader.cs
+- [X] T031 [US2] Implement bracket calculation service in src/CommandSynergy.Application/Analysis/BracketCalculationService.cs
+- [X] T032 [US2] Implement synergy scoring service and explanation builder in src/CommandSynergy.Application/Analysis/SynergyScoringService.cs and src/CommandSynergy.Application/Analysis/AnalysisExplanationBuilder.cs
+- [X] T033 [US2] Implement deck analysis endpoint and orchestration in src/CommandSynergy/Endpoints/DeckAnalysisEndpoints.cs and src/CommandSynergy.Application/Analysis/DeckAnalysisService.cs
+- [X] T034 [US2] Add analysis caching, structured logging, and stale-metadata recovery handling in src/CommandSynergy.Infrastructure/Analysis/DeckAnalysisCache.cs and src/CommandSynergy.Infrastructure/Analysis/AnalysisTelemetry.cs
 
 **Checkpoint**: At this point, User Stories 1 and 2 should both work independently with authoritative legality and analysis services
 

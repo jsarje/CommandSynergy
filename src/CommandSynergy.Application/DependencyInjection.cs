@@ -1,7 +1,9 @@
 using CommandSynergy.Application.Abstractions;
+using CommandSynergy.Application.Analysis;
 using CommandSynergy.Application.Configuration;
 using CommandSynergy.Application.Cards;
 using CommandSynergy.Application.Decks;
+using CommandSynergy.Domain.Analysis;
 using CommandSynergy.Domain.Rules;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,8 +31,13 @@ public static class DependencyInjection
             .ValidateDataAnnotations();
 
         services.AddSingleton<CommanderRules>();
+        services.AddSingleton<BracketEngine>();
+        services.AddSingleton<AnalysisExplanationBuilder>();
         services.AddScoped<CardSearchService>();
         services.AddScoped<DeckValidationService>();
+        services.AddScoped<BracketCalculationService>();
+        services.AddScoped<SynergyScoringService>();
+        services.AddScoped<DeckAnalysisService>();
 
         return services;
     }
