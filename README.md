@@ -30,3 +30,17 @@ dotnet test src/CommandSynergy.slnx
 - External Scryfall access is wrapped in a typed `HttpClient` with standard .NET resilience handlers and safe fallback behavior.
 - Local Parquet metadata remains authoritative on the server, while the client receives a derived lightweight search artifact.
 - Regression coverage includes domain rules, endpoint contracts, UI behavior, security-focused endpoint validation, and focused performance budget checks.
+
+## Security Notes (OWASP Review)
+
+The following OWASP Top 10 controls were reviewed as part of implementation sign-off:
+
+| Control | Finding | Disposition |
+|---------|---------|-------------|
+| A01 Broken Access Control | No auth required; local-only tool with no user-facing access boundaries | Waived – scope is a developer-local application |
+| A03 Injection | Scryfall query strings are escaped via `Uri.EscapeDataString`; no SQL or shell execution | Satisfied |
+| A05 Security Misconfiguration | Scryfall `BaseAddress` is fixed in DI; no user-supplied URLs accepted (SSRF prevention) | Satisfied |
+| A08 Software and Data Integrity | Parquet writes use `.tmp` + `File.Move(overwrite:true)` for atomic snapshot replacement | Satisfied |
+| A09 Security Logging and Monitoring | All Scryfall and metadata error paths log at `Warning` with structured message templates | Satisfied |
+
+No high-severity issues remain open.

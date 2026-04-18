@@ -17,11 +17,11 @@
 
 **Purpose**: Align the solution, package references, and baseline test projects with the planned Clean Architecture implementation.
 
-- [ ] T001 Update solution entries in src/CommandSynergy.slnx for the Domain, Application, Infrastructure, and test projects required by the feature plan
-- [ ] T002 [P] Align src/CommandSynergy.Domain/CommandSynergy.Domain.csproj with net10.0, nullable, analyzers, and domain-only dependencies
-- [ ] T003 [P] Align src/CommandSynergy.Application/CommandSynergy.Application.csproj with references to src/CommandSynergy.Domain/CommandSynergy.Domain.csproj and required package baselines
-- [ ] T004 [P] Align src/CommandSynergy.Infrastructure/CommandSynergy.Infrastructure.csproj with references to src/CommandSynergy.Application/CommandSynergy.Application.csproj, src/CommandSynergy.Domain/CommandSynergy.Domain.csproj, and Parquet.Net/System.Net.Http.Json packages
-- [ ] T005 [P] Align tests/CommandSynergy.Domain.Tests/CommandSynergy.Domain.Tests.csproj, tests/CommandSynergy.Application.Tests/CommandSynergy.Application.Tests.csproj, tests/CommandSynergy.Infrastructure.Tests/CommandSynergy.Infrastructure.Tests.csproj, and tests/CommandSynergy.WebUI.Tests/CommandSynergy.WebUI.Tests.csproj with xUnit, bUnit, and FluentAssertions baselines
+- [x] T001 Update solution entries in src/CommandSynergy.slnx for the Domain, Application, Infrastructure, and test projects required by the feature plan
+- [x] T002 [P] Align src/CommandSynergy.Domain/CommandSynergy.Domain.csproj with net10.0, nullable, analyzers, and domain-only dependencies
+- [x] T003 [P] Align src/CommandSynergy.Application/CommandSynergy.Application.csproj with references to src/CommandSynergy.Domain/CommandSynergy.Domain.csproj and required package baselines
+- [x] T004 [P] Align src/CommandSynergy.Infrastructure/CommandSynergy.Infrastructure.csproj with references to src/CommandSynergy.Application/CommandSynergy.Application.csproj, src/CommandSynergy.Domain/CommandSynergy.Domain.csproj, and Parquet.Net/System.Net.Http.Json packages
+- [x] T005 [P] Align tests/CommandSynergy.Domain.Tests/CommandSynergy.Domain.Tests.csproj, tests/CommandSynergy.Application.Tests/CommandSynergy.Application.Tests.csproj, tests/CommandSynergy.Infrastructure.Tests/CommandSynergy.Infrastructure.Tests.csproj, and tests/CommandSynergy.WebUI.Tests/CommandSynergy.WebUI.Tests.csproj with xUnit, bUnit, and FluentAssertions baselines
 
 ---
 
@@ -31,13 +31,13 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Create and align shared deck workspace DTO contracts in src/CommandSynergy.Application/Contracts/DeckWorkspaceContracts.cs with specs/001-commander-deck-architect/contracts/deck-workspace-api.yaml
-- [ ] T007 [P] Create and validate metadata and bracket option models in src/CommandSynergy.Application/Configuration/CardMetadataOptions.cs and src/CommandSynergy.Application/Configuration/BracketOptions.cs
-- [ ] T008 [P] Create application abstractions in src/CommandSynergy.Application/Abstractions/ICardSearchService.cs, src/CommandSynergy.Application/Abstractions/IDeckValidationService.cs, src/CommandSynergy.Application/Abstractions/IDeckAnalysisService.cs, and src/CommandSynergy.Application/Abstractions/IDeckAdviceService.cs
-- [ ] T009 [P] Implement typed Scryfall client scaffolding with resiliency and validation in src/CommandSynergy.Infrastructure/Scryfall/ScryfallClient.cs and src/CommandSynergy.Infrastructure/Scryfall/ScryfallServiceCollectionExtensions.cs
-- [ ] T010 Implement Parquet snapshot loading, mutation scaffolding, and derived search-index generation baselines in src/CommandSynergy.Infrastructure/CardMetadata/ParquetCardMetadataStore.cs and src/CommandSynergy.Infrastructure/CardMetadata/SearchIndexSnapshotBuilder.cs
-- [ ] T011 Implement application and infrastructure dependency registration in src/CommandSynergy.Application/DependencyInjection.cs, src/CommandSynergy.Infrastructure/DependencyInjection.cs, and src/CommandSynergy/Program.cs
-- [ ] T012 Create foundational integration coverage for DI wiring, typed HTTP registration, Parquet store registration, and contract serialization in tests/CommandSynergy.Infrastructure.Tests/DependencyInjectionTests.cs and tests/CommandSynergy.WebUI.Tests/ContractSerializationTests.cs
+- [x] T006 Create and align shared deck workspace DTO contracts in src/CommandSynergy.Application/Contracts/DeckWorkspaceContracts.cs with specs/001-commander-deck-architect/contracts/deck-workspace-api.yaml
+- [x] T007 [P] Create and validate metadata and bracket option models in src/CommandSynergy.Application/Configuration/CardMetadataOptions.cs and src/CommandSynergy.Application/Configuration/BracketOptions.cs
+- [x] T008 [P] Create application abstractions in src/CommandSynergy.Application/Abstractions/ICardSearchService.cs, src/CommandSynergy.Application/Abstractions/IDeckValidationService.cs, src/CommandSynergy.Application/Abstractions/IDeckAnalysisService.cs, and src/CommandSynergy.Application/Abstractions/IDeckAdviceService.cs
+- [x] T009 [P] Implement typed Scryfall client scaffolding with resiliency and validation in src/CommandSynergy.Infrastructure/Scryfall/ScryfallClient.cs and src/CommandSynergy.Infrastructure/Scryfall/ScryfallServiceCollectionExtensions.cs
+- [x] T010 Implement Parquet snapshot loading, mutation scaffolding, and derived search-index generation baselines in src/CommandSynergy.Infrastructure/CardMetadata/ParquetCardMetadataStore.cs and src/CommandSynergy.Infrastructure/CardMetadata/SearchIndexSnapshotBuilder.cs
+- [x] T011 Implement application and infrastructure dependency registration in src/CommandSynergy.Application/DependencyInjection.cs, src/CommandSynergy.Infrastructure/DependencyInjection.cs, and src/CommandSynergy/Program.cs
+- [x] T012 Create foundational integration coverage for DI wiring, typed HTTP registration, Parquet store registration, and contract serialization in tests/CommandSynergy.Infrastructure.Tests/DependencyInjectionTests.cs and tests/CommandSynergy.WebUI.Tests/ContractSerializationTests.cs
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in priority order
 
@@ -51,23 +51,23 @@
 
 ### Tests for User Story 1
 
-- [ ] T013 [P] [US1] Add commander rules unit tests for commander eligibility, 100-card validation, singleton, color identity, companion, and MDFC handling in tests/CommandSynergy.Domain.Tests/Rules/CommanderRulesTests.cs
-- [ ] T014 [P] [US1] Add deck aggregate unit tests for commander and companion selection invariants in tests/CommandSynergy.Domain.Tests/Decks/DeckAggregateTests.cs
-- [ ] T015 [P] [US1] Add application service tests for commander-aware search and deck validation orchestration in tests/CommandSynergy.Application.Tests/Cards/CardSearchServiceTests.cs and tests/CommandSynergy.Application.Tests/Decks/DeckValidationServiceTests.cs
-- [ ] T016 [P] [US1] Add infrastructure tests for Parquet snapshot upserts and Scryfall write-through behavior in tests/CommandSynergy.Infrastructure.Tests/CardMetadata/CardMetadataQueryServiceTests.cs and tests/CommandSynergy.Infrastructure.Tests/CardMetadata/ParquetCardMetadataStoreTests.cs
-- [ ] T017 [P] [US1] Add host and component tests for commander selection rejection and validation endpoint feedback in tests/CommandSynergy.WebUI.Tests/Endpoints/CardSearchEndpointTests.cs, tests/CommandSynergy.WebUI.Tests/Endpoints/DeckValidationEndpointTests.cs, and tests/CommandSynergy.WebUI.Tests/Components/DeckWorkspaceStateTests.cs
+- [x] T013 [P] [US1] Add commander rules unit tests for commander eligibility, 100-card validation, singleton, color identity, companion, and MDFC handling in tests/CommandSynergy.Domain.Tests/Rules/CommanderRulesTests.cs
+- [x] T014 [P] [US1] Add deck aggregate unit tests for commander and companion selection invariants in tests/CommandSynergy.Domain.Tests/Decks/DeckAggregateTests.cs
+- [x] T015 [P] [US1] Add application service tests for commander-aware search and deck validation orchestration in tests/CommandSynergy.Application.Tests/Cards/CardSearchServiceTests.cs and tests/CommandSynergy.Application.Tests/Decks/DeckValidationServiceTests.cs
+- [x] T016 [P] [US1] Add infrastructure tests for Parquet snapshot upserts and Scryfall write-through behavior in tests/CommandSynergy.Infrastructure.Tests/CardMetadata/CardMetadataQueryServiceTests.cs and tests/CommandSynergy.Infrastructure.Tests/CardMetadata/ParquetCardMetadataStoreTests.cs
+- [x] T017 [P] [US1] Add host and component tests for commander selection rejection and validation endpoint feedback in tests/CommandSynergy.WebUI.Tests/Endpoints/CardSearchEndpointTests.cs, tests/CommandSynergy.WebUI.Tests/Endpoints/DeckValidationEndpointTests.cs, and tests/CommandSynergy.WebUI.Tests/Components/DeckWorkspaceStateTests.cs
 
 ### Implementation for User Story 1
 
-- [ ] T018 [P] [US1] Extend card metadata models with commander eligibility and local-source fields in src/CommandSynergy.Domain/Cards/CardProfile.cs and src/CommandSynergy.Domain/Cards/CommanderEligibilityBasis.cs
-- [ ] T019 [P] [US1] Update deck aggregate and entry behaviors for stricter commander and companion selection invariants in src/CommandSynergy.Domain/Decks/Deck.cs and src/CommandSynergy.Domain/Decks/DeckEntry.cs
-- [ ] T020 [P] [US1] Extend validation result models for commander-selection findings in src/CommandSynergy.Domain/Rules/ValidationFinding.cs and src/CommandSynergy.Domain/Rules/DeckValidationResult.cs
-- [ ] T021 [US1] Implement official commander eligibility and exception-aware legality rules in src/CommandSynergy.Domain/Rules/CommanderRules.cs
-- [ ] T022 [US1] Implement commander-aware search and deck validation orchestration in src/CommandSynergy.Application/Cards/CardSearchService.cs and src/CommandSynergy.Application/Decks/DeckValidationService.cs
-- [ ] T023 [US1] Implement Scryfall-to-domain commander metadata mapping and id-based Parquet upsert behavior in src/CommandSynergy.Infrastructure/Scryfall/ScryfallCardMapper.cs, src/CommandSynergy.Infrastructure/CardMetadata/ParquetCardMetadataStore.cs, and src/CommandSynergy.Infrastructure/CardMetadata/CardMetadataQueryService.cs
-- [ ] T024 [US1] Preserve existing card-search and deck-validation contract shapes while implementing commander-eligibility enforcement in src/CommandSynergy.Application/Contracts/DeckWorkspaceContracts.cs, src/CommandSynergy/Endpoints/CardSearchEndpoints.cs, and src/CommandSynergy/Endpoints/DeckValidationEndpoints.cs
-- [ ] T025 [US1] Implement commander-selection loading, empty, validation, and recovery states in src/CommandSynergy.Application/Decks/DeckWorkspaceStateFactory.cs, src/CommandSynergy.Client/Services/CardSearchIndexClient.cs, and src/CommandSynergy.Client/Services/DeckWorkspaceClient.cs
-- [ ] T026 [US1] Add structured logging, recovery handling, and performance instrumentation for local metadata enrichment in src/CommandSynergy.Infrastructure/Observability/CardSearchLoggingDecorator.cs and src/CommandSynergy.Infrastructure/Observability/DeckValidationLoggingDecorator.cs
+- [x] T018 [P] [US1] Extend card metadata models with commander eligibility and local-source fields in src/CommandSynergy.Domain/Cards/CardProfile.cs and src/CommandSynergy.Domain/Cards/CommanderEligibilityBasis.cs
+- [x] T019 [P] [US1] Update deck aggregate and entry behaviors for stricter commander and companion selection invariants in src/CommandSynergy.Domain/Decks/Deck.cs and src/CommandSynergy.Domain/Decks/DeckEntry.cs
+- [x] T020 [P] [US1] Extend validation result models for commander-selection findings in src/CommandSynergy.Domain/Rules/ValidationFinding.cs and src/CommandSynergy.Domain/Rules/DeckValidationResult.cs
+- [x] T021 [US1] Implement official commander eligibility and exception-aware legality rules in src/CommandSynergy.Domain/Rules/CommanderRules.cs
+- [x] T022 [US1] Implement commander-aware search and deck validation orchestration in src/CommandSynergy.Application/Cards/CardSearchService.cs and src/CommandSynergy.Application/Decks/DeckValidationService.cs
+- [x] T023 [US1] Implement Scryfall-to-domain commander metadata mapping and id-based Parquet upsert behavior in src/CommandSynergy.Infrastructure/Scryfall/ScryfallCardMapper.cs, src/CommandSynergy.Infrastructure/CardMetadata/ParquetCardMetadataStore.cs, and src/CommandSynergy.Infrastructure/CardMetadata/CardMetadataQueryService.cs
+- [x] T024 [US1] Preserve existing card-search and deck-validation contract shapes while implementing commander-eligibility enforcement in src/CommandSynergy.Application/Contracts/DeckWorkspaceContracts.cs, src/CommandSynergy/Endpoints/CardSearchEndpoints.cs, and src/CommandSynergy/Endpoints/DeckValidationEndpoints.cs
+- [x] T025 [US1] Implement commander-selection loading, empty, validation, and recovery states in src/CommandSynergy.Application/Decks/DeckWorkspaceStateFactory.cs, src/CommandSynergy.Client/Services/CardSearchIndexClient.cs, and src/CommandSynergy.Client/Services/DeckWorkspaceClient.cs
+- [x] T026 [US1] Add structured logging, recovery handling, and performance instrumentation for local metadata enrichment in src/CommandSynergy.Infrastructure/Observability/CardSearchLoggingDecorator.cs and src/CommandSynergy.Infrastructure/Observability/DeckValidationLoggingDecorator.cs
 
 **Checkpoint**: User Story 1 should be fully functional and testable independently as the MVP
 
@@ -81,21 +81,21 @@
 
 ### Tests for User Story 2
 
-- [ ] T027 [P] [US2] Add bracket engine unit tests for weight mapping, factor accumulation, and bracket boundaries in tests/CommandSynergy.Domain.Tests/Analysis/BracketEngineTests.cs
-- [ ] T028 [P] [US2] Add synergy scoring unit tests for commander-specific hits, staple overload detection, and score normalization in tests/CommandSynergy.Application.Tests/Analysis/SynergyScoringServiceTests.cs
-- [ ] T029 [P] [US2] Add application service tests for analysis orchestration and missing-metadata handling in tests/CommandSynergy.Application.Tests/Analysis/DeckAnalysisServiceTests.cs
-- [ ] T030 [P] [US2] Add host integration tests for POST /api/decks/analyze in tests/CommandSynergy.WebUI.Tests/Endpoints/DeckAnalysisEndpointTests.cs
-- [ ] T030a [P] [US2] Add bUnit tests for analysis loading, empty, error, and recovery states in tests/CommandSynergy.WebUI.Tests/Components/DeckWorkspaceStateTests.cs and tests/CommandSynergy.WebUI.Tests/Components/AnalysisPanelTests.cs
+- [x] T027 [P] [US2] Add bracket engine unit tests for weight mapping, factor accumulation, and bracket boundaries in tests/CommandSynergy.Domain.Tests/Analysis/BracketEngineTests.cs
+- [x] T028 [P] [US2] Add synergy scoring unit tests for commander-specific hits, staple overload detection, and score normalization in tests/CommandSynergy.Application.Tests/Analysis/SynergyScoringServiceTests.cs
+- [x] T029 [P] [US2] Add application service tests for analysis orchestration and missing-metadata handling in tests/CommandSynergy.Application.Tests/Analysis/DeckAnalysisServiceTests.cs
+- [x] T030 [P] [US2] Add host integration tests for POST /api/decks/analyze in tests/CommandSynergy.WebUI.Tests/Endpoints/DeckAnalysisEndpointTests.cs
+- [x] T030a [P] [US2] Add bUnit tests for analysis loading, empty, error, and recovery states in tests/CommandSynergy.WebUI.Tests/Components/DeckWorkspaceStateTests.cs and tests/CommandSynergy.WebUI.Tests/Components/AnalysisPanelTests.cs
 
 ### Implementation for User Story 2
 
-- [ ] T031 [P] [US2] Create and align analysis domain models in src/CommandSynergy.Domain/Analysis/BracketAssessment.cs, src/CommandSynergy.Domain/Analysis/BracketFactor.cs, and src/CommandSynergy.Domain/Analysis/SynergyAssessment.cs
-- [ ] T032 [P] [US2] Implement weighted bracket configuration and game changer catalog support in src/CommandSynergy.Application/Analysis/GameChangerCatalog.cs and src/CommandSynergy.Infrastructure/Configuration/BracketCatalogLoader.cs
-- [ ] T033 [US2] Implement bracket calculation service with non-blocking Game Changer guidance in src/CommandSynergy.Application/Analysis/BracketCalculationService.cs
-- [ ] T034 [US2] Implement synergy scoring and explanation generation in src/CommandSynergy.Application/Analysis/SynergyScoringService.cs and src/CommandSynergy.Application/Analysis/AnalysisExplanationBuilder.cs
-- [ ] T035 [US2] Implement deck analysis orchestration and endpoint wiring in src/CommandSynergy.Application/Analysis/DeckAnalysisService.cs and src/CommandSynergy/Endpoints/DeckAnalysisEndpoints.cs
-- [ ] T035a [US2] Implement user-facing analysis loading, empty, error, and recovery states in src/CommandSynergy/Components/Decks/DeckWorkspace.razor, src/CommandSynergy/Components/Decks/DeckWorkspaceViewModel.cs, and src/CommandSynergy/Components/Decks/AnalysisPanel.razor
-- [ ] T036 [US2] Add analysis caching, telemetry, and stale-metadata recovery handling in src/CommandSynergy.Infrastructure/Analysis/DeckAnalysisCache.cs and src/CommandSynergy.Infrastructure/Analysis/AnalysisTelemetry.cs
+- [x] T031 [P] [US2] Create and align analysis domain models in src/CommandSynergy.Domain/Analysis/BracketAssessment.cs, src/CommandSynergy.Domain/Analysis/BracketFactor.cs, and src/CommandSynergy.Domain/Analysis/SynergyAssessment.cs
+- [x] T032 [P] [US2] Implement weighted bracket configuration and game changer catalog support in src/CommandSynergy.Application/Analysis/GameChangerCatalog.cs and src/CommandSynergy.Infrastructure/Configuration/BracketCatalogLoader.cs
+- [x] T033 [US2] Implement bracket calculation service with non-blocking Game Changer guidance in src/CommandSynergy.Application/Analysis/BracketCalculationService.cs
+- [x] T034 [US2] Implement synergy scoring and explanation generation in src/CommandSynergy.Application/Analysis/SynergyScoringService.cs and src/CommandSynergy.Application/Analysis/AnalysisExplanationBuilder.cs
+- [x] T035 [US2] Implement deck analysis orchestration and endpoint wiring in src/CommandSynergy.Application/Analysis/DeckAnalysisService.cs and src/CommandSynergy/Endpoints/DeckAnalysisEndpoints.cs
+- [x] T035a [US2] Implement user-facing analysis loading, empty, error, and recovery states in src/CommandSynergy/Components/Decks/DeckWorkspace.razor, src/CommandSynergy/Components/Decks/DeckWorkspaceViewModel.cs, and src/CommandSynergy/Components/Decks/AnalysisPanel.razor
+- [x] T036 [US2] Add analysis caching, telemetry, and stale-metadata recovery handling in src/CommandSynergy.Infrastructure/Analysis/DeckAnalysisCache.cs and src/CommandSynergy.Infrastructure/Analysis/AnalysisTelemetry.cs
 
 **Checkpoint**: User Stories 1 and 2 should both work independently with authoritative legality and analysis services
 
@@ -109,18 +109,18 @@
 
 ### Tests for User Story 3
 
-- [ ] T037 [P] [US3] Add bUnit tests for workspace loading, empty, error, and invalid-commander states in tests/CommandSynergy.WebUI.Tests/Components/DeckWorkspaceStateTests.cs
-- [ ] T038 [P] [US3] Add bUnit tests for pile drag-and-drop behavior in tests/CommandSynergy.WebUI.Tests/Components/PileBoardTests.cs
-- [ ] T039 [P] [US3] Add bUnit tests for commander card inspection, alternate-face handling, and salt badge rendering in tests/CommandSynergy.WebUI.Tests/Components/CommanderCardTests.cs
+- [x] T037 [P] [US3] Add bUnit tests for workspace loading, empty, error, and invalid-commander states in tests/CommandSynergy.WebUI.Tests/Components/DeckWorkspaceStateTests.cs
+- [x] T038 [P] [US3] Add bUnit tests for pile drag-and-drop behavior in tests/CommandSynergy.WebUI.Tests/Components/PileBoardTests.cs
+- [x] T039 [P] [US3] Add bUnit tests for commander card inspection, alternate-face handling, and salt badge rendering in tests/CommandSynergy.WebUI.Tests/Components/CommanderCardTests.cs
 
 ### Implementation for User Story 3
 
-- [ ] T040 [P] [US3] Register MudBlazor and client workspace services needed for synchronized deck interactions in src/CommandSynergy/Program.cs and src/CommandSynergy.Client/Program.cs
-- [ ] T041 [P] [US3] Implement workspace shell and page composition for commander selection and deck editing in src/CommandSynergy/Components/Pages/Home.razor and src/CommandSynergy/Components/Pages/Home.razor.cs
-- [ ] T042 [P] [US3] Implement drag-and-drop pile workspace components with touch support in src/CommandSynergy/Components/Decks/DeckWorkspace.razor and src/CommandSynergy/Components/Decks/PileBoard.razor
-- [ ] T043 [P] [US3] Implement commander card display with alternate-face handling and salt badge behavior in src/CommandSynergy/Components/Cards/CommanderCard.razor and src/CommandSynergy/Components/Cards/CommanderCard.razor.css
-- [ ] T044 [US3] Implement client search-index loading and commander-safe deck synchronization in src/CommandSynergy.Client/Services/CardSearchIndexClient.cs and src/CommandSynergy.Client/Services/DeckWorkspaceClient.cs
-- [ ] T045 [US3] Connect workspace interactions to validation and analysis refresh flows, including invalid commander recovery UX, in src/CommandSynergy/Components/Decks/DeckWorkspaceViewModel.cs
+- [x] T040 [P] [US3] Register MudBlazor and client workspace services needed for synchronized deck interactions in src/CommandSynergy/Program.cs and src/CommandSynergy.Client/Program.cs
+- [x] T041 [P] [US3] Implement workspace shell and page composition for commander selection and deck editing in src/CommandSynergy/Components/Pages/Home.razor and src/CommandSynergy/Components/Pages/Home.razor.cs
+- [x] T042 [P] [US3] Implement drag-and-drop pile workspace components with touch support in src/CommandSynergy/Components/Decks/DeckWorkspace.razor and src/CommandSynergy/Components/Decks/PileBoard.razor
+- [x] T043 [P] [US3] Implement commander card display with alternate-face handling and salt badge behavior in src/CommandSynergy/Components/Cards/CommanderCard.razor and src/CommandSynergy/Components/Cards/CommanderCard.razor.css
+- [x] T044 [US3] Implement client search-index loading and commander-safe deck synchronization in src/CommandSynergy.Client/Services/CardSearchIndexClient.cs and src/CommandSynergy.Client/Services/DeckWorkspaceClient.cs
+- [x] T045 [US3] Connect workspace interactions to validation and analysis refresh flows, including invalid commander recovery UX, in src/CommandSynergy/Components/Decks/DeckWorkspaceViewModel.cs
 
 **Checkpoint**: All user stories should now be independently functional with the interactive workspace layered on top of proven domain and analysis services
 
@@ -130,14 +130,14 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T046 [P] Update feature documentation and architecture notes in README.md and specs/001-commander-deck-architect/quickstart.md
-- [ ] T047 Review code cleanup and namespace consistency across src/CommandSynergy.Domain, src/CommandSynergy.Application, and src/CommandSynergy.Infrastructure
-- [ ] T048 Validate search, validation, analysis, and metadata-enrichment performance budgets in tests/CommandSynergy.Infrastructure.Tests/Performance/CardSearchPerformanceTests.cs and tests/CommandSynergy.Application.Tests/Performance/DeckAnalysisPerformanceTests.cs
-- [ ] T049 [P] Add automated regression coverage for contract compatibility and OWASP-relevant failure cases in tests/CommandSynergy.WebUI.Tests/Security/DeckWorkspaceSecurityTests.cs
-- [ ] T049a Perform an explicit OWASP-focused security review covering external Scryfall communication, Parquet snapshot persistence, request validation, and audit visibility; record findings and resolve or waive all high-severity issues before implementation sign-off
-- [ ] T050 Review structured logging, timeout, retry, fallback, and file-write behavior across src/CommandSynergy.Infrastructure/Scryfall and src/CommandSynergy.Infrastructure/CardMetadata
-- [ ] T051 Validate the quickstart workflow and representative metadata-enrichment path in specs/001-commander-deck-architect/quickstart.md
-- [ ] T052 [P] Refresh agent context and repository guidance in .github/copilot-instructions.md after implementation changes land
+- [x] T046 [P] Update feature documentation and architecture notes in README.md and specs/001-commander-deck-architect/quickstart.md
+- [x] T047 Review code cleanup and namespace consistency across src/CommandSynergy.Domain, src/CommandSynergy.Application, and src/CommandSynergy.Infrastructure
+- [x] T048 Validate search, validation, analysis, and metadata-enrichment performance budgets in tests/CommandSynergy.Infrastructure.Tests/Performance/CardSearchPerformanceTests.cs and tests/CommandSynergy.Application.Tests/Performance/DeckAnalysisPerformanceTests.cs
+- [x] T049 [P] Add automated regression coverage for contract compatibility and OWASP-relevant failure cases in tests/CommandSynergy.WebUI.Tests/Security/DeckWorkspaceSecurityTests.cs
+- [x] T049a Perform an explicit OWASP-focused security review covering external Scryfall communication, Parquet snapshot persistence, request validation, and audit visibility; record findings and resolve or waive all high-severity issues before implementation sign-off
+- [x] T050 Review structured logging, timeout, retry, fallback, and file-write behavior across src/CommandSynergy.Infrastructure/Scryfall and src/CommandSynergy.Infrastructure/CardMetadata
+- [x] T051 Validate the quickstart workflow and representative metadata-enrichment path in specs/001-commander-deck-architect/quickstart.md
+- [x] T052 [P] Refresh agent context and repository guidance in .github/copilot-instructions.md after implementation changes land
 
 ---
 

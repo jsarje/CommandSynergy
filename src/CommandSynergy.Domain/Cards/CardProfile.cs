@@ -37,6 +37,27 @@ public sealed class CardProfile
 
     public string? CompanionRequirementCode { get; init; }
 
+    /// <summary>
+    /// Gets the basis under which this card is eligible to serve as a commander.
+    /// </summary>
+    public CommanderEligibilityBasis CommanderEligibilityBasis { get; init; } = CommanderEligibilityBasis.Unknown;
+
+    /// <summary>
+    /// Gets whether this card is eligible to be selected as a commander under official Commander rules.
+    /// </summary>
+    public bool IsCommanderEligible =>
+        CommanderEligibilityBasis is CommanderEligibilityBasis.LegendaryCreature or CommanderEligibilityBasis.OracleTextException;
+
+    /// <summary>
+    /// Gets the source of the locally stored metadata record for this card.
+    /// </summary>
+    public CardMetadataSource MetadataSource { get; init; } = CardMetadataSource.Unknown;
+
+    /// <summary>
+    /// Gets the UTC timestamp of the most recent local metadata sync for this card.
+    /// </summary>
+    public DateTimeOffset? LastSyncedUtc { get; init; }
+
     public bool IsBasicLand => TypeLine.Contains("Basic", StringComparison.OrdinalIgnoreCase) && TypeLine.Contains("Land", StringComparison.OrdinalIgnoreCase);
 
     public bool IsLand => TypeLine.Contains("Land", StringComparison.OrdinalIgnoreCase);

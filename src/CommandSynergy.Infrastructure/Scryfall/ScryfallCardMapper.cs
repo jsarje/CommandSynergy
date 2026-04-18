@@ -45,5 +45,35 @@ public sealed class ScryfallCardMapper
             index == 0)).ToArray(),
         ImageUri = document.ImageUri,
         IsLegalInCommander = !string.Equals(document.CommanderLegality, "not_legal", StringComparison.OrdinalIgnoreCase),
+        CommanderEligibilityBasis = DetermineEligibilityBasis(document),
+        MetadataSource = CardMetadataSource.UserDrivenScryfallEnrichment,
+        LastSyncedUtc = DateTimeOffset.UtcNow,
     };
+
+    /// <summary>
+    /// Determines the commander eligibility basis for a Scryfall document.
+    /// </summary>
+    private static CommanderEligibilityBasis DetermineEligibilityBasis(ScryfallCardDocument document)
+    {
+        // Cards explicitly marked as not legal in Commander are never eligible.
+        if (string.Equals(document.CommanderLegality, "not_legal", StringComparison.OrdinalIgnoreCase))
+        {
+            return CommanderEligibilityBasis.NotEligible;
+        }
+
+        var typeLine = document.TypeLine ?? string.Empty;
+        if (typeLine.Contains("Legendary", StringComparison.OrdinalIgnoreCase)
+            && typeLine.Contains("Creature", StringComparison.OrdinalIgnoreCase))
+        {
+            return CommanderEligibilityBasis.LegendaryCreature;
+        }
+
+        var oracleText = document.OracleText ?? string.Empty;
+        if (oracleText.Contains("can be your commander", StringComparison.OrdinalIgnoreCase))
+        {
+            return CommanderEligibilityBasis.OracleTextException;
+        }
+
+        return CommanderEligibilityBasis.Unknown;
+    }
 }

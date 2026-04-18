@@ -1,6 +1,6 @@
 # Feature Specification: Commander Synergy Sphere
 
-**Feature Branch**: `[001-build-commander-architect]`  
+**Feature Branch**: `[001-commander-deck-architect]`  
 **Created**: 2026-04-17  
 **Status**: Draft  
 **Input**: User description: "Create a commander deck architect that validates deck legality,

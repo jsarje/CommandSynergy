@@ -82,7 +82,23 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
             if (scryfallDocument is not null)
             {
                 logger.LogInformation("Resolved missing card profile {CardId} via Scryfall fallback", missingId);
-                fromSnapshot[missingId] = scryfallCardMapper.MapCardProfile(scryfallDocument);
+                var resolvedProfile = scryfallCardMapper.MapCardProfile(scryfallDocument);
+                fromSnapshot[missingId] = resolvedProfile;
+
+                // Write through to the local Parquet snapshot so future lookups resolve locally.
+                // Errors are swallowed here to preserve user work; a warning is emitted instead.
+                try
+                {
+                    await metadataStore.UpsertCardAsync(resolvedProfile, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception upsertException)
+                {
+                    logger.LogWarning(upsertException, "Failed to persist Scryfall card {CardId} to local snapshot; continuing without write-through", missingId);
+                }
             }
             else
             {
