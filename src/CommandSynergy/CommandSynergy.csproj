@@ -8,7 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CommandSynergy.Application\CommandSynergy.Application.csproj" />
     <ProjectReference Include="..\CommandSynergy.Client\CommandSynergy.Client.csproj" />
+    <ProjectReference Include="..\CommandSynergy.Infrastructure\CommandSynergy.Infrastructure.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.5" />
   </ItemGroup>
 

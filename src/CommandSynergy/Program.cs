@@ -1,4 +1,7 @@
+using CommandSynergy.Application;
 using CommandSynergy.Components;
+using CommandSynergy.Endpoints;
+using CommandSynergy.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+builder.Services
+    .AddCommandSynergyApplication(builder.Configuration)
+    .AddCommandSynergyInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
@@ -30,5 +36,9 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(CommandSynergy.Client._Imports).Assembly);
+app.MapCardSearchEndpoints();
+app.MapDeckValidationEndpoints();
 
 app.Run();
+
+public partial class Program;
