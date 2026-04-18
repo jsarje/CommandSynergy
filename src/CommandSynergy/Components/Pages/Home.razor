@@ -3,17 +3,17 @@
 
 <PageTitle>Commander Synergy Sphere</PageTitle>
 
-<DeckWorkspace State="ViewModel.State"
-			   Analysis="ViewModel.Analysis"
-			   SearchQuery="ViewModel.SearchQuery"
-			   IsBusy="ViewModel.IsBusy"
-			   Piles="ViewModel.Piles"
-			   Cards="ViewModel.Cards"
-			   SearchResults="ViewModel.SearchResults"
-			   SearchQueryChanged="UpdateSearchQueryAsync"
-			   SearchRequested="SearchAsync"
-			   RetryRequested="RetryAsync"
-			   CommanderSelected="SetCommanderAsync"
-			   CardAdded="AddCardAsync"
-			   CardMoved="MoveCardAsync"
-			   CardRemoved="RemoveCardAsync" />
+<DeckWorkspace State="@ViewModel.State"
+			   Analysis="@ViewModel.Analysis"
+			   SearchQuery="@ViewModel.SearchQuery"
+			   IsBusy="@ViewModel.IsBusy"
+			   Piles="@ViewModel.Piles"
+			   Cards="@ViewModel.Cards"
+			   SearchResults="@ViewModel.SearchResults"
+			   SearchQueryChanged="@UpdateSearchQueryAsync"
+			   SearchRequested="@SearchAsync"
+			   RetryRequested="@RetryAsync"
+			   CommanderSelected="@SetCommanderAsync"
+			   CardAdded="@AddCardAsync"
+			   CardMoved="@MoveCardAsync"
+			   CardRemoved="@RemoveCardAsync" />
