@@ -9,7 +9,7 @@ namespace CommandSynergy.WebUI.Tests.Components;
 /// <summary>
 /// Validates the loading, empty, error, and ready states of <see cref="AnalysisPanel"/>.
 /// </summary>
-public sealed class AnalysisPanelTests : TestContext
+public sealed class AnalysisPanelTests : BunitContext
 {
     public AnalysisPanelTests()
     {
@@ -19,7 +19,7 @@ public sealed class AnalysisPanelTests : TestContext
     [Fact]
     public void Analysis_panel_renders_loading_state_when_is_loading_is_true()
     {
-        var cut = RenderComponent<AnalysisPanel>(parameters => parameters
+        var cut = Render<AnalysisPanel>(parameters => parameters
             .Add(component => component.IsLoading, true)
             .Add(component => component.Analysis, null)
             .Add(component => component.HasError, false));
@@ -31,7 +31,7 @@ public sealed class AnalysisPanelTests : TestContext
     [Fact]
     public void Analysis_panel_renders_empty_state_when_analysis_is_null_and_not_loading()
     {
-        var cut = RenderComponent<AnalysisPanel>(parameters => parameters
+        var cut = Render<AnalysisPanel>(parameters => parameters
             .Add(component => component.IsLoading, false)
             .Add(component => component.Analysis, null)
             .Add(component => component.HasError, false));
@@ -43,7 +43,7 @@ public sealed class AnalysisPanelTests : TestContext
     [Fact]
     public void Analysis_panel_renders_error_state_when_has_error_is_true()
     {
-        var cut = RenderComponent<AnalysisPanel>(parameters => parameters
+        var cut = Render<AnalysisPanel>(parameters => parameters
             .Add(component => component.IsLoading, false)
             .Add(component => component.Analysis, null)
             .Add(component => component.HasError, true));
@@ -55,7 +55,7 @@ public sealed class AnalysisPanelTests : TestContext
     [Fact]
     public void Analysis_panel_renders_bracket_level_and_synergy_score_in_ready_state()
     {
-        var cut = RenderComponent<AnalysisPanel>(parameters => parameters
+        var cut = Render<AnalysisPanel>(parameters => parameters
             .Add(component => component.IsLoading, false)
             .Add(component => component.HasError, false)
             .Add(component => component.Analysis, CreateAnalysis(bracketLevel: 3, synergyScore: 74.2m)));
@@ -85,7 +85,7 @@ public sealed class AnalysisPanelTests : TestContext
             },
         };
 
-        var cut = RenderComponent<AnalysisPanel>(parameters => parameters
+        var cut = Render<AnalysisPanel>(parameters => parameters
             .Add(component => component.IsLoading, false)
             .Add(component => component.HasError, false)
             .Add(component => component.Analysis, analysis));
@@ -109,7 +109,7 @@ public sealed class AnalysisPanelTests : TestContext
             },
         };
 
-        var cut = RenderComponent<AnalysisPanel>(parameters => parameters
+        var cut = Render<AnalysisPanel>(parameters => parameters
             .Add(component => component.IsLoading, false)
             .Add(component => component.HasError, false)
             .Add(component => component.Analysis, analysis));

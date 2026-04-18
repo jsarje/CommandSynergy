@@ -7,7 +7,7 @@ using MudBlazor.Services;
 
 namespace CommandSynergy.WebUI.Tests.Components;
 
-public sealed class PileBoardTests : TestContext
+public sealed class PileBoardTests : BunitContext
 {
     public PileBoardTests()
     {
@@ -19,7 +19,7 @@ public sealed class PileBoardTests : TestContext
     {
         MoveCardRequest? capturedRequest = null;
 
-        var cut = RenderComponent<PileBoard>(parameters => parameters
+        var cut = Render<PileBoard>(parameters => parameters
             .Add(component => component.Piles, CreatePiles())
             .Add(component => component.Cards, [CreateCard("sol-ring", DeckWorkspaceViewModel.MainboardPileId)])
             .Add(component => component.MoveRequested, (MoveCardRequest request) => capturedRequest = request));

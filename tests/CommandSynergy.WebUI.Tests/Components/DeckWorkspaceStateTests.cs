@@ -7,7 +7,7 @@ using MudBlazor.Services;
 
 namespace CommandSynergy.WebUI.Tests.Components;
 
-public sealed class DeckWorkspaceStateTests : TestContext
+public sealed class DeckWorkspaceStateTests : BunitContext
 {
     public DeckWorkspaceStateTests()
     {
@@ -17,7 +17,7 @@ public sealed class DeckWorkspaceStateTests : TestContext
     [Fact]
     public void Deck_workspace_renders_loading_state()
     {
-        var cut = RenderComponent<DeckWorkspace>(parameters => parameters
+        var cut = Render<DeckWorkspace>(parameters => parameters
             .Add(component => component.State, new DeckWorkspaceState(DeckWorkspaceStatus.Loading, null, null, Array.Empty<ValidationFindingContract>()))
             .Add(component => component.SearchQuery, string.Empty)
             .Add(component => component.Piles, CreatePiles())
@@ -30,7 +30,7 @@ public sealed class DeckWorkspaceStateTests : TestContext
     [Fact]
     public void Deck_workspace_renders_empty_state_message()
     {
-        var cut = RenderComponent<DeckWorkspace>(parameters => parameters
+        var cut = Render<DeckWorkspace>(parameters => parameters
             .Add(component => component.State, new DeckWorkspaceState(DeckWorkspaceStatus.Empty, "Pick a commander.", null, Array.Empty<ValidationFindingContract>()))
             .Add(component => component.SearchQuery, string.Empty)
             .Add(component => component.Piles, CreatePiles())
@@ -43,7 +43,7 @@ public sealed class DeckWorkspaceStateTests : TestContext
     [Fact]
     public void Deck_workspace_renders_recovery_state_with_retry()
     {
-        var cut = RenderComponent<DeckWorkspace>(parameters => parameters
+        var cut = Render<DeckWorkspace>(parameters => parameters
             .Add(component => component.State, new DeckWorkspaceState(DeckWorkspaceStatus.Recovery, "Retry the sync.", null, Array.Empty<ValidationFindingContract>()))
             .Add(component => component.SearchQuery, string.Empty)
             .Add(component => component.Piles, CreatePiles())

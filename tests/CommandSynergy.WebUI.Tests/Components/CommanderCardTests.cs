@@ -5,12 +5,12 @@ using FluentAssertions;
 
 namespace CommandSynergy.WebUI.Tests.Components;
 
-public sealed class CommanderCardTests : TestContext
+public sealed class CommanderCardTests : BunitContext
 {
     [Fact]
     public void Commander_card_renders_full_artwork_image_when_image_uri_is_available()
     {
-        var cut = RenderComponent<CommanderCard>(parameters => parameters
+        var cut = Render<CommanderCard>(parameters => parameters
             .Add(component => component.Card, CreateSingleFaceCard() with
             {
                 ImageUri = "https://cards.example/swords-to-plowshares.jpg",
@@ -25,7 +25,7 @@ public sealed class CommanderCardTests : TestContext
     [Fact]
     public void Commander_card_renders_salt_badge_when_available()
     {
-        var cut = RenderComponent<CommanderCard>(parameters => parameters
+        var cut = Render<CommanderCard>(parameters => parameters
             .Add(component => component.Card, CreateSingleFaceCard() with { SaltScore = 2.7m }));
 
         cut.Find("[data-testid='salt-badge-swords-to-plowshares']").TextContent.Should().Contain("Salt 2.7");
@@ -34,7 +34,7 @@ public sealed class CommanderCardTests : TestContext
     [Fact]
     public void Commander_card_renders_face_toggle_for_multi_face_cards()
     {
-        var cut = RenderComponent<CommanderCard>(parameters => parameters
+        var cut = Render<CommanderCard>(parameters => parameters
             .Add(component => component.Card, CreateSingleFaceCard() with
             {
                 CardId = "sea-gate-restoration",
