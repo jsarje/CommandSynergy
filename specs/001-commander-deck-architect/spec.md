@@ -25,9 +25,8 @@ confidently produce a rules-legal list without manually checking every deckbuild
 **Why this priority**: Legal deck construction is the core product value. Without this journey, the
 application is only a card browser instead of a deck architect.
 
-**Independent Test**: Can be fully tested by selecting a commander, adding cards, organizing them
-into piles, and confirming the system identifies both valid and invalid deck states with clear rule
-feedback.
+**Independent Test**: Can be fully tested by selecting a commander, adding cards, and confirming
+the system identifies both valid and invalid deck states with clear rule feedback.
 
 **Acceptance Scenarios**:
 
@@ -35,8 +34,8 @@ feedback.
    or color identity rules, **Then** the system identifies each violation and explains what must be
    corrected.
 2. **Given** a user has assembled a 100-card deck that satisfies commander legality rules,
-   **When** validation runs, **Then** the system confirms the deck is legal and shows a summary of
-   deck composition by custom pile.
+   **When** validation runs, **Then** the system confirms the deck is legal and preserves the
+   current deck state for further organization and analysis.
 3. **Given** a card has modal or alternate faces or companion-specific restrictions, **When** the
    card is added or inspected, **Then** the system validates it using the correct commander rules and
    makes both relevant faces available to the user.

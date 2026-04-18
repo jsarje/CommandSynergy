@@ -80,3 +80,29 @@
     logic safely.
   - Only unit tests: rejected because external data adapters, JSON contracts, and Razor interaction
     states still need integration coverage.
+
+## Decision 7: Restrict commander selection to official Commander-eligible cards only
+
+- **Decision**: Treat commander eligibility as a first-class validation and selection concern by
+  allowing legendary creatures by default and only permitting non-default commanders when printed
+  card text or official Commander mechanics explicitly authorize them.
+- **Rationale**: This matches the official Commander rules model, prevents users from building
+  around illegal commanders such as generic artifacts or enchantments, and keeps selection logic
+  aligned with the clarified product scope.
+- **Alternatives considered**:
+  - Allow any legendary permanent: rejected because it would over-permit illegal commanders.
+  - Allow only legendary creatures with no exceptions: rejected because it would incorrectly reject
+    legal text-based commander exceptions and sanctioned pairing mechanics.
+
+## Decision 8: Write through successful Scryfall resolutions into the local Parquet snapshot
+
+- **Decision**: Persist each successfully resolved Scryfall card result immediately into the local
+  Parquet snapshot using deterministic id-based upsert behavior during normal user interactions.
+- **Rationale**: Immediate write-through best supports the goal of naturally enriching local
+  metadata, reduces repeat Scryfall traffic over time, and keeps the Parquet store closer to the
+  cards users actually touch.
+- **Alternatives considered**:
+  - Batch writes only on shutdown or timer: rejected because abrupt termination would lose learned
+    metadata and delay the cache benefit.
+  - Keep user-driven Scryfall results in memory only: rejected because it would not improve future
+    cold-start behavior or reduce external calls across sessions.
