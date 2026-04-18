@@ -1,0 +1,86 @@
+@using System.Text
+
+<script type="module" src="@Assets["Components/Cards/CommanderCard.razor.js"]"></script>
+
+<article class="commander-card" data-testid="commander-card-@Card.CardId">
+    <div class="commander-card__surface @(Card.HasMultipleFaces ? "commander-card__surface--multi-face" : string.Empty)"
+         id="@surfaceId"
+         data-testid="card-surface-@Card.CardId">
+        <section class="commander-card__face commander-card__face--front">
+            <div class="commander-card__art" style="@BuildBackground(frontFace.ImageUri ?? Card.ImageUri)"></div>
+            <div class="commander-card__content">
+                <div class="commander-card__topline">
+                    <h3>@frontFace.Name</h3>
+                    @if (!string.IsNullOrWhiteSpace(frontFace.ManaCost ?? Card.ManaCost))
+                    {
+                        <span>@(frontFace.ManaCost ?? Card.ManaCost)</span>
+                    }
+                </div>
+                <p>@frontFace.TypeLine</p>
+            </div>
+        </section>
+
+        @if (backFace is not null)
+        {
+            <section class="commander-card__face commander-card__face--back">
+                <div class="commander-card__art" style="@BuildBackground(backFace.ImageUri ?? Card.ImageUri)"></div>
+                <div class="commander-card__content">
+                    <div class="commander-card__topline">
+                        <h3>@backFace.Name</h3>
+                        @if (!string.IsNullOrWhiteSpace(backFace.ManaCost))
+                        {
+                            <span>@backFace.ManaCost</span>
+                        }
+                    </div>
+                    <p>@backFace.TypeLine</p>
+                </div>
+            </section>
+        }
+    </div>
+
+    <footer class="commander-card__footer">
+        <div class="commander-card__meta">
+            @if (Card.IsCommander)
+            {
+                <span class="commander-card__tag commander-card__tag--commander">Commander</span>
+            }
+            <span class="commander-card__tag">@Card.Quantity x</span>
+            @if (Card.ColorIdentity.Count > 0)
+            {
+                <span class="commander-card__tag">@string.Join(" ", Card.ColorIdentity)</span>
+            }
+        </div>
+
+        <div class="commander-card__actions">
+            @if (Card.SaltScore is not null)
+            {
+                <span class="commander-card__salt" data-testid="salt-badge-@Card.CardId">Salt @Card.SaltScore.Value.ToString("0.#")</span>
+            }
+
+            @if (backFace is not null)
+            {
+                <button type="button"
+                        class="commander-card__flip-button"
+                        data-face-toggle-target="@surfaceId"
+                        data-testid="face-toggle-@Card.CardId">
+                    Flip face
+                </button>
+            }
+        </div>
+    </footer>
+</article>
+
+@code {
+    [Parameter]
+    public required WorkspaceCardView Card { get; set; }
+
+    private WorkspaceCardFaceView frontFace => Card.Faces.First(static face => face.IsPrimaryFace);
+
+    private WorkspaceCardFaceView? backFace => Card.Faces.FirstOrDefault(static face => !face.IsPrimaryFace);
+
+    private string surfaceId => $"commander-card-{Convert.ToHexString(Encoding.UTF8.GetBytes(Card.CardId))}";
+
+    private static string BuildBackground(string? imageUri) => string.IsNullOrWhiteSpace(imageUri)
+        ? string.Empty
+        : $"background-image: linear-gradient(180deg, rgba(19, 26, 21, 0.1), rgba(19, 26, 21, 0.55)), url('{imageUri}');";
+}

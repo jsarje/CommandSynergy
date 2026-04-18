@@ -12,6 +12,7 @@
     <ProjectReference Include="..\CommandSynergy.Client\CommandSynergy.Client.csproj" />
     <ProjectReference Include="..\CommandSynergy.Infrastructure\CommandSynergy.Infrastructure.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.5" />
+    <PackageReference Include="MudBlazor" Version="8.6.0" />
   </ItemGroup>
 
 </Project>

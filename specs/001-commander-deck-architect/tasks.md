@@ -105,19 +105,19 @@
 
 ### Tests for User Story 3
 
-- [ ] T035 [P] [US3] Add bUnit tests for workspace loading, empty, and error states in tests/CommandSynergy.WebUI.Tests/Components/DeckWorkspaceStateTests.cs
-- [ ] T036 [P] [US3] Add bUnit tests for pile drag-and-drop behavior in tests/CommandSynergy.WebUI.Tests/Components/PileBoardTests.cs
-- [ ] T037 [P] [US3] Add bUnit tests for multi-face card inspection and salt badge rendering in tests/CommandSynergy.WebUI.Tests/Components/CommanderCardTests.cs
+- [X] T035 [P] [US3] Add bUnit tests for workspace loading, empty, and error states in tests/CommandSynergy.WebUI.Tests/Components/DeckWorkspaceStateTests.cs
+- [X] T036 [P] [US3] Add bUnit tests for pile drag-and-drop behavior in tests/CommandSynergy.WebUI.Tests/Components/PileBoardTests.cs
+- [X] T037 [P] [US3] Add bUnit tests for multi-face card inspection and salt badge rendering in tests/CommandSynergy.WebUI.Tests/Components/CommanderCardTests.cs
 
 ### Implementation for User Story 3
 
-- [ ] T038 [P] [US3] Register MudBlazor and client-side workspace services in src/CommandSynergy/Program.cs and src/CommandSynergy.Client/Program.cs
-- [ ] T039 [P] [US3] Implement workspace shell and stateful page composition in src/CommandSynergy/Components/Pages/Home.razor and src/CommandSynergy/Components/Pages/Home.razor.cs
-- [ ] T040 [P] [US3] Implement drag-and-drop pile workspace components in src/CommandSynergy/Components/Decks/DeckWorkspace.razor and src/CommandSynergy/Components/Decks/PileBoard.razor, ensuring touch device support and debounced rapid-move handling
-- [ ] T041 [P] [US3] Implement commander card display with alternate-face handling and salt badge in src/CommandSynergy/Components/Cards/CommanderCard.razor and src/CommandSynergy/Components/Cards/CommanderCard.razor.css
-- [ ] T042 [US3] Implement custom CSS animation and face-toggle behavior for double-faced cards in src/CommandSynergy/Components/Cards/CommanderCard.razor.css and src/CommandSynergy/Components/Cards/CommanderCard.razor.js
-- [ ] T043 [US3] Implement client search-index loading and deck workspace synchronization in src/CommandSynergy.Client/Services/CardSearchIndexClient.cs and src/CommandSynergy.Client/Services/DeckWorkspaceClient.cs
-- [ ] T044 [US3] Connect workspace interactions to validation and analysis refresh flows with loading and recovery UX in src/CommandSynergy/Components/Decks/DeckWorkspaceViewModel.cs
+- [X] T038 [P] [US3] Register MudBlazor and client-side workspace services in src/CommandSynergy/Program.cs and src/CommandSynergy.Client/Program.cs
+- [X] T039 [P] [US3] Implement workspace shell and stateful page composition in src/CommandSynergy/Components/Pages/Home.razor and src/CommandSynergy/Components/Pages/Home.razor.cs
+- [X] T040 [P] [US3] Implement drag-and-drop pile workspace components in src/CommandSynergy/Components/Decks/DeckWorkspace.razor and src/CommandSynergy/Components/Decks/PileBoard.razor, ensuring touch device support and debounced rapid-move handling
+- [X] T041 [P] [US3] Implement commander card display with alternate-face handling and salt badge in src/CommandSynergy/Components/Cards/CommanderCard.razor and src/CommandSynergy/Components/Cards/CommanderCard.razor.css
+- [X] T042 [US3] Implement custom CSS animation and face-toggle behavior for double-faced cards in src/CommandSynergy/Components/Cards/CommanderCard.razor.css and src/CommandSynergy/Components/Cards/CommanderCard.razor.js
+- [X] T043 [US3] Implement client search-index loading and deck workspace synchronization in src/CommandSynergy.Client/Services/CardSearchIndexClient.cs and src/CommandSynergy.Client/Services/DeckWorkspaceClient.cs
+- [X] T044 [US3] Connect workspace interactions to validation and analysis refresh flows with loading and recovery UX in src/CommandSynergy/Components/Decks/DeckWorkspaceViewModel.cs
 
 **Checkpoint**: All user stories should now be independently functional, with the interactive workspace layered on top of proven domain and analysis services
 

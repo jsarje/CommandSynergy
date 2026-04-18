@@ -1,3 +1,87 @@
+:root {
+    --cs-background: linear-gradient(180deg, #f4efe3 0%, #dce6de 48%, #eff6f4 100%);
+    --cs-surface: rgba(253, 250, 242, 0.9);
+    --cs-surface-strong: rgba(255, 255, 255, 0.96);
+    --cs-outline: rgba(36, 56, 47, 0.14);
+    --cs-ink: #172419;
+    --cs-muted: #5f6e63;
+    --cs-accent: #aa4b1f;
+    --cs-accent-soft: #f0c9a8;
+    --cs-forest: #224838;
+    --cs-warning: #9c2f18;
+    --cs-shadow: 0 30px 80px rgba(20, 37, 28, 0.12);
+    --cs-radius-xl: 30px;
+    --cs-radius-lg: 22px;
+    --cs-radius-md: 16px;
+    --cs-radius-sm: 12px;
+    --cs-page-width: 1340px;
+    --cs-title-font: "Segoe UI Variable Display", "Bahnschrift", "Franklin Gothic Medium", sans-serif;
+    --cs-body-font: "Segoe UI Variable Text", "Trebuchet MS", sans-serif;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    color: var(--cs-ink);
+    font-family: var(--cs-body-font);
+    background:
+        radial-gradient(circle at top left, rgba(240, 201, 168, 0.55), transparent 28%),
+        radial-gradient(circle at top right, rgba(83, 146, 114, 0.22), transparent 32%),
+        var(--cs-background);
+}
+
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    z-index: -1;
+    inset: auto;
+    border-radius: 999px;
+    filter: blur(12px);
+    opacity: 0.7;
+}
+
+body::before {
+    width: 18rem;
+    height: 18rem;
+    top: 2rem;
+    right: 6vw;
+    background: rgba(255, 205, 163, 0.32);
+}
+
+body::after {
+    width: 20rem;
+    height: 20rem;
+    bottom: 5rem;
+    left: 3vw;
+    background: rgba(95, 140, 112, 0.18);
+}
+
+button,
+input,
+textarea {
+    font: inherit;
+}
+
+a {
+    color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+.mud-typography-h1,
+.mud-typography-h2,
+.mud-typography-h3 {
+    font-family: var(--cs-title-font);
+    letter-spacing: -0.04em;
+}
+
 h1:focus {
     outline: none;
 }
@@ -35,4 +119,22 @@ h1:focus {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
+}
+
+@media (max-width: 900px) {
+    body::before,
+    body::after {
+        opacity: 0.4;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
