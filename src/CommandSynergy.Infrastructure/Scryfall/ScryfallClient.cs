@@ -11,6 +11,7 @@ namespace CommandSynergy.Infrastructure.Scryfall;
 public sealed class ScryfallClient
 {
     public const string HttpClientName = "Scryfall";
+    private const int MaxAutocompleteResults = 12;
 
     private readonly HttpClient httpClient;
     private readonly ILogger<ScryfallClient> logger;
@@ -54,6 +55,39 @@ public sealed class ScryfallClient
         {
             logger.LogWarning(exception, "Received invalid JSON while searching Scryfall for query {Query}", query);
             return ScryfallSearchResponse.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Loads card-name suggestions for a partial search term.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> AutocompleteCardNamesAsync(string query, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(query);
+
+        logger.LogDebug("Autocompleting Scryfall card names for query {Query}", query);
+
+        try
+        {
+            var response = await httpClient.GetFromJsonAsync<ScryfallAutocompleteResponse>($"cards/autocomplete?q={Uri.EscapeDataString(query)}", cancellationToken)
+                .ConfigureAwait(false);
+
+            return response?.Data.Take(MaxAutocompleteResults).ToArray() ?? Array.Empty<string>();
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning("Timed out while autocompleting Scryfall card names for query {Query}", query);
+            return Array.Empty<string>();
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogWarning(exception, "Failed to autocomplete Scryfall card names for query {Query}", query);
+            return Array.Empty<string>();
+        }
+        catch (JsonException exception)
+        {
+            logger.LogWarning(exception, "Received invalid JSON while autocompleting Scryfall card names for query {Query}", query);
+            return Array.Empty<string>();
         }
     }
 
@@ -194,4 +228,13 @@ public sealed record ScryfallLegalities
 {
     [JsonPropertyName("commander")]
     public string? Commander { get; init; }
+}
+
+/// <summary>
+/// Represents Scryfall autocomplete suggestions.
+/// </summary>
+public sealed record ScryfallAutocompleteResponse
+{
+    [JsonPropertyName("data")]
+    public IReadOnlyList<string> Data { get; init; } = Array.Empty<string>();
 }

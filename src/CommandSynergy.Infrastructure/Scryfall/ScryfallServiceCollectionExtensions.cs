@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
+using System.Net.Http.Headers;
 
 namespace CommandSynergy.Infrastructure.Scryfall;
 
@@ -26,6 +27,7 @@ public static class ScryfallServiceCollectionExtensions
                 client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
                 client.Timeout = TimeSpan.FromSeconds(10);
                 client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             })
             .AddStandardResilienceHandler();
 

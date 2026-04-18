@@ -12,7 +12,8 @@
         ".\\.specify\\extensions\\git\\scripts\\powershell\\initialize-repo.ps1": true,
         "Test-Path": true,
         "&": true,
-        "dotnet test": true
+        "dotnet test": true,
+        "dotnet run": true
     }
 }
 

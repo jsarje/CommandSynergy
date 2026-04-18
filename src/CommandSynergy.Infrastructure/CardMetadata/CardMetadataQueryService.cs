@@ -113,9 +113,24 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
             return results;
         }
 
-        logger.LogInformation("No local card-search results for query {Query}; falling back to Scryfall", normalizedQuery);
-        var scryfallResponse = await scryfallClient.SearchCardsAsync(normalizedQuery, cancellationToken).ConfigureAwait(false);
-        return scryfallResponse.Data.Select(scryfallCardMapper.MapSearchResult).Take(20).ToArray();
+        logger.LogInformation("No local card-search results for query {Query}; falling back to Scryfall autocomplete", normalizedQuery);
+
+        var candidateNames = await scryfallClient.AutocompleteCardNamesAsync(normalizedQuery, cancellationToken).ConfigureAwait(false);
+        if (candidateNames.Count == 0)
+        {
+            logger.LogWarning("Scryfall autocomplete returned no candidates for query {Query}", normalizedQuery);
+            return Array.Empty<CardSearchResultContract>();
+        }
+
+        var documents = await Task.WhenAll(candidateNames.Select(name => scryfallClient.GetNamedCardAsync(name, cancellationToken))).ConfigureAwait(false);
+        var fallbackResults = documents
+            .Where(static document => document is not null)
+            .Select(document => scryfallCardMapper.MapSearchResult(document!))
+            .Take(20)
+            .ToArray();
+
+        logger.LogInformation("Resolved {ResultCount} fallback card-search results from Scryfall for query {Query}", fallbackResults.Length, normalizedQuery);
+        return fallbackResults;
     }
 
     /// <inheritdoc />
