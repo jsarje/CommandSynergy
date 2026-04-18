@@ -7,6 +7,14 @@
 analyzes bracket and synergy, and provides an interactive workspace for organizing and inspecting
 cards."
 
+## Clarifications
+
+### Session 2026-04-18
+
+- Q: Should bracket and Game Changer constraints be enforced as legality rules or treated as non-blocking analysis guidance? → A: Treat them as non-blocking analysis guidance; legal deck validation remains based on official Commander deck-construction rules.
+- Q: What cards should be eligible for commander selection? → A: Allow legendary creatures by default, plus only cards or pairings explicitly permitted by printed Commander text or official Commander mechanics.
+- Q: How should user-driven Scryfall metadata results populate the local Parquet snapshot? → A: Persist each successfully resolved Scryfall card immediately into the local Parquet snapshot using id-based upsert behavior.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Build A Legal Commander Deck (Priority: P1)
@@ -103,6 +111,12 @@ faces, and confirming the workspace preserves card meaning and analysis context 
   add cards to a deck, and remove cards from a deck.
 - **FR-002**: The system MUST enforce commander deck legality rules, including 100-card deck size,
   singleton restrictions where applicable, color identity validation, and companion constraints.
+- **FR-002a**: The system MUST limit legality validation to official Commander deck-construction and
+  card-legality rules; bracket expectations, Game Changer allowances, and pregame power matching are
+  reported separately and MUST NOT invalidate an otherwise legal deck.
+- **FR-002b**: The system MUST restrict commander selection to cards that are legal commanders under
+  official Commander rules: legendary creatures by default, plus only cards or pairings whose
+  printed text or official Commander mechanics explicitly allow them to be used as commanders.
 - **FR-003**: The system MUST support modal, alternate-face, and companion-relevant cards during
   both deck validation and card inspection.
 - **FR-004**: The system MUST allow users to group cards into named custom piles and move cards
@@ -119,6 +133,10 @@ faces, and confirming the workspace preserves card meaning and analysis context 
   and analysis feedback in sync after each relevant card action.
 - **FR-010**: The system MUST handle unavailable or incomplete card metadata gracefully by showing
   the affected card state, preserving user work, and identifying what could not be evaluated.
+- **FR-010a**: The system MUST build local card metadata over time by upserting successful
+  Scryfall-resolved card results into the local Parquet snapshot during normal user interactions so
+  subsequent searches, validation, and analysis can prefer local metadata and reduce repeat
+  external calls.
 - **FR-011**: The system MUST reserve an explicit extension point for future deck-advice features
   without requiring the first release to deliver full AI-driven recommendations.
 
@@ -170,8 +188,16 @@ faces, and confirming the workspace preserves card meaning and analysis context 
   syncing, and publishing are out of scope.
 - The product can rely on an authoritative external card source and a locally available searchable
   metadata index for supported card information.
+- User-driven Scryfall lookups are allowed to enrich the local Parquet metadata snapshot
+  incrementally through immediate id-based upserts rather than requiring a separate manual import
+  workflow.
 - The official commander bracket definition and weighted high-impact list are maintained as updateable
   inputs rather than hard-coded business assumptions.
+- Commander brackets and Game Changers are treated as optional matchmaking and analysis guidance,
+  not as legality gates for deck submission or correction.
+- Commander eligibility is based on official Commander rules and exception text, so generic
+  artifacts, enchantments, or other noncreature permanents are not selectable as commanders unless
+  a card or official Commander mechanic explicitly says otherwise.
 - AI-driven deck recommendations are out of scope for the first release beyond reserving a clear
   service boundary and visible entry point for future guidance.
 - Existing infrastructure can support the stated responsiveness targets for search, validation, and
