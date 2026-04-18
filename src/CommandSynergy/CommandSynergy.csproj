@@ -8,8 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CommandSynergy.Application\CommandSynergy.Application.csproj" />
     <ProjectReference Include="..\CommandSynergy.Client\CommandSynergy.Client.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.5" />
+    <ProjectReference Include="..\CommandSynergy.Infrastructure\CommandSynergy.Infrastructure.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.6" />
+    <PackageReference Include="MudBlazor" Version="9.3.0" />
   </ItemGroup>
 
 </Project>

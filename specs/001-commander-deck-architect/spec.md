@@ -1,11 +1,19 @@
 # Feature Specification: Commander Synergy Sphere
 
-**Feature Branch**: `[001-build-commander-architect]`  
+**Feature Branch**: `[001-commander-deck-architect]`  
 **Created**: 2026-04-17  
 **Status**: Draft  
 **Input**: User description: "Create a commander deck architect that validates deck legality,
 analyzes bracket and synergy, and provides an interactive workspace for organizing and inspecting
 cards."
+
+## Clarifications
+
+### Session 2026-04-18
+
+- Q: Should bracket and Game Changer constraints be enforced as legality rules or treated as non-blocking analysis guidance? → A: Treat them as non-blocking analysis guidance; legal deck validation remains based on official Commander deck-construction rules.
+- Q: What cards should be eligible for commander selection? → A: Allow legendary creatures by default, plus only cards or pairings explicitly permitted by printed Commander text or official Commander mechanics.
+- Q: How should local Parquet metadata be refreshed from Scryfall? → A: Use a separate console tool to download Scryfall's `oracle_cards` bulk dataset and regenerate the local Parquet snapshot; runtime Scryfall fallback stays read-only.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -17,9 +25,8 @@ confidently produce a rules-legal list without manually checking every deckbuild
 **Why this priority**: Legal deck construction is the core product value. Without this journey, the
 application is only a card browser instead of a deck architect.
 
-**Independent Test**: Can be fully tested by selecting a commander, adding cards, organizing them
-into piles, and confirming the system identifies both valid and invalid deck states with clear rule
-feedback.
+**Independent Test**: Can be fully tested by selecting a commander, adding cards, and confirming
+the system identifies both valid and invalid deck states with clear rule feedback.
 
 **Acceptance Scenarios**:
 
@@ -27,8 +34,8 @@ feedback.
    or color identity rules, **Then** the system identifies each violation and explains what must be
    corrected.
 2. **Given** a user has assembled a 100-card deck that satisfies commander legality rules,
-   **When** validation runs, **Then** the system confirms the deck is legal and shows a summary of
-   deck composition by custom pile.
+   **When** validation runs, **Then** the system confirms the deck is legal and preserves the
+   current deck state for further organization and analysis.
 3. **Given** a card has modal or alternate faces or companion-specific restrictions, **When** the
    card is added or inspected, **Then** the system validates it using the correct commander rules and
    makes both relevant faces available to the user.
@@ -103,6 +110,12 @@ faces, and confirming the workspace preserves card meaning and analysis context 
   add cards to a deck, and remove cards from a deck.
 - **FR-002**: The system MUST enforce commander deck legality rules, including 100-card deck size,
   singleton restrictions where applicable, color identity validation, and companion constraints.
+- **FR-002a**: The system MUST limit legality validation to official Commander deck-construction and
+  card-legality rules; bracket expectations, Game Changer allowances, and pregame power matching are
+  reported separately and MUST NOT invalidate an otherwise legal deck.
+- **FR-002b**: The system MUST restrict commander selection to cards that are legal commanders under
+  official Commander rules: legendary creatures by default, plus only cards or pairings whose
+  printed text or official Commander mechanics explicitly allow them to be used as commanders.
 - **FR-003**: The system MUST support modal, alternate-face, and companion-relevant cards during
   both deck validation and card inspection.
 - **FR-004**: The system MUST allow users to group cards into named custom piles and move cards
@@ -119,6 +132,10 @@ faces, and confirming the workspace preserves card meaning and analysis context 
   and analysis feedback in sync after each relevant card action.
 - **FR-010**: The system MUST handle unavailable or incomplete card metadata gracefully by showing
   the affected card state, preserving user work, and identifying what could not be evaluated.
+- **FR-010a**: The system MUST provide an explicit server-side metadata refresh workflow that
+  downloads Scryfall's `oracle_cards` bulk dataset and regenerates the local Parquet snapshot so
+  searches, validation, and analysis can prefer local metadata without mutating Parquet during
+  normal user interactions.
 - **FR-011**: The system MUST reserve an explicit extension point for future deck-advice features
   without requiring the first release to deliver full AI-driven recommendations.
 
@@ -170,8 +187,15 @@ faces, and confirming the workspace preserves card meaning and analysis context 
   syncing, and publishing are out of scope.
 - The product can rely on an authoritative external card source and a locally available searchable
   metadata index for supported card information.
+- Local card metadata is refreshed through a separate bulk-import workflow, while user-driven
+  Scryfall lookups remain a read-only runtime fallback for cards missing from the current snapshot.
 - The official commander bracket definition and weighted high-impact list are maintained as updateable
   inputs rather than hard-coded business assumptions.
+- Commander brackets and Game Changers are treated as optional matchmaking and analysis guidance,
+  not as legality gates for deck submission or correction.
+- Commander eligibility is based on official Commander rules and exception text, so generic
+  artifacts, enchantments, or other noncreature permanents are not selectable as commanders unless
+  a card or official Commander mechanic explicitly says otherwise.
 - AI-driven deck recommendations are out of scope for the first release beyond reserving a clear
   service boundary and visible entry point for future guidance.
 - Existing infrastructure can support the stated responsiveness targets for search, validation, and

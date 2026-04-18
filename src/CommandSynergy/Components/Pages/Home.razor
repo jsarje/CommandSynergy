@@ -1,7 +1,19 @@
 ﻿@page "/"
+@rendermode InteractiveServer
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Commander Synergy Sphere</PageTitle>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
+<DeckWorkspace State="@ViewModel.State"
+			   Analysis="@ViewModel.Analysis"
+			   SearchQuery="@ViewModel.SearchQuery"
+			   IsBusy="@ViewModel.IsBusy"
+			   Piles="@ViewModel.Piles"
+			   Cards="@ViewModel.Cards"
+			   SearchResults="@ViewModel.SearchResults"
+			   SearchQueryChanged="@UpdateSearchQueryAsync"
+			   SearchRequested="@SearchAsync"
+			   RetryRequested="@RetryAsync"
+			   CommanderSelected="@SetCommanderAsync"
+			   CardAdded="@AddCardAsync"
+			   CardMoved="@MoveCardAsync"
+			   CardRemoved="@RemoveCardAsync" />

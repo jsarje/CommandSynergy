@@ -1,0 +1,206 @@
+@using CommandSynergy.Application.Contracts
+
+<div class="workspace-shell">
+    <MudContainer MaxWidth="MaxWidth.False" Class="workspace-shell__container">
+        <section class="workspace-shell__hero">
+            <p class="workspace-shell__eyebrow">Commander Synergy Sphere</p>
+            <h1>Build with tempo, inspect every face, and keep the rules engine in the loop.</h1>
+            <p class="workspace-shell__lede">
+                Search the catalog, choose a commander, sort the list into tactical piles, and keep legality and power signals synchronized with the server.
+            </p>
+        </section>
+
+        <section class="workspace-shell__summary-grid">
+            <MudPaper Elevation="0" Class="workspace-panel workspace-panel--search">
+                <div class="workspace-panel__header">
+                    <div>
+                        <p class="workspace-panel__label">Search</p>
+                        <h2>Draft the shell</h2>
+                    </div>
+                    @if (IsBusy)
+                    {
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                    }
+                </div>
+
+                <div class="workspace-search">
+                    <input class="workspace-search__input"
+                           placeholder="Search cards, commanders, or staples"
+                           value="@SearchQuery"
+                           @oninput="HandleSearchQueryInput" />
+                    <button type="button"
+                            class="workspace-search__button"
+                            @onclick="SearchRequested"
+                            disabled="@IsBusy">
+                        Search index
+                    </button>
+                </div>
+
+                <div class="workspace-search-results" data-testid="search-results">
+                    @if (SearchResults.Count == 0)
+                    {
+                        <p class="workspace-panel__empty">Search results land here with quick actions for commander selection and pile staging.</p>
+                    }
+                    else
+                    {
+                        @foreach (var card in SearchResults)
+                        {
+                            <article class="workspace-search-result">
+                                <CommanderCard Card="card" />
+                                <div class="workspace-search-result__actions">
+                                    <button type="button"
+                                            class="workspace-search-result__primary"
+                                            data-testid="@($"set-commander-{card.CardId}")"
+                                            disabled="@(!card.IsCommanderEligible)"
+                                            title="@(card.IsCommanderEligible ? "Set this card as your commander" : "Only legal commanders can be selected.")"
+                                            @onclick="() => CommanderSelected.InvokeAsync(card.CardId)">
+                                        Set as commander
+                                    </button>
+                                    <button type="button"
+                                            class="workspace-search-result__secondary"
+                                            disabled="@string.IsNullOrWhiteSpace(CurrentCommanderCardId)"
+                                            @onclick="() => CardAdded.InvokeAsync(card.CardId)">
+                                        Add to deck
+                                    </button>
+                                </div>
+                            </article>
+                        }
+                    }
+                </div>
+            </MudPaper>
+
+            <MudPaper Elevation="0" Class="workspace-panel workspace-panel--status">
+                <div class="workspace-panel__header">
+                    <div>
+                        <p class="workspace-panel__label">Signals</p>
+                        <h2>Validation and bracket pulse</h2>
+                    </div>
+                </div>
+
+                @if (State.Status == DeckWorkspaceStatus.Loading)
+                {
+                    <div class="workspace-state workspace-state--loading" data-testid="workspace-loading">
+                        <MudProgressCircular Indeterminate="true" Size="Size.Large" />
+                        <p>Loading workspace shell and deck telemetry.</p>
+                    </div>
+                }
+                else if (State.Status == DeckWorkspaceStatus.Empty)
+                {
+                    <div class="workspace-state workspace-state--empty" data-testid="workspace-empty">
+                        <h3>Commander needed</h3>
+                        <p>@State.Message</p>
+                    </div>
+                }
+                else if (State.Status == DeckWorkspaceStatus.Recovery)
+                {
+                    <div class="workspace-state workspace-state--recovery" data-testid="workspace-recovery">
+                        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+                            @State.Message
+                        </MudAlert>
+                        <button type="button" class="workspace-state__retry" @onclick="RetryRequested">Retry sync</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="workspace-state workspace-state--ready" data-testid="workspace-ready">
+                        <div class="workspace-metric-strip">
+                            <div>
+                                <span>Deck cards</span>
+                                <strong>@State.Validation?.DeckCardCount</strong>
+                            </div>
+                            <div>
+                                <span>Legality</span>
+                                <strong>@(State.Validation?.IsValid == true ? "Ready" : "Needs work")</strong>
+                            </div>
+                            <div>
+                                <span>Bracket</span>
+                                <strong>@(Analysis?.Bracket.Level.ToString() ?? "-")</strong>
+                            </div>
+                            <div>
+                                <span>Synergy</span>
+                                <strong>@(Analysis?.Synergy.Score.ToString("0.#") ?? "-")</strong>
+                            </div>
+                        </div>
+
+                        <div class="workspace-callouts">
+                            <div>
+                                <h3>Validation findings</h3>
+                                @if (State.Findings.Count == 0)
+                                {
+                                    <p class="workspace-panel__empty">No findings yet. Add a commander and supporting cards to trigger the rules engine.</p>
+                                }
+                                else
+                                {
+                                    <ul class="workspace-findings" data-testid="validation-findings">
+                                        @foreach (var finding in State.Findings)
+                                        {
+                                            <li class="workspace-finding workspace-finding--@finding.Severity">@finding.Message</li>
+                                        }
+                                    </ul>
+                                }
+                            </div>
+
+                            <div class="workspace-analysis" data-testid="analysis-panel">
+                                <h3>Analysis summary</h3>
+                                <AnalysisPanel Analysis="Analysis" IsLoading="IsBusy" HasError="@(State.Status == DeckWorkspaceStatus.Recovery)" />
+                            </div>
+                        </div>
+                    </div>
+                }
+            </MudPaper>
+        </section>
+
+        <PileBoard Piles="Piles"
+                   Cards="Cards"
+                   MoveRequested="CardMoved"
+                   RemoveRequested="CardRemoved" />
+    </MudContainer>
+</div>
+
+@code {
+    [Parameter]
+    public required DeckWorkspaceState State { get; set; }
+
+    [Parameter]
+    public DeckAnalysisResponseContract? Analysis { get; set; }
+
+    [Parameter]
+    public required string SearchQuery { get; set; }
+
+    [Parameter]
+    public bool IsBusy { get; set; }
+
+    [Parameter]
+    public required IReadOnlyList<PileDefinitionContract> Piles { get; set; }
+
+    [Parameter]
+    public required IReadOnlyList<WorkspaceCardView> Cards { get; set; }
+
+    [Parameter]
+    public required IReadOnlyList<WorkspaceCardView> SearchResults { get; set; }
+
+    [Parameter]
+    public EventCallback<string> SearchQueryChanged { get; set; }
+
+    [Parameter]
+    public EventCallback SearchRequested { get; set; }
+
+    [Parameter]
+    public EventCallback RetryRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<string> CommanderSelected { get; set; }
+
+    [Parameter]
+    public EventCallback<string> CardAdded { get; set; }
+
+    [Parameter]
+    public EventCallback<MoveCardRequest> CardMoved { get; set; }
+
+    [Parameter]
+    public EventCallback<string> CardRemoved { get; set; }
+
+    private string? CurrentCommanderCardId => Cards.SingleOrDefault(static card => card.IsCommander)?.CardId;
+
+    private Task HandleSearchQueryInput(ChangeEventArgs args) => SearchQueryChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+}

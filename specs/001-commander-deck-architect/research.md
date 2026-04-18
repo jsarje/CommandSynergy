@@ -80,3 +80,30 @@
     logic safely.
   - Only unit tests: rejected because external data adapters, JSON contracts, and Razor interaction
     states still need integration coverage.
+
+## Decision 7: Restrict commander selection to official Commander-eligible cards only
+
+- **Decision**: Treat commander eligibility as a first-class validation and selection concern by
+  allowing legendary creatures by default and only permitting non-default commanders when printed
+  card text or official Commander mechanics explicitly authorize them.
+- **Rationale**: This matches the official Commander rules model, prevents users from building
+  around illegal commanders such as generic artifacts or enchantments, and keeps selection logic
+  aligned with the clarified product scope.
+- **Alternatives considered**:
+  - Allow any legendary permanent: rejected because it would over-permit illegal commanders.
+  - Allow only legendary creatures with no exceptions: rejected because it would incorrectly reject
+    legal text-based commander exceptions and sanctioned pairing mechanics.
+
+## Decision 8: Refresh the local Parquet snapshot through a separate Scryfall bulk-ingestion workflow
+
+- **Decision**: Download Scryfall's `oracle_cards` bulk dataset through a dedicated console tool and
+  replace the local Parquet snapshot atomically; keep runtime Scryfall lookups read-only for cards
+  missing from the current snapshot.
+- **Rationale**: Explicit bulk refreshes keep metadata lifecycle operationally visible, avoid
+  request-time file mutations, and still allow the application to degrade gracefully when a card is
+  absent from the current snapshot.
+- **Alternatives considered**:
+  - Keep request-time write-through: rejected because it couples user traffic to file mutation,
+    obscures refresh cadence, and complicates snapshot ownership semantics.
+  - Depend only on live Scryfall with no local refresh workflow: rejected because it weakens
+    availability and makes local search/index generation too fragile.

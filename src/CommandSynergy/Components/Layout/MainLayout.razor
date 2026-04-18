@@ -1,9 +1,73 @@
 ﻿@inherits LayoutComponentBase
 
-@Body
+<MudThemeProvider Theme="workspaceTheme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<div class="app-shell">
+    @Body
+</div>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    private readonly MudTheme workspaceTheme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#aa4b1f",
+            Secondary = "#224838",
+            Tertiary = "#9c2f18",
+            Background = "#eff6f4",
+            Surface = "#fffaf2",
+            TextPrimary = "#172419",
+            TextSecondary = "#5f6e63",
+            Info = "#2a7f92",
+            Success = "#347a4c",
+            Warning = "#d08b2f",
+            Error = "#a63621",
+            AppbarBackground = "#fffaf2",
+            AppbarText = "#172419",
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography
+            {
+                FontFamily = ["Segoe UI Variable Text", "Trebuchet MS", "sans-serif"],
+            },
+            H1 = new H1Typography
+            {
+                FontFamily = ["Segoe UI Variable Display", "Bahnschrift", "Franklin Gothic Medium", "sans-serif"],
+            },
+            H2 = new H2Typography
+            {
+                FontFamily = ["Segoe UI Variable Display", "Bahnschrift", "Franklin Gothic Medium", "sans-serif"],
+            },
+            H3 = new H3Typography
+            {
+                FontFamily = ["Segoe UI Variable Display", "Bahnschrift", "Franklin Gothic Medium", "sans-serif"],
+            },
+            H4 = new H4Typography
+            {
+                FontFamily = ["Segoe UI Variable Display", "Bahnschrift", "Franklin Gothic Medium", "sans-serif"],
+            },
+            H5 = new H5Typography
+            {
+                FontFamily = ["Segoe UI Variable Display", "Bahnschrift", "Franklin Gothic Medium", "sans-serif"],
+            },
+            H6 = new H6Typography
+            {
+                FontFamily = ["Segoe UI Variable Display", "Bahnschrift", "Franklin Gothic Medium", "sans-serif"],
+            },
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "18px",
+        },
+    };
+}

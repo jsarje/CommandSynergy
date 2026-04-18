@@ -1,0 +1,112 @@
+@using CommandSynergy.Application.Contracts
+
+<section class="pile-board">
+    <div class="pile-board__header">
+        <div>
+            <p class="workspace-panel__label">Workspace</p>
+            <h2>Sort by role and pressure-test reshuffles</h2>
+        </div>
+        <p class="pile-board__hint">Drag a card between piles or use the touch-safe quick-move buttons under each card.</p>
+    </div>
+
+    <div class="pile-board__grid">
+        @foreach (var pile in Piles.OrderBy(static pile => pile.SortOrder))
+        {
+            var cardsInPile = Cards.Where(card => string.Equals(ResolvePileId(card), pile.PileId, StringComparison.OrdinalIgnoreCase)).ToArray();
+
+            <section class="pile-board__pile"
+                     data-testid="pile-drop-@pile.PileId"
+                     @ondragover:preventDefault="true"
+                     @ondrop="() => HandleDropAsync(pile.PileId)">
+                <header class="pile-board__pile-header">
+                    <div>
+                        <h3>@pile.Name</h3>
+                        <p>@cardsInPile.Sum(static card => card.Quantity) cards</p>
+                    </div>
+                    <span class="commander-card__tag">Lane @pile.SortOrder</span>
+                </header>
+
+                <div class="pile-board__cards">
+                    @if (cardsInPile.Length == 0)
+                    {
+                        <p class="pile-board__empty">Drop cards here to shape the list.</p>
+                    }
+                    else
+                    {
+                        @foreach (var card in cardsInPile)
+                        {
+                            <article class="pile-board__card"
+                                     data-testid="pile-card-@card.CardId"
+                                     draggable="true"
+                                     @ondragstart="() => HandleDragStart(card.CardId)"
+                                     @ondragend="HandleDragEnd">
+                                <CommanderCard Card="card" />
+
+                                <div class="pile-board__actions">
+                                    @foreach (var targetPile in Piles.Where(targetPile => !string.Equals(targetPile.PileId, ResolvePileId(card), StringComparison.OrdinalIgnoreCase)))
+                                    {
+                                        <button type="button"
+                                                class="pile-board__move-button"
+                                                data-testid="move-@card.CardId-to-@targetPile.PileId"
+                                                @onclick="() => MoveRequested.InvokeAsync(new MoveCardRequest(card.CardId, targetPile.PileId))">
+                                            Move to @targetPile.Name
+                                        </button>
+                                    }
+
+                                    <button type="button"
+                                            class="pile-board__remove-button"
+                                            data-testid="remove-@card.CardId"
+                                            @onclick="() => RemoveRequested.InvokeAsync(card.CardId)">
+                                        Remove
+                                    </button>
+                                </div>
+                            </article>
+                        }
+                    }
+                </div>
+            </section>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter]
+    public required IReadOnlyList<PileDefinitionContract> Piles { get; set; }
+
+    [Parameter]
+    public required IReadOnlyList<WorkspaceCardView> Cards { get; set; }
+
+    [Parameter]
+    public EventCallback<MoveCardRequest> MoveRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<string> RemoveRequested { get; set; }
+
+    private string? draggingCardId;
+
+    private void HandleDragStart(string cardId)
+    {
+        draggingCardId = cardId;
+    }
+
+    private void HandleDragEnd()
+    {
+        draggingCardId = null;
+    }
+
+    private async Task HandleDropAsync(string pileId)
+    {
+        if (string.IsNullOrWhiteSpace(draggingCardId))
+        {
+            return;
+        }
+
+        var request = new MoveCardRequest(draggingCardId, pileId);
+        draggingCardId = null;
+        await MoveRequested.InvokeAsync(request).ConfigureAwait(false);
+    }
+
+    private static string ResolvePileId(WorkspaceCardView card) => card.IsCommander
+        ? DeckWorkspaceViewModel.CommandZonePileId
+        : card.AssignedPileId;
+}

@@ -48,10 +48,16 @@ rules and analysis core, and expose minimal JSON contracts before beginning MudB
 
 1. Add typed Scryfall client and configuration objects in Infrastructure.
 2. Add Parquet-backed metadata adapter for authoritative local card data.
-3. Add a derived search-index generator that produces a compact client artifact from Parquet data.
-4. Add integration tests for:
+3. Add a separate bulk-ingestion path that downloads Scryfall's `oracle_cards` dataset and
+   regenerates the local Parquet snapshot outside normal user interactions.
+4. Add commander-eligibility metadata mapping so the app can filter legal commanders before deck
+   construction and still honor explicit official exceptions.
+5. Add a derived search-index generator that produces a compact client artifact from Parquet data.
+6. Add integration tests for:
    - Scryfall mapping and failure handling
    - Parquet snapshot loading
+   - Parquet snapshot replacement behavior from the bulk-ingestion workflow
+   - commander-eligibility metadata mapping and selection enforcement
    - search artifact generation
 
 ## Minimal Host Validation Path
@@ -62,11 +68,15 @@ rules and analysis core, and expose minimal JSON contracts before beginning MudB
    - deck validation
    - deck analysis
 3. Add integration tests that verify endpoint wiring, serialization, and validation failures.
+4. Ensure commander selection UI and server validation both reject non-eligible commanders before a
+   deck can proceed as a legal Commander build.
 
 ## Ready For UI Phase When
 
 - Domain and application tests for rules and scoring pass.
 - Infrastructure can load a representative metadata snapshot and serve the derived search index.
+- Infrastructure can regenerate the local Parquet snapshot from Scryfall bulk data and still use
+   read-only runtime fallback for missing cards.
 - Minimal host contracts for search, validation, and analysis are stable.
 - Performance checks show the chosen search and analysis paths meet the plan budgets.
 
@@ -77,6 +87,18 @@ dotnet restore src/CommandSynergy.slnx
 dotnet build src/CommandSynergy.slnx
 dotnet test src/CommandSynergy.slnx
 ```
+
+## Validation Notes
+
+1. Confirm `GET /api/cards/search?q=sol` returns a `snapshotVersion` and card summaries.
+2. Confirm `POST /api/decks/validate` rejects blank commander identifiers and pathological payload sizes with `400 Bad Request` before domain execution.
+3. Confirm `POST /api/decks/analyze` returns bracket and synergy payloads for a legal 100-card snapshot.
+4. Confirm commander selection rejects cards that are not official Commander-eligible unless an
+   explicit card-text or official-mechanic exception applies.
+5. Confirm running the ingestion tool regenerates the local Parquet snapshot and that resolving a
+   missing card through runtime Scryfall fallback does not mutate the snapshot.
+6. Run the focused performance tests in `tests/CommandSynergy.Infrastructure.Tests/Performance` and `tests/CommandSynergy.Application.Tests/Performance` when search or scoring logic changes.
+7. Run the security regression tests in `tests/CommandSynergy.WebUI.Tests/Security` when endpoint contracts or request validation changes.
 
 ## Deferred To UI Phase
 

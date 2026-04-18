@@ -9,7 +9,12 @@
     "chat.tools.terminal.autoApprove": {
         ".specify/scripts/bash/": true,
         ".specify/scripts/powershell/": true,
-        ".\\.specify\\extensions\\git\\scripts\\powershell\\initialize-repo.ps1": true
+        ".\\.specify\\extensions\\git\\scripts\\powershell\\initialize-repo.ps1": true,
+        "Test-Path": true,
+        "&": true,
+        "dotnet test": true,
+        "dotnet run": true,
+        "dotnet build": true
     }
 }
 
