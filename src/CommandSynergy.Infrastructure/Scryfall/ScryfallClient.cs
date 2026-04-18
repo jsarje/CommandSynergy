@@ -121,6 +121,49 @@ public sealed class ScryfallClient
             return null;
         }
     }
+
+    /// <summary>
+    /// Loads a card document by Scryfall card identifier.
+    /// </summary>
+    public async Task<ScryfallCardDocument?> GetCardByIdAsync(string cardId, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(cardId);
+
+        logger.LogDebug("Loading Scryfall card by id {CardId}", cardId);
+
+        try
+        {
+            return await httpClient.GetFromJsonAsync<ScryfallCardDocument>($"cards/{Uri.EscapeDataString(cardId)}", cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning("Timed out while loading Scryfall card id {CardId}", cardId);
+            return null;
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogWarning(exception, "Failed to load Scryfall card id {CardId}", cardId);
+            return null;
+        }
+        catch (JsonException exception)
+        {
+            logger.LogWarning(exception, "Received invalid JSON while loading Scryfall card id {CardId}", cardId);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Loads a card document using a Scryfall id when present, otherwise falls back to exact-name lookup.
+    /// </summary>
+    public Task<ScryfallCardDocument?> GetCardAsync(string cardIdOrName, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(cardIdOrName);
+
+        return Guid.TryParse(cardIdOrName, out _)
+            ? GetCardByIdAsync(cardIdOrName, cancellationToken)
+            : GetNamedCardAsync(cardIdOrName, cancellationToken);
+    }
 }
 
 /// <summary>

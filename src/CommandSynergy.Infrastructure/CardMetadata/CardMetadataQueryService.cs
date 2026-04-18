@@ -75,7 +75,7 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
 
         foreach (var missingId in requestedIds.Where(cardId => !fromSnapshot.ContainsKey(cardId)))
         {
-            var scryfallDocument = await scryfallClient.GetNamedCardAsync(missingId, cancellationToken).ConfigureAwait(false);
+            var scryfallDocument = await scryfallClient.GetCardAsync(missingId, cancellationToken).ConfigureAwait(false);
             if (scryfallDocument is not null)
             {
                 logger.LogInformation("Resolved missing card profile {CardId} via Scryfall fallback", missingId);
