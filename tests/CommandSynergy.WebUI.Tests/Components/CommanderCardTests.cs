@@ -1,6 +1,7 @@
 using Bunit;
 using CommandSynergy.Components.Cards;
 using CommandSynergy.Components.Decks;
+using CommandSynergy.Domain.Cards;
 using FluentAssertions;
 
 namespace CommandSynergy.WebUI.Tests.Components;
@@ -61,5 +62,6 @@ public sealed class CommanderCardTests : BunitContext
         Faces = [new WorkspaceCardFaceView("Swords to Plowshares", "{W}", "Instant", null, true)],
         ImageUri = null,
         Quantity = 1,
+        CommanderEligibilityBasis = CommanderEligibilityBasis.Unknown,
     };
 }

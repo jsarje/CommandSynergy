@@ -87,6 +87,31 @@ public sealed class CommanderRulesTests
         result.Findings.Should().ContainSingle(finding => finding.Code == "color-identity");
     }
 
+    [Theory]
+    [InlineData(CommanderEligibilityBasis.Unknown, "Sorcery")]
+    [InlineData(CommanderEligibilityBasis.NotEligible, "Legendary Creature")]
+    public void Validate_flags_commanders_that_are_not_commander_eligible(CommanderEligibilityBasis eligibilityBasis, string typeLine)
+    {
+        var deck = new Deck();
+        var profiles = new Dictionary<string, CardProfile>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["commander"] = CreateCard("commander", "Invalid Commander", new[] { "G" }, manaValue: 4, typeLine: typeLine, commanderEligibilityBasis: eligibilityBasis),
+        };
+
+        deck.UpsertEntry("commander", 1, isCommander: true);
+
+        for (var index = 1; index <= 99; index++)
+        {
+            var cardId = $"card-{index}";
+            profiles[cardId] = CreateCard(cardId, $"Card {index}", new[] { "G" }, manaValue: 0, typeLine: "Basic Land - Forest");
+            deck.UpsertEntry(cardId, 1);
+        }
+
+        var result = sut.Validate(deck, profiles);
+
+        result.Findings.Should().ContainSingle(finding => finding.Code == "commander-eligibility");
+    }
+
     [Fact]
     public void Validate_enforces_even_mana_value_companion_restrictions()
     {
@@ -134,7 +159,15 @@ public sealed class CommanderRulesTests
         result.Findings.Should().Contain(finding => finding.Code == "multiface-primary-face" || finding.Code == "multiface-metadata");
     }
 
-    private static CardProfile CreateCard(string cardId, string name, IReadOnlyList<string> colors, decimal manaValue, string typeLine, string? oracleId = null, string? companionRequirementCode = null) => new()
+    private static CardProfile CreateCard(
+        string cardId,
+        string name,
+        IReadOnlyList<string> colors,
+        decimal manaValue,
+        string typeLine,
+        string? oracleId = null,
+        string? companionRequirementCode = null,
+        CommanderEligibilityBasis? commanderEligibilityBasis = null) => new()
     {
         CardId = cardId,
         OracleId = oracleId ?? cardId,
@@ -143,6 +176,13 @@ public sealed class CommanderRulesTests
         TypeLine = typeLine,
         ColorIdentity = colors,
         CompanionRequirementCode = companionRequirementCode,
+        CommanderEligibilityBasis = commanderEligibilityBasis ?? InferCommanderEligibility(typeLine),
         FaceProfiles = new[] { new CardFaceProfile("0", name, null, typeLine, null, null, true) },
     };
+
+    private static CommanderEligibilityBasis InferCommanderEligibility(string typeLine) =>
+        typeLine.Contains("Legendary", StringComparison.OrdinalIgnoreCase)
+        && typeLine.Contains("Creature", StringComparison.OrdinalIgnoreCase)
+            ? CommanderEligibilityBasis.LegendaryCreature
+            : CommanderEligibilityBasis.Unknown;
 }

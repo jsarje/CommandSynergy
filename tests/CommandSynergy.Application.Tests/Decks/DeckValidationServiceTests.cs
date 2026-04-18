@@ -35,6 +35,28 @@ public sealed class DeckValidationServiceTests
         response.DeckCardCount.Should().Be(100);
     }
 
+    [Fact]
+    public async Task ValidateAsync_returns_commander_eligibility_finding_for_ineligible_commanders()
+    {
+        var gateway = new StubCardCatalogGateway(new Dictionary<string, CardProfile>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["commander"] = CreateCard("commander", new[] { "G" }, 4, "Sorcery"),
+        });
+
+        var sut = new DeckValidationService(gateway, new CommanderRules());
+
+        var response = await sut.ValidateAsync(new DeckSnapshotContract
+        {
+            CommanderCardId = "commander",
+            Entries =
+            [
+                new DeckEntryContract { CardId = "commander", Quantity = 1, IsCommander = true },
+            ],
+        });
+
+        response.Findings.Should().Contain(finding => finding.Code == "commander-eligibility");
+    }
+
     private static CardProfile CreateCard(string cardId, IReadOnlyList<string> colors, decimal manaValue, string typeLine) => new()
     {
         CardId = cardId,
@@ -43,6 +65,10 @@ public sealed class DeckValidationServiceTests
         ManaValue = manaValue,
         TypeLine = typeLine,
         ColorIdentity = colors,
+        CommanderEligibilityBasis = typeLine.Contains("Legendary", StringComparison.OrdinalIgnoreCase)
+            && typeLine.Contains("Creature", StringComparison.OrdinalIgnoreCase)
+                ? CommanderEligibilityBasis.LegendaryCreature
+                : CommanderEligibilityBasis.Unknown,
         FaceProfiles = new[] { new CardFaceProfile("0", cardId, null, typeLine, null, null, true) },
     };
 

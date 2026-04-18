@@ -37,6 +37,7 @@ public sealed class SearchIndexSnapshotBuilder
                 SaltScore = card.SaltScore,
                 ImageUri = card.ImageUri,
                 HasMultipleFaces = card.HasMultipleFaces,
+                CommanderEligibilityBasis = card.CommanderEligibilityBasis,
             })
             .ToArray();
 

@@ -93,6 +93,11 @@ public sealed class CommanderRules
             return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
+        if (!commanderProfile.IsCommanderEligible)
+        {
+            findings.Add(new ValidationFinding("error", "commander-eligibility", $"{commanderProfile.Name} is not a legal commander.", new[] { commanderEntry.CardId }));
+        }
+
         return new HashSet<string>(commanderProfile.ColorIdentity, StringComparer.OrdinalIgnoreCase);
     }
 

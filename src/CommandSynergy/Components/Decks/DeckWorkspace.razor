@@ -50,6 +50,9 @@
                                 <div class="workspace-search-result__actions">
                                     <button type="button"
                                             class="workspace-search-result__primary"
+                                            data-testid="@($"set-commander-{card.CardId}")"
+                                            disabled="@(!card.IsCommanderEligible)"
+                                            title="@(card.IsCommanderEligible ? "Set this card as your commander" : "Only legal commanders can be selected.")"
                                             @onclick="() => CommanderSelected.InvokeAsync(card.CardId)">
                                         Set as commander
                                     </button>

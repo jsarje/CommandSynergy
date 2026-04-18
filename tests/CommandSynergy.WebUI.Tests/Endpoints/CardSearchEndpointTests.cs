@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using CommandSynergy.Application.Abstractions;
 using CommandSynergy.Application.Contracts;
+using CommandSynergy.Domain.Cards;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -53,6 +54,7 @@ public sealed class CardSearchEndpointTests : IClassFixture<TestApplicationFacto
                         Name = "Sol Ring",
                         TypeLine = "Artifact",
                         ColorIdentity = Array.Empty<string>(),
+                        CommanderEligibilityBasis = CommanderEligibilityBasis.Unknown,
                     },
                 ],
             });

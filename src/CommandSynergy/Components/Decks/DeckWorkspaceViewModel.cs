@@ -1,6 +1,7 @@
 using CommandSynergy.Application.Contracts;
 using CommandSynergy.Application.Decks;
 using CommandSynergy.Client.Services;
+using CommandSynergy.Domain.Cards;
 
 namespace CommandSynergy.Components.Decks;
 
@@ -152,6 +153,16 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     public async Task SetCommanderAsync(string cardId)
     {
         var commanderCard = GetKnownCard(cardId);
+        if (!commanderCard.IsCommanderEligible)
+        {
+            if (string.IsNullOrWhiteSpace(GetCommanderCardId()))
+            {
+                Analysis = null;
+                State = stateFactory.CreateEmpty("Choose a legal commander to activate validation and synergy analysis.");
+            }
+
+            return;
+        }
 
         foreach (var entry in entries)
         {
@@ -186,14 +197,37 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     /// </summary>
     public async Task AddCardAsync(string cardId)
     {
-        if (string.IsNullOrWhiteSpace(GetCommanderCardId()))
-        {
-            await SetCommanderAsync(cardId).ConfigureAwait(false);
-            return;
-        }
-
         var card = GetKnownCard(cardId);
         knownCards[cardId] = card;
+
+        if (string.IsNullOrWhiteSpace(GetCommanderCardId()))
+        {
+            if (card.IsCommanderEligible)
+            {
+                await SetCommanderAsync(cardId).ConfigureAwait(false);
+                return;
+            }
+
+            var commanderlessEntry = entries.SingleOrDefault(existing => string.Equals(existing.CardId, cardId, StringComparison.OrdinalIgnoreCase));
+            if (commanderlessEntry is null)
+            {
+                entries.Add(new DeckEntryState(cardId)
+                {
+                    Quantity = 1,
+                    AssignedPileId = MainboardPileId,
+                });
+            }
+            else if (!commanderlessEntry.IsCommander)
+            {
+                commanderlessEntry.Quantity += 1;
+                commanderlessEntry.AssignedPileId ??= MainboardPileId;
+            }
+
+            RefreshDerivedCards();
+            Analysis = null;
+            State = stateFactory.CreateEmpty("Choose a legal commander to activate validation and synergy analysis.");
+            return;
+        }
 
         var entry = entries.SingleOrDefault(existing => string.Equals(existing.CardId, cardId, StringComparison.OrdinalIgnoreCase));
         if (entry is null)
@@ -391,6 +425,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             Faces = faces,
             AssignedPileId = MainboardPileId,
             Quantity = 1,
+            CommanderEligibilityBasis = result.CommanderEligibilityBasis,
         };
     }
 
@@ -410,6 +445,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             Faces = [new WorkspaceCardFaceView(cardId, null, "Unknown Card", null, true)],
             AssignedPileId = MainboardPileId,
             Quantity = 1,
+            CommanderEligibilityBasis = CommanderEligibilityBasis.Unknown,
         };
 
         knownCards[cardId] = placeholderCard;
@@ -466,6 +502,8 @@ public sealed record WorkspaceCardView
 
     public bool HasMultipleFaces { get; init; }
 
+    public CommanderEligibilityBasis CommanderEligibilityBasis { get; init; } = CommanderEligibilityBasis.Unknown;
+
     public required IReadOnlyList<WorkspaceCardFaceView> Faces { get; init; }
 
     public string AssignedPileId { get; init; } = DeckWorkspaceViewModel.MainboardPileId;
@@ -475,6 +513,9 @@ public sealed record WorkspaceCardView
     public bool IsCommander { get; init; }
 
     public bool IsCompanion { get; init; }
+
+    public bool IsCommanderEligible =>
+        CommanderEligibilityBasis is CommanderEligibilityBasis.LegendaryCreature or CommanderEligibilityBasis.OracleTextException;
 }
 
 /// <summary>

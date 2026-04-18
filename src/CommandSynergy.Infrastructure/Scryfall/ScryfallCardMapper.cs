@@ -20,6 +20,7 @@ public sealed class ScryfallCardMapper
         ColorIdentity = document.ColorIdentity,
         ImageUri = document.ImageUri,
         HasMultipleFaces = document.CardFaces.Count > 1,
+        CommanderEligibilityBasis = DetermineEligibilityBasis(document),
     };
 
     /// <summary>

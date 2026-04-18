@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using CommandSynergy.Domain.Cards;
 
 namespace CommandSynergy.Application.Contracts;
 
@@ -102,6 +103,9 @@ public sealed record CardSearchResultContract
 
     [JsonPropertyName("hasMultipleFaces")]
     public bool HasMultipleFaces { get; init; }
+
+    [JsonPropertyName("commanderEligibilityBasis")]
+    public CommanderEligibilityBasis CommanderEligibilityBasis { get; init; }
 }
 
 /// <summary>

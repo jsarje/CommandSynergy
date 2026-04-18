@@ -19,6 +19,7 @@ public sealed class CardSearchServiceTests
                     Name = "Sol Ring",
                     TypeLine = "Artifact",
                     ColorIdentity = Array.Empty<string>(),
+                    CommanderEligibilityBasis = CommanderEligibilityBasis.Unknown,
                 },
             ]);
 
