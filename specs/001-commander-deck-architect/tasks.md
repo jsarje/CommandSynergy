@@ -127,12 +127,12 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T045 [P] Update feature documentation and architecture notes in README.md and specs/001-commander-deck-architect/quickstart.md
-- [ ] T046 Run code cleanup and namespace alignment across src/CommandSynergy.Domain, src/CommandSynergy.Application, and src/CommandSynergy.Infrastructure
-- [ ] T047 Validate search and analysis performance budgets with focused benchmarks in tests/CommandSynergy.Infrastructure.Tests/Performance/CardSearchPerformanceTests.cs and tests/CommandSynergy.Application.Tests/Performance/DeckAnalysisPerformanceTests.cs
-- [ ] T048 [P] Add additional automated regression coverage for contract compatibility and OWASP-relevant failure cases in tests/CommandSynergy.WebUI.Tests/Security/DeckWorkspaceSecurityTests.cs
-- [ ] T049 Review structured logging, timeout, retry, and fallback behavior across Scryfall and metadata adapters in src/CommandSynergy.Infrastructure/Scryfall and src/CommandSynergy.Infrastructure/CardMetadata
-- [ ] T050 Run quickstart validation and update the agent context if project structure or commands changed in .github/copilot-instructions.md
+- [X] T045 [P] Update feature documentation and architecture notes in README.md and specs/001-commander-deck-architect/quickstart.md
+- [X] T046 Run code cleanup and namespace alignment across src/CommandSynergy.Domain, src/CommandSynergy.Application, and src/CommandSynergy.Infrastructure
+- [X] T047 Validate search and analysis performance budgets with focused benchmarks in tests/CommandSynergy.Infrastructure.Tests/Performance/CardSearchPerformanceTests.cs and tests/CommandSynergy.Application.Tests/Performance/DeckAnalysisPerformanceTests.cs
+- [X] T048 [P] Add additional automated regression coverage for contract compatibility and OWASP-relevant failure cases in tests/CommandSynergy.WebUI.Tests/Security/DeckWorkspaceSecurityTests.cs
+- [X] T049 Review structured logging, timeout, retry, and fallback behavior across Scryfall and metadata adapters in src/CommandSynergy.Infrastructure/Scryfall and src/CommandSynergy.Infrastructure/CardMetadata
+- [X] T050 Run quickstart validation and update the agent context if project structure or commands changed in .github/copilot-instructions.md
 
 ---
 

@@ -2,6 +2,7 @@ using CommandSynergy.Application.Abstractions;
 using CommandSynergy.Application.Contracts;
 using CommandSynergy.Domain.Cards;
 using CommandSynergy.Infrastructure.Scryfall;
+using Microsoft.Extensions.Logging;
 
 namespace CommandSynergy.Infrastructure.CardMetadata;
 
@@ -14,6 +15,7 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
     private readonly SearchIndexSnapshotBuilder searchIndexSnapshotBuilder;
     private readonly ScryfallClient scryfallClient;
     private readonly ScryfallCardMapper scryfallCardMapper;
+    private readonly ILogger<CardMetadataQueryService> logger;
 
     /// <summary>
     /// Creates a card catalog gateway backed by local metadata and Scryfall fallback.
@@ -22,12 +24,14 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
         ParquetCardMetadataStore metadataStore,
         SearchIndexSnapshotBuilder searchIndexSnapshotBuilder,
         ScryfallClient scryfallClient,
-        ScryfallCardMapper scryfallCardMapper)
+        ScryfallCardMapper scryfallCardMapper,
+        ILogger<CardMetadataQueryService> logger)
     {
         this.metadataStore = metadataStore;
         this.searchIndexSnapshotBuilder = searchIndexSnapshotBuilder;
         this.scryfallClient = scryfallClient;
         this.scryfallCardMapper = scryfallCardMapper;
+        this.logger = logger;
     }
 
     /// <inheritdoc />
@@ -63,12 +67,23 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
                 },
                 StringComparer.OrdinalIgnoreCase);
 
+        logger.LogDebug(
+            "Loaded {ResolvedCardCount} of {RequestedCardCount} requested card profiles from snapshot {SnapshotId}",
+            fromSnapshot.Count,
+            requestedIds.Length,
+            snapshot.SnapshotId);
+
         foreach (var missingId in requestedIds.Where(cardId => !fromSnapshot.ContainsKey(cardId)))
         {
             var scryfallDocument = await scryfallClient.GetNamedCardAsync(missingId, cancellationToken).ConfigureAwait(false);
             if (scryfallDocument is not null)
             {
+                logger.LogInformation("Resolved missing card profile {CardId} via Scryfall fallback", missingId);
                 fromSnapshot[missingId] = scryfallCardMapper.MapCardProfile(scryfallDocument);
+            }
+            else
+            {
+                logger.LogWarning("Unable to resolve card profile {CardId} from snapshot or Scryfall fallback", missingId);
             }
         }
 
@@ -78,12 +93,15 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
     /// <inheritdoc />
     public async Task<IReadOnlyList<CardSearchResultContract>> SearchAsync(CardSearchQueryContract request, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         var snapshot = await metadataStore.LoadSnapshotAsync(cancellationToken).ConfigureAwait(false);
         var searchIndex = searchIndexSnapshotBuilder.Build(snapshot);
-        var colorFilters = request.Colors.Where(color => !string.IsNullOrWhiteSpace(color)).ToArray();
+        var normalizedQuery = request.Query.Trim();
+        var colorFilters = request.Colors.Where(color => !string.IsNullOrWhiteSpace(color)).Select(static color => color.Trim()).ToArray();
 
         var results = searchIndex.CardSummaries
-            .Where(card => card.Name.Contains(request.Query, StringComparison.OrdinalIgnoreCase))
+            .Where(card => card.Name.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase))
             .Where(card => colorFilters.Length == 0 || colorFilters.All(filter => card.ColorIdentity.Contains(filter, StringComparer.OrdinalIgnoreCase)))
             .OrderBy(card => card.Name, StringComparer.OrdinalIgnoreCase)
             .Take(20)
@@ -91,10 +109,12 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
 
         if (results.Length > 0)
         {
+            logger.LogDebug("Resolved {ResultCount} card search results from snapshot {SnapshotId}", results.Length, snapshot.SnapshotId);
             return results;
         }
 
-        var scryfallResponse = await scryfallClient.SearchCardsAsync(request.Query, cancellationToken).ConfigureAwait(false);
+        logger.LogInformation("No local card-search results for query {Query}; falling back to Scryfall", normalizedQuery);
+        var scryfallResponse = await scryfallClient.SearchCardsAsync(normalizedQuery, cancellationToken).ConfigureAwait(false);
         return scryfallResponse.Data.Select(scryfallCardMapper.MapSearchResult).Take(20).ToArray();
     }
 

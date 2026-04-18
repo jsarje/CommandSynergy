@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
@@ -32,10 +33,28 @@ public sealed class ScryfallClient
 
         logger.LogDebug("Searching Scryfall with query {Query}", query);
 
-        var response = await httpClient.GetFromJsonAsync<ScryfallSearchResponse>($"cards/search?q={Uri.EscapeDataString(query)}", cancellationToken)
-            .ConfigureAwait(false);
+        try
+        {
+            var response = await httpClient.GetFromJsonAsync<ScryfallSearchResponse>($"cards/search?q={Uri.EscapeDataString(query)}", cancellationToken)
+                .ConfigureAwait(false);
 
-        return response ?? ScryfallSearchResponse.Empty;
+            return response ?? ScryfallSearchResponse.Empty;
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning("Timed out while searching Scryfall for query {Query}", query);
+            return ScryfallSearchResponse.Empty;
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogWarning(exception, "Failed to search Scryfall for query {Query}", query);
+            return ScryfallSearchResponse.Empty;
+        }
+        catch (JsonException exception)
+        {
+            logger.LogWarning(exception, "Received invalid JSON while searching Scryfall for query {Query}", query);
+            return ScryfallSearchResponse.Empty;
+        }
     }
 
     /// <summary>
@@ -47,8 +66,26 @@ public sealed class ScryfallClient
 
         logger.LogDebug("Loading Scryfall card {CardName}", exactName);
 
-        return await httpClient.GetFromJsonAsync<ScryfallCardDocument>($"cards/named?exact={Uri.EscapeDataString(exactName)}", cancellationToken)
-            .ConfigureAwait(false);
+        try
+        {
+            return await httpClient.GetFromJsonAsync<ScryfallCardDocument>($"cards/named?exact={Uri.EscapeDataString(exactName)}", cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning("Timed out while loading Scryfall card {CardName}", exactName);
+            return null;
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogWarning(exception, "Failed to load Scryfall card {CardName}", exactName);
+            return null;
+        }
+        catch (JsonException exception)
+        {
+            logger.LogWarning(exception, "Received invalid JSON while loading Scryfall card {CardName}", exactName);
+            return null;
+        }
     }
 }
 

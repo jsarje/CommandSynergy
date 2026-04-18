@@ -78,6 +78,14 @@ dotnet build src/CommandSynergy.slnx
 dotnet test src/CommandSynergy.slnx
 ```
 
+## Validation Notes
+
+1. Confirm `GET /api/cards/search?q=sol` returns a `snapshotVersion` and card summaries.
+2. Confirm `POST /api/decks/validate` rejects blank commander identifiers and pathological payload sizes with `400 Bad Request` before domain execution.
+3. Confirm `POST /api/decks/analyze` returns bracket and synergy payloads for a legal 100-card snapshot.
+4. Run the focused performance tests in `tests/CommandSynergy.Infrastructure.Tests/Performance` and `tests/CommandSynergy.Application.Tests/Performance` when search or scoring logic changes.
+5. Run the security regression tests in `tests/CommandSynergy.WebUI.Tests/Security` when endpoint contracts or request validation changes.
+
 ## Deferred To UI Phase
 
 - MudBlazor registration and theme work
