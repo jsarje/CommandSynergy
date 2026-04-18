@@ -8,11 +8,90 @@ using CommandSynergy.Infrastructure.Scryfall;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Parquet.Serialization;
 
 namespace CommandSynergy.Infrastructure.Tests.CardMetadata;
 
 public sealed class CardMetadataQueryServiceTests
 {
+    [Fact]
+    public async Task GetCardProfilesAsync_uses_parquet_snapshot_when_available()
+    {
+        var metadataDirectory = Path.Combine(Path.GetTempPath(), $"command-synergy-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(metadataDirectory);
+
+        try
+        {
+            await WriteSnapshotAsync(
+                metadataDirectory,
+                new TestParquetCardMetadataRow
+                {
+                    CardId = "persistent-petitioners-id",
+                    OracleId = "persistent-petitioners-oracle",
+                    Name = "Persistent Petitioners",
+                    TypeLine = "Creature — Human Advisor",
+                    ColorIdentity = [ "U" ],
+                    ManaCost = "{1}{U}",
+                    ManaValue = 2,
+                    SaltScore = 0.4m,
+                    ImageUri = "https://example.test/persistent-petitioners.jpg",
+                    HasMultipleFaces = false,
+                    OracleText = "A deck can have any number of cards named Persistent Petitioners.",
+                    PlayRateByCommander = new Dictionary<string, decimal>
+                    {
+                        ["persistent-petitioners-oracle"] = 0.72m,
+                    },
+                    GenericColorStapleRate = 0.18m,
+                    IsLegalInCommander = true,
+                    AllowsMultipleCopies = true,
+                    CompanionRequirementCode = "even-mana-value",
+                });
+
+            var metadataStore = new ParquetCardMetadataStore(
+                Options.Create(new CardMetadataOptions
+                {
+                    SnapshotDirectory = metadataDirectory,
+                    SnapshotFileName = "cards.parquet",
+                    SearchIndexVersion = "test-v1",
+                }),
+                NullLogger<ParquetCardMetadataStore>.Instance);
+
+            var searchIndexBuilder = new SearchIndexSnapshotBuilder(Options.Create(new CardMetadataOptions
+            {
+                SnapshotDirectory = metadataDirectory,
+                SnapshotFileName = "cards.parquet",
+                SearchIndexVersion = "test-v1",
+            }));
+
+            var scryfallClient = new ScryfallClient(
+                new HttpClient(new StubHttpMessageHandler())
+                {
+                    BaseAddress = new Uri("https://api.scryfall.com/", UriKind.Absolute),
+                },
+                NullLogger<ScryfallClient>.Instance);
+
+            var sut = new CardMetadataQueryService(
+                metadataStore,
+                searchIndexBuilder,
+                scryfallClient,
+                new ScryfallCardMapper(),
+                NullLogger<CardMetadataQueryService>.Instance);
+
+            var response = await sut.GetCardProfilesAsync([ "persistent-petitioners-id" ]);
+
+            response.Should().ContainKey("persistent-petitioners-id");
+            response["persistent-petitioners-id"].Name.Should().Be("Persistent Petitioners");
+            response["persistent-petitioners-id"].AllowsMultipleCopies.Should().BeTrue();
+            response["persistent-petitioners-id"].CompanionRequirementCode.Should().Be("even-mana-value");
+            response["persistent-petitioners-id"].PlayRateByCommander.Should().ContainKey("persistent-petitioners-oracle");
+            response["persistent-petitioners-id"].GenericColorStapleRate.Should().Be(0.18m);
+        }
+        finally
+        {
+            Directory.Delete(metadataDirectory, true);
+        }
+    }
+
     [Fact]
     public async Task GetCardProfilesAsync_resolves_uuid_card_ids_via_scryfall_when_snapshot_is_missing()
     {
@@ -116,6 +195,13 @@ public sealed class CardMetadataQueryServiceTests
         }
     }
 
+    private static async Task WriteSnapshotAsync(string metadataDirectory, params TestParquetCardMetadataRow[] rows)
+    {
+        var snapshotPath = Path.Combine(metadataDirectory, "cards.parquet");
+        await using var stream = File.Create(snapshotPath);
+        await ParquetSerializer.SerializeAsync(rows, stream);
+    }
+
     private sealed class StubHttpMessageHandler : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -175,5 +261,40 @@ public sealed class CardMetadataQueryServiceTests
         {
             Content = new StringContent(content, Encoding.UTF8, "application/json"),
         };
+    }
+
+    private sealed class TestParquetCardMetadataRow
+    {
+        public string CardId { get; init; } = string.Empty;
+
+        public string? OracleId { get; init; }
+
+        public string Name { get; init; } = string.Empty;
+
+        public string TypeLine { get; init; } = string.Empty;
+
+        public string[] ColorIdentity { get; init; } = Array.Empty<string>();
+
+        public string? ManaCost { get; init; }
+
+        public decimal ManaValue { get; init; }
+
+        public decimal? SaltScore { get; init; }
+
+        public string? ImageUri { get; init; }
+
+        public bool HasMultipleFaces { get; init; }
+
+        public string? OracleText { get; init; }
+
+        public Dictionary<string, decimal>? PlayRateByCommander { get; init; }
+
+        public decimal? GenericColorStapleRate { get; init; }
+
+        public bool IsLegalInCommander { get; init; } = true;
+
+        public bool AllowsMultipleCopies { get; init; }
+
+        public string? CompanionRequirementCode { get; init; }
     }
 }
