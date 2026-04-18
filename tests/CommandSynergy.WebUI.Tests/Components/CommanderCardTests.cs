@@ -8,6 +8,21 @@ namespace CommandSynergy.WebUI.Tests.Components;
 public sealed class CommanderCardTests : TestContext
 {
     [Fact]
+    public void Commander_card_renders_full_artwork_image_when_image_uri_is_available()
+    {
+        var cut = RenderComponent<CommanderCard>(parameters => parameters
+            .Add(component => component.Card, CreateSingleFaceCard() with
+            {
+                ImageUri = "https://cards.example/swords-to-plowshares.jpg",
+                Faces = [new WorkspaceCardFaceView("Swords to Plowshares", "{W}", "Instant", "https://cards.example/swords-to-plowshares.jpg", true)],
+            }));
+
+        var image = cut.Find("img.commander-card__art-image");
+        image.GetAttribute("src").Should().Be("https://cards.example/swords-to-plowshares.jpg");
+        image.GetAttribute("alt").Should().Be("Swords to Plowshares artwork");
+    }
+
+    [Fact]
     public void Commander_card_renders_salt_badge_when_available()
     {
         var cut = RenderComponent<CommanderCard>(parameters => parameters
@@ -44,6 +59,7 @@ public sealed class CommanderCardTests : TestContext
         TypeLine = "Instant",
         ColorIdentity = ["W"],
         Faces = [new WorkspaceCardFaceView("Swords to Plowshares", "{W}", "Instant", null, true)],
+        ImageUri = null,
         Quantity = 1,
     };
 }
