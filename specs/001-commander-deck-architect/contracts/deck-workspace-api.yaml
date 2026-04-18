@@ -1,0 +1,264 @@
+openapi: 3.1.0
+info:
+  title: Commander Synergy Sphere Deck Workspace API
+  version: 0.1.0
+  description: |
+    Internal JSON contract between the Blazor WebUI and server-owned application services for
+    card search, commander validation, and analysis.
+servers:
+  - url: https://localhost
+paths:
+  /api/cards/search:
+    get:
+      summary: Search the derived card index used by the deck workspace.
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: commanderCardId
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: colors
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Search results for the current query.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardSearchResponse'
+  /api/decks/validate:
+    post:
+      summary: Validate a deck snapshot against commander rules.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeckSnapshot'
+      responses:
+        '200':
+          description: Validation result for the submitted deck.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckValidationResponse'
+  /api/decks/analyze:
+    post:
+      summary: Calculate bracket and synergy outcomes for a deck snapshot.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeckSnapshot'
+      responses:
+        '200':
+          description: Combined analysis result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeckAnalysisResponse'
+components:
+  schemas:
+    DeckSnapshot:
+      type: object
+      required:
+        - commanderCardId
+        - entries
+      properties:
+        deckId:
+          type: string
+        name:
+          type: string
+        commanderCardId:
+          type: string
+        companionCardId:
+          type:
+            - string
+            - 'null'
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeckEntry'
+        piles:
+          type: array
+          items:
+            $ref: '#/components/schemas/PileDefinition'
+    DeckEntry:
+      type: object
+      required:
+        - cardId
+        - quantity
+      properties:
+        cardId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        assignedPileId:
+          type:
+            - string
+            - 'null'
+        isCommander:
+          type: boolean
+        isCompanion:
+          type: boolean
+    PileDefinition:
+      type: object
+      required:
+        - pileId
+        - name
+      properties:
+        pileId:
+          type: string
+        name:
+          type: string
+        sortOrder:
+          type: integer
+    CardSearchResponse:
+      type: object
+      required:
+        - results
+      properties:
+        snapshotVersion:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CardSearchResult'
+    CardSearchResult:
+      type: object
+      required:
+        - cardId
+        - name
+        - typeLine
+        - colorIdentity
+      properties:
+        cardId:
+          type: string
+        name:
+          type: string
+        manaCost:
+          type: string
+        typeLine:
+          type: string
+        colorIdentity:
+          type: array
+          items:
+            type: string
+        saltScore:
+          type:
+            - number
+            - 'null'
+        imageUri:
+          type:
+            - string
+            - 'null'
+        hasMultipleFaces:
+          type: boolean
+    DeckValidationResponse:
+      type: object
+      required:
+        - isValid
+        - findings
+      properties:
+        isValid:
+          type: boolean
+        findings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationFinding'
+        deckCardCount:
+          type: integer
+    ValidationFinding:
+      type: object
+      required:
+        - severity
+        - code
+        - message
+      properties:
+        severity:
+          type: string
+          enum: [warning, error]
+        code:
+          type: string
+        message:
+          type: string
+        affectedCardIds:
+          type: array
+          items:
+            type: string
+    DeckAnalysisResponse:
+      type: object
+      required:
+        - bracket
+        - synergy
+      properties:
+        bracket:
+          $ref: '#/components/schemas/BracketAssessment'
+        synergy:
+          $ref: '#/components/schemas/SynergyAssessment'
+    BracketAssessment:
+      type: object
+      required:
+        - level
+        - totalWeight
+        - summary
+      properties:
+        level:
+          type: integer
+          minimum: 1
+          maximum: 5
+        totalWeight:
+          type: number
+        summary:
+          type: string
+        factors:
+          type: array
+          items:
+            $ref: '#/components/schemas/BracketFactor'
+    BracketFactor:
+      type: object
+      required:
+        - category
+        - weight
+        - explanation
+      properties:
+        sourceCardId:
+          type:
+            - string
+            - 'null'
+        category:
+          type: string
+        weight:
+          type: number
+        explanation:
+          type: string
+    SynergyAssessment:
+      type: object
+      required:
+        - score
+        - summary
+      properties:
+        score:
+          type: number
+        summary:
+          type: string
+        commanderSpecificHits:
+          type: array
+          items:
+            type: string
+        stapleOverloadIndicators:
+          type: array
+          items:
+            type: string
