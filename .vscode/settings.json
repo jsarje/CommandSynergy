@@ -13,7 +13,8 @@
         "Test-Path": true,
         "&": true,
         "dotnet test": true,
-        "dotnet run": true
+        "dotnet run": true,
+        "dotnet build": true
     }
 }
 
