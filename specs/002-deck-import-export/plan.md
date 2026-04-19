@@ -19,8 +19,8 @@ the persisted imported-deck library itself.
 MudBlazor, existing CommandSynergy Application contracts, xUnit, bUnit, FluentAssertions, and a
 browser-storage abstraction using localStorage (prefer `Blazored.LocalStorage` or equivalent thin
 JS interop wrapper)  
-**Storage**: Browser localStorage for persisted imported decks, active deck selection, and import
-preferences; existing in-memory workspace state remains transient  
+**Storage**: Browser localStorage for persisted imported decks and active deck selection; existing
+in-memory workspace state remains transient
 **Testing**: xUnit for import/export parsing and rendering services, bUnit for component state and
 deck switching, host integration tests for wiring and browser-storage-safe behavior, security tests
 for untrusted text handling  

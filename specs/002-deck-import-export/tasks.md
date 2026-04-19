@@ -71,19 +71,22 @@
 
 **Goal**: Let a user export the current deck in supported named formats, disclose lossy transforms before copy or download, and preserve commander identity and quantities in the rendered text.
 
-**Independent Test**: Open an existing deck in the workspace, export it as Moxfield and ManaBox text, confirm the output ordering and quantities match expectations, and verify warnings appear when workspace metadata cannot be represented.
+**Independent Test**: Open an existing deck in the workspace, export it as Moxfield and ManaBox
+text, confirm the output ordering and quantities match expectations, verify warnings appear when
+workspace metadata cannot be represented, and confirm loading, empty, error, and recovery states
+behave correctly when export prerequisites are missing or rendering fails.
 
 ### Tests for User Story 2
 
 - [ ] T021 [P] [US2] Add unit tests for named-format export rendering, card ordering, quantity notation, and lossy-transform warnings in tests/CommandSynergy.Application.Tests/Decks/DeckExportServiceTests.cs
 - [ ] T022 [P] [US2] Add unit tests for workspace-to-portable snapshot projection used by export flows in tests/CommandSynergy.Application.Tests/Decks/WorkingCopyProjectionServiceTests.cs
-- [ ] T023 [P] [US2] Add bUnit tests for export preview, warning disclosure, and copy or download actions in tests/CommandSynergy.WebUI.Tests/Components/DeckExportPanelTests.cs
+- [ ] T023 [P] [US2] Add bUnit tests for export preview, warning disclosure, loading state, empty-state handling, export failure messaging, and recovery actions in tests/CommandSynergy.WebUI.Tests/Components/DeckExportPanelTests.cs
 
 ### Implementation for User Story 2
 
 - [ ] T024 [P] [US2] Implement named-format export rendering in src/CommandSynergy.Application/Decks/Portability/DeckExportService.cs, src/CommandSynergy.Application/Decks/Portability/Formats/MoxfieldTextFormatProfile.cs, and src/CommandSynergy.Application/Decks/Portability/Formats/ManaBoxTextFormatProfile.cs
-- [ ] T025 [P] [US2] Implement export-preview state management and copy or download coordination in src/CommandSynergy.Client/Services/DeckWorkspaceClient.cs and src/CommandSynergy/Components/Decks/DeckWorkspaceViewModel.cs
-- [ ] T026 [US2] Add export UI, target-format selection, and warning messaging in src/CommandSynergy/Components/Decks/DeckWorkspace.razor, src/CommandSynergy/Components/Pages/Home.razor.cs, and src/CommandSynergy/Components/Decks/DeckExportPanel.razor
+- [ ] T025 [P] [US2] Implement export-preview state management, failure handling, recovery actions, and copy or download coordination in src/CommandSynergy.Client/Services/DeckWorkspaceClient.cs and src/CommandSynergy/Components/Decks/DeckWorkspaceViewModel.cs
+- [ ] T026 [US2] Add export UI, target-format selection, warning messaging, loading feedback, empty-state guidance, and error or recovery flows in src/CommandSynergy/Components/Decks/DeckWorkspace.razor, src/CommandSynergy/Components/Pages/Home.razor.cs, and src/CommandSynergy/Components/Decks/DeckExportPanel.razor
 
 **Checkpoint**: User Story 2 should be independently testable by exporting an existing workspace deck without relying on unfinished follow-on stories
 
@@ -119,6 +122,7 @@
 - [ ] T034 [P] Add performance regression coverage for import, export, hydration, and deck switching budgets in tests/CommandSynergy.Application.Tests/Performance/DeckPortabilityPerformanceTests.cs
 - [ ] T035 [P] Add regression coverage for corrupted localStorage recovery and no-raw-document server transfer in tests/CommandSynergy.WebUI.Tests/Security/DeckWorkspaceSecurityTests.cs and tests/CommandSynergy.WebUI.Tests/Components/DeckPortabilityWorkflowTests.cs
 - [ ] T036 Review logging, payload-limit enforcement, UX state consistency, and quickstart validation across src/CommandSynergy.Client/Services/ImportedDeckLibraryStore.cs, src/CommandSynergy.Application/Decks/Portability/DeckImportService.cs, src/CommandSynergy.Application/Decks/Portability/DeckExportService.cs, src/CommandSynergy/Components/Decks/DeckWorkspaceViewModel.cs, and specs/002-deck-import-export/quickstart.md
+- [ ] T037 [P] Add named-format export compatibility verification using maintained target-workflow fixtures and documented acceptance checks in tests/CommandSynergy.Application.Tests/Decks/DeckExportServiceTests.cs and specs/002-deck-import-export/quickstart.md
 
 ---
 

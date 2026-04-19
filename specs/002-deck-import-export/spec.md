@@ -97,8 +97,10 @@ the workspace, and exporting it again in a portable text representation.
 ### Functional Requirements
 
 - **FR-001**: The system MUST allow users to import existing Commander decklists from text input in
-  a curated set of supported formats, including known formats from popular deckbuilding tools such
-  as Moxfield and ManaBox, plus at least one generic portable text format.
+  the initial supported format set for this release: Moxfield text decklists, ManaBox text
+  decklists, and one generic portable plaintext format defined by this product. The system MAY add
+  more formats in later releases, but unsupported formats in this release MUST be reported with
+  clear guidance instead of being misidentified as supported input.
 - **FR-002**: The system MUST identify the intended import format automatically when it is
   unambiguous and MUST allow the user to choose the format when the input could match more than one
   supported structure.
@@ -159,8 +161,9 @@ the workspace, and exporting it again in a portable text representation.
   and open it in the workspace on their first attempt without manual re-entry.
 - **SC-002**: At least 95% of the maintained sample decklists for each supported named format import
   with the correct commander assignment and total card quantities.
-- **SC-003**: At least 95% of exported decklists in supported named formats can be pasted into their
-  target tool or consumed through the target workflow without manual reformatting.
+- **SC-003**: At least 95% of exported decklists in the supported named formats pass the maintained
+  format-compatibility fixture suite and can be pasted into the documented target workflow for that
+  format without manual reformatting.
 - **SC-004**: When an import includes unsupported or ambiguous lines, at least 90% of users in
   acceptance testing can identify what failed and resolve the issue within 3 minutes.
 - **SC-005**: No open high-severity findings remain for the delivered scope's relevant OWASP risk
