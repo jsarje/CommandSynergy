@@ -174,6 +174,180 @@ public sealed class DeckWorkspaceViewModelTests
     }
 
     [Fact]
+    public async Task StartNewDeckAsync_clears_workspace_and_detaches_active_imported_deck()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = CreateLibraryState(timeProvider);
+        var importedDeck = CreateImportedDeck("deck-1", "Isshin Pressure", timeProvider.GetUtcNow(), "Deck: Isshin");
+        await libraryState.SaveImportedDeckAsync(importedDeck, setActive: true);
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new StubDeckWorkspaceClient(),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.OpenActiveImportedDeckAsync();
+
+        sut.Cards.Should().NotBeEmpty();
+        sut.ActiveImportedDeckId.Should().Be("deck-1");
+
+        await sut.StartNewDeckAsync();
+
+        sut.ActiveImportedDeckId.Should().BeNull();
+        sut.Cards.Should().BeEmpty();
+        sut.SearchResults.Should().BeEmpty();
+        sut.Analysis.Should().BeNull();
+        sut.State.Status.Should().Be(DeckWorkspaceStatus.Empty);
+        sut.ImportStatusMessage.Should().Be("Started a brand new deck workspace.");
+        sut.ImportedDecks.Should().ContainSingle(deck => deck.ImportedDeckId == "deck-1");
+    }
+
+    [Fact]
+    public async Task StartNewDeckAsync_breaks_live_persistence_link_to_previously_active_imported_deck()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = CreateLibraryState(timeProvider);
+        var importedDeck = CreateImportedDeck("deck-1", "Isshin Pressure", timeProvider.GetUtcNow(), "Deck: Isshin");
+        await libraryState.SaveImportedDeckAsync(importedDeck, setActive: true);
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new StubDeckWorkspaceClient(),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.OpenActiveImportedDeckAsync();
+        await sut.StartNewDeckAsync();
+        await sut.UpdateSearchQueryAsync("Sol Ring");
+        await sut.SearchAsync();
+        await sut.AddCardAsync("sol-ring");
+
+        var persistedDeck = sut.ImportedDecks.Should().ContainSingle(deck => deck.ImportedDeckId == "deck-1").Subject;
+        persistedDeck.NormalizedDeck.CommanderCardIds.Should().ContainSingle().Which.Should().Be("isshin-two-heavens-as-one");
+        persistedDeck.NormalizedDeck.Entries.Should().ContainSingle();
+        persistedDeck.NormalizedDeck.Entries.Should().ContainSingle(entry => entry.CardId == "isshin-two-heavens-as-one" && entry.SectionId == "command-zone");
+        persistedDeck.NormalizedDeck.Entries.Should().NotContain(entry => entry.CardId == "sol-ring");
+        sut.Cards.Should().ContainSingle(entry => entry.CardId == "sol-ring");
+        sut.ActiveImportedDeckId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SaveNewDeckAsync_persists_detached_workspace_and_links_it_to_library()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = CreateLibraryState(timeProvider);
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new StubDeckWorkspaceClient(),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.StartNewDeckAsync();
+        await sut.UpdateSearchQueryAsync("Sol Ring");
+        await sut.SearchAsync();
+        await sut.AddCardAsync("sol-ring");
+        await sut.UpdateNewDeckNameAsync("Fresh Brew");
+        await sut.SaveNewDeckAsync();
+
+        sut.ImportedDecks.Should().ContainSingle();
+        sut.IsWorkspaceLinkedToSavedDeck.Should().BeTrue();
+        sut.ActiveWorkspaceDeckName.Should().Be("Fresh Brew");
+        sut.ActiveImportedDeckId.Should().NotBeNullOrWhiteSpace();
+
+        var savedDeck = sut.ImportedDecks[0];
+        savedDeck.Name.Should().Be("Fresh Brew");
+        savedDeck.SourceFormatId.Should().Be("workspace");
+        savedDeck.NormalizedDeck.DeckName.Should().Be("Fresh Brew");
+        savedDeck.NormalizedDeck.CommanderCardIds.Should().BeEmpty();
+        savedDeck.NormalizedDeck.Entries.Should().ContainSingle(entry => entry.CardId == "sol-ring" && entry.SectionId == DeckWorkspaceViewModel.MainboardPileId);
+        savedDeck.OriginalDocumentText.Should().Contain("Deck: Fresh Brew");
+        sut.ImportStatusMessage.Should().Contain("Saved 'Fresh Brew'");
+    }
+
+    [Fact]
+    public async Task SaveNewDeckAsync_suffixes_name_when_requested_name_already_exists()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = CreateLibraryState(timeProvider);
+        await libraryState.SaveImportedDeckAsync(CreateImportedDeck("deck-1", "Fresh Brew", timeProvider.GetUtcNow(), "Deck: Existing"), setActive: false);
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new StubDeckWorkspaceClient(),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.StartNewDeckAsync();
+        await sut.UpdateSearchQueryAsync("Sol Ring");
+        await sut.SearchAsync();
+        await sut.AddCardAsync("sol-ring");
+        await sut.UpdateNewDeckNameAsync("Fresh Brew");
+        await sut.SaveNewDeckAsync();
+
+        sut.ImportedDecks.Should().HaveCount(2);
+        sut.ImportedDecks.Should().Contain(deck => deck.Name == "Fresh Brew 001" && deck.SourceFormatId == "workspace");
+        sut.ActiveWorkspaceDeckName.Should().Be("Fresh Brew 001");
+        sut.ImportStatusMessage.Should().Contain("Saved 'Fresh Brew 001'");
+    }
+
+    [Fact]
+    public async Task RenameActiveDeckAsync_updates_active_saved_deck_in_place()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = CreateLibraryState(timeProvider);
+        await libraryState.SaveImportedDeckAsync(CreateImportedDeck("deck-1", "Isshin Pressure", timeProvider.GetUtcNow(), "Deck: Isshin"), setActive: true);
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new StubDeckWorkspaceClient(),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.OpenActiveImportedDeckAsync();
+        await sut.UpdateLinkedDeckNameAsync("Isshin Pressure Reloaded");
+        await sut.RenameActiveDeckAsync();
+
+        sut.ActiveWorkspaceDeckName.Should().Be("Isshin Pressure Reloaded");
+        sut.LinkedDeckName.Should().Be("Isshin Pressure Reloaded");
+        sut.ImportedDecks.Should().ContainSingle(deck => deck.ImportedDeckId == "deck-1" && deck.Name == "Isshin Pressure Reloaded");
+        sut.ImportedDecks[0].NormalizedDeck.DeckName.Should().Be("Isshin Pressure Reloaded");
+        sut.LinkedDeckStatusHasError.Should().BeFalse();
+        sut.LinkedDeckStatusMessage.Should().Be("Renamed saved deck to 'Isshin Pressure Reloaded'.");
+    }
+
+    [Fact]
+    public async Task RenameActiveDeckAsync_rejects_duplicate_saved_deck_name()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = CreateLibraryState(timeProvider);
+        await libraryState.SaveImportedDeckAsync(CreateImportedDeck("deck-1", "Isshin Pressure", timeProvider.GetUtcNow(), "Deck: Isshin"), setActive: true);
+        await libraryState.SaveImportedDeckAsync(CreateImportedDeck("deck-2", "Alesha Tempo", timeProvider.GetUtcNow().AddMinutes(1), "Deck: Alesha"), setActive: false);
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new StubDeckWorkspaceClient(),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.OpenActiveImportedDeckAsync();
+        await sut.UpdateLinkedDeckNameAsync("Alesha Tempo");
+        await sut.RenameActiveDeckAsync();
+
+        sut.ActiveWorkspaceDeckName.Should().Be("Isshin Pressure");
+        sut.ImportedDecks.Should().Contain(deck => deck.ImportedDeckId == "deck-1" && deck.Name == "Isshin Pressure");
+        sut.LinkedDeckStatusHasError.Should().BeTrue();
+        sut.LinkedDeckStatusMessage.Should().Be("A saved deck named 'Alesha Tempo' already exists. Choose a different name.");
+    }
+
+    [Fact]
     public async Task ImportDeckAsync_prompts_for_duplicate_name_and_can_update_existing_deck()
     {
         var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));

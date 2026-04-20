@@ -41,7 +41,58 @@
                 <div class="workspace-search">
                     <button type="button" class="workspace-search__button" @onclick="ImportRequested">Import deck</button>
                     <button type="button" class="workspace-search__button" @onclick="OpenImportedDeckRequested" disabled="@string.IsNullOrWhiteSpace(ActiveImportedDeckId)">Open working copy</button>
+                    <button type="button" class="workspace-search__button" @onclick="StartNewDeckRequested">New deck</button>
                 </div>
+
+                @if (IsWorkspaceLinkedToSavedDeck)
+                {
+                    <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" data-testid="workspace-link-status">
+                        Editing <strong>@ActiveWorkspaceDeckName</strong>. Changes in this working copy persist automatically to the selected saved deck.
+                    </MudAlert>
+
+                    <div class="workspace-search" data-testid="linked-deck-rename-controls">
+                        <MudTextField T="string"
+                                      Label="Saved deck name"
+                                      Value="@LinkedDeckName"
+                                      ValueChanged="LinkedDeckNameChanged"
+                                      Variant="Variant.Outlined" />
+                        <button type="button"
+                                class="workspace-search__button"
+                                @onclick="RenameLinkedDeckRequested"
+                                disabled="@(!CanRenameLinkedDeck)">
+                            Rename saved deck
+                        </button>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(LinkedDeckStatusMessage))
+                    {
+                        <MudAlert Severity="@(LinkedDeckStatusHasError ? Severity.Warning : Severity.Success)"
+                                  Variant="Variant.Outlined"
+                                  data-testid="linked-deck-rename-status">
+                            @LinkedDeckStatusMessage
+                        </MudAlert>
+                    }
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" data-testid="workspace-link-status">
+                        This workspace is detached from the local library. Save it when you want a new deck entry that reopens with its latest changes.
+                    </MudAlert>
+
+                    <div class="workspace-search" data-testid="new-deck-save-controls">
+                        <MudTextField T="string"
+                                      Label="New deck name"
+                                      Value="@NewDeckName"
+                                      ValueChanged="NewDeckNameChanged"
+                                      Variant="Variant.Outlined" />
+                        <button type="button"
+                                class="workspace-search__button"
+                                @onclick="SaveNewDeckRequested"
+                                disabled="@(!CanSaveNewDeck)">
+                            Save to library
+                        </button>
+                    </div>
+                }
 
                 @if (!string.IsNullOrWhiteSpace(LibraryRecoveryMessage))
                 {
@@ -359,10 +410,34 @@
     public string? ActiveImportedDeckId { get; set; }
 
     [Parameter]
+    public bool IsWorkspaceLinkedToSavedDeck { get; set; }
+
+    [Parameter]
+    public string? ActiveWorkspaceDeckName { get; set; }
+
+    [Parameter]
+    public required string LinkedDeckName { get; set; }
+
+    [Parameter]
+    public string? LinkedDeckStatusMessage { get; set; }
+
+    [Parameter]
+    public bool LinkedDeckStatusHasError { get; set; }
+
+    [Parameter]
     public required IReadOnlyList<ImportDiagnostic> ActiveImportedDeckDiagnostics { get; set; }
 
     [Parameter]
     public string? ImportStatusMessage { get; set; }
+
+    [Parameter]
+    public required string NewDeckName { get; set; }
+
+    [Parameter]
+    public bool CanSaveNewDeck { get; set; }
+
+    [Parameter]
+    public bool CanRenameLinkedDeck { get; set; }
 
     [Parameter]
     public bool HasPendingDuplicateImport { get; set; }
@@ -411,6 +486,21 @@
 
     [Parameter]
     public EventCallback OpenImportedDeckRequested { get; set; }
+
+    [Parameter]
+    public EventCallback StartNewDeckRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<string> NewDeckNameChanged { get; set; }
+
+    [Parameter]
+    public EventCallback SaveNewDeckRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<string> LinkedDeckNameChanged { get; set; }
+
+    [Parameter]
+    public EventCallback RenameLinkedDeckRequested { get; set; }
 
     [Parameter]
     public EventCallback<string> ExportFormatChanged { get; set; }

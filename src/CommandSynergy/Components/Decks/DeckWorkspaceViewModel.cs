@@ -23,6 +23,10 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     /// </summary>
     public const string MainboardPileId = "mainboard";
 
+    private const string WorkspaceDeckSourceFormatId = "workspace";
+
+    private const string DefaultUnsavedDeckName = "Untitled Deck";
+
     private readonly DeckWorkspaceStateFactory stateFactory;
     private readonly CardSearchIndexClient cardSearchIndexClient;
     private readonly DeckWorkspaceClient deckWorkspaceClient;
@@ -105,6 +109,12 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
     public string? ActiveImportedDeckId => importedDeckLibraryState.Library.ActiveDeckId;
 
+    public bool IsWorkspaceLinkedToSavedDeck => !string.IsNullOrWhiteSpace(ActiveImportedDeckId);
+
+    public string? ActiveWorkspaceDeckName => IsWorkspaceLinkedToSavedDeck
+        ? ImportedDecks.FirstOrDefault(deck => string.Equals(deck.ImportedDeckId, ActiveImportedDeckId, StringComparison.OrdinalIgnoreCase))?.Name
+        : null;
+
     public IReadOnlyList<ImportDiagnostic> ActiveImportedDeckDiagnostics =>
         ImportedDecks.FirstOrDefault(deck => string.Equals(deck.ImportedDeckId, ActiveImportedDeckId, StringComparison.OrdinalIgnoreCase))?.Diagnostics
         ?? Array.Empty<ImportDiagnostic>();
@@ -120,6 +130,18 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     public string SelectedExportFormatId { get; private set; } = "moxfield-text";
 
     public string? ImportStatusMessage { get; private set; }
+
+    public string NewDeckName { get; private set; } = string.Empty;
+
+    public string LinkedDeckName { get; private set; } = string.Empty;
+
+    public string? LinkedDeckStatusMessage { get; private set; }
+
+    public bool LinkedDeckStatusHasError { get; private set; }
+
+    public bool CanSaveNewDeck => !IsWorkspaceLinkedToSavedDeck && Cards.Count > 0;
+
+    public bool CanRenameLinkedDeck => IsWorkspaceLinkedToSavedDeck && !string.IsNullOrWhiteSpace(LinkedDeckName);
 
     public bool HasPendingDuplicateImport => pendingImportedDeck is not null;
 
@@ -138,14 +160,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     {
         if (piles.Count == 0)
         {
-            piles.AddRange(
-            [
-                new PileDefinitionContract { PileId = CommandZonePileId, Name = "Command Zone", SortOrder = 0 },
-                new PileDefinitionContract { PileId = MainboardPileId, Name = "Mainboard", SortOrder = 1 },
-                new PileDefinitionContract { PileId = "engine", Name = "Engine", SortOrder = 2 },
-                new PileDefinitionContract { PileId = "interaction", Name = "Interaction", SortOrder = 3 },
-                new PileDefinitionContract { PileId = "finishers", Name = "Finishers", SortOrder = 4 },
-            ]);
+            EnsureDefaultWorkspacePiles();
         }
 
         Piles = piles.OrderBy(static pile => pile.SortOrder).ToArray();
@@ -174,11 +189,26 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         return Task.CompletedTask;
     }
 
+    public Task UpdateNewDeckNameAsync(string deckName)
+    {
+        NewDeckName = deckName;
+        ImportStatusMessage = null;
+        return Task.CompletedTask;
+    }
+
+    public Task UpdateLinkedDeckNameAsync(string deckName)
+    {
+        LinkedDeckName = deckName;
+        ClearLinkedDeckStatus();
+        return Task.CompletedTask;
+    }
+
     public async Task ImportDeckAsync(CancellationToken cancellationToken = default)
     {
         ImportStatusMessage = null;
         ExportPreview = null;
         ExportStatusMessage = null;
+        ClearLinkedDeckStatus();
         ClearPendingDuplicateImport();
 
         try
@@ -205,6 +235,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             }
 
             await importedDeckLibraryState.SaveImportedDeckAsync(importedDeck, setActive: true, cancellationToken).ConfigureAwait(false);
+            SyncLinkedDeckNameForActiveDeck();
             ImportStatusMessage = importedDeck.Diagnostics.Count == 0
                 ? $"Imported '{importedDeck.Name}' and saved it locally."
                 : $"Imported '{importedDeck.Name}' with {importedDeck.Diagnostics.Count} diagnostic(s).";
@@ -225,6 +256,8 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
     public async Task UpdateExistingImportedDeckAsync(CancellationToken cancellationToken = default)
     {
+        ClearLinkedDeckStatus();
+
         if (pendingImportedDeck is null)
         {
             ImportStatusMessage = "Import a deck before resolving a duplicate name.";
@@ -255,6 +288,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         };
 
         await importedDeckLibraryState.SaveImportedDeckAsync(updatedDeck, setActive: true, cancellationToken).ConfigureAwait(false);
+        SyncLinkedDeckNameForActiveDeck();
         ClearPendingDuplicateImport();
         ImportStatusMessage = updatedDeck.Diagnostics.Count == 0
             ? $"Updated '{updatedDeck.Name}' from the latest import and kept it selected."
@@ -263,6 +297,8 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
     public async Task ImportDuplicateAsNewDeckAsync(CancellationToken cancellationToken = default)
     {
+        ClearLinkedDeckStatus();
+
         if (pendingImportedDeck is null)
         {
             ImportStatusMessage = "Import a deck before resolving a duplicate name.";
@@ -281,13 +317,19 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         };
 
         await importedDeckLibraryState.SaveImportedDeckAsync(renamedDeck, setActive: true, cancellationToken).ConfigureAwait(false);
+        SyncLinkedDeckNameForActiveDeck();
         ClearPendingDuplicateImport();
         ImportStatusMessage = renamedDeck.Diagnostics.Count == 0
             ? $"Imported '{renamedDeck.Name}' as a new saved deck."
             : $"Imported '{renamedDeck.Name}' with {renamedDeck.Diagnostics.Count} diagnostic(s).";
     }
 
-    public Task SelectImportedDeckAsync(string deckId) => importedDeckLibraryState.SetActiveDeckAsync(deckId);
+    public async Task SelectImportedDeckAsync(string deckId)
+    {
+        await importedDeckLibraryState.SetActiveDeckAsync(deckId).ConfigureAwait(false);
+        SyncLinkedDeckNameForActiveDeck();
+        ClearLinkedDeckStatus();
+    }
 
     /// <summary>
     /// Deletes an imported deck from the local browser library.
@@ -308,6 +350,8 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
     public async Task OpenActiveImportedDeckAsync()
     {
+        ClearLinkedDeckStatus();
+
         var deck = ImportedDecks.FirstOrDefault(candidate => string.Equals(candidate.ImportedDeckId, ActiveImportedDeckId, StringComparison.OrdinalIgnoreCase));
         if (deck is null)
         {
@@ -317,8 +361,160 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
         var snapshot = deckWorkspaceClient.CreateWorkingCopy(deck.NormalizedDeck, deck.ImportedDeckId, deck.Name);
         LoadSnapshotIntoWorkspace(snapshot, deck.NormalizedDeck);
+        NewDeckName = string.Empty;
+        LinkedDeckName = deck.Name;
         await RefreshInsightsAsync(CancellationToken.None).ConfigureAwait(false);
         ImportStatusMessage = $"Opened '{deck.Name}' as a working copy in the workspace.";
+    }
+
+    /// <summary>
+    /// Clears the current workspace and detaches it from any imported deck so a new list can be built.
+    /// </summary>
+    public async Task StartNewDeckAsync(CancellationToken cancellationToken = default)
+    {
+        refreshCancellationTokenSource?.Cancel();
+        ClearLinkedDeckStatus();
+
+        entries.Clear();
+        knownCards.Clear();
+        SearchResults = Array.Empty<WorkspaceCardView>();
+        Analysis = null;
+        ExportPreview = null;
+        ExportStatusMessage = null;
+        SearchQuery = string.Empty;
+        NewDeckName = string.Empty;
+        LinkedDeckName = string.Empty;
+        EnsureDefaultWorkspacePiles();
+        RefreshDerivedCards();
+        State = stateFactory.CreateEmpty("Choose a commander to activate validation and synergy analysis.");
+
+        await importedDeckLibraryState.SetActiveDeckAsync(null, cancellationToken).ConfigureAwait(false);
+        ClearPendingDuplicateImport();
+        ImportStatusMessage = "Started a brand new deck workspace.";
+    }
+
+    public async Task SaveNewDeckAsync(CancellationToken cancellationToken = default)
+    {
+        ClearLinkedDeckStatus();
+
+        if (IsWorkspaceLinkedToSavedDeck)
+        {
+            ImportStatusMessage = "This workspace is already linked to a saved deck.";
+            return;
+        }
+
+        if (Cards.Count == 0)
+        {
+            ImportStatusMessage = "Add cards to the workspace before saving a new deck.";
+            return;
+        }
+
+        var requestedName = string.IsNullOrWhiteSpace(NewDeckName)
+            ? GetSuggestedWorkspaceDeckName()
+            : NewDeckName.Trim();
+
+        var resolvedDeckName = FindImportedDeckByName(requestedName) is null
+            ? requestedName
+            : GetNextImportedDeckCopyName(requestedName);
+
+        var snapshot = CreatePortableSnapshotFromWorkspace(requireCommander: false, deckName: resolvedDeckName);
+        var savedDeck = new ImportedDeckRecord(
+            Guid.NewGuid().ToString("N"),
+            resolvedDeckName,
+            WorkspaceDeckSourceFormatId,
+            DateTimeOffset.UtcNow,
+            null,
+            BuildWorkspaceDocumentText(snapshot),
+            snapshot,
+            Array.Empty<ImportDiagnostic>(),
+            Array.Empty<string>(),
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["origin"] = "workspace",
+            });
+
+        try
+        {
+            await importedDeckLibraryState.SaveImportedDeckAsync(savedDeck, setActive: true, cancellationToken).ConfigureAwait(false);
+            NewDeckName = string.Empty;
+            LinkedDeckName = savedDeck.Name;
+            ImportStatusMessage = $"Saved '{savedDeck.Name}' to the local library and linked the workspace.";
+        }
+        catch (JSException exception)
+        {
+            ImportStatusMessage = $"Saved deck data could not be persisted locally. {exception.Message}";
+        }
+        catch (InvalidOperationException exception)
+        {
+            ImportStatusMessage = exception.Message;
+        }
+    }
+
+    public async Task RenameActiveDeckAsync(CancellationToken cancellationToken = default)
+    {
+        if (!IsWorkspaceLinkedToSavedDeck)
+        {
+            SetLinkedDeckStatus("Save the workspace to the local library before renaming it.", hasError: true);
+            return;
+        }
+
+        var existing = ImportedDecks.FirstOrDefault(deck => string.Equals(deck.ImportedDeckId, ActiveImportedDeckId, StringComparison.OrdinalIgnoreCase));
+        if (existing is null)
+        {
+            SetLinkedDeckStatus("Choose a saved deck before renaming it.", hasError: true);
+            return;
+        }
+
+        var requestedName = LinkedDeckName.Trim();
+        if (string.IsNullOrWhiteSpace(requestedName))
+        {
+            SetLinkedDeckStatus("Enter a deck name before renaming the saved deck.", hasError: true);
+            return;
+        }
+
+        if (string.Equals(existing.Name, requestedName, StringComparison.OrdinalIgnoreCase))
+        {
+            LinkedDeckName = existing.Name;
+            SetLinkedDeckStatus($"'{existing.Name}' is already the active deck name.", hasError: false);
+            return;
+        }
+
+        var duplicate = ImportedDecks.FirstOrDefault(deck => !string.Equals(deck.ImportedDeckId, existing.ImportedDeckId, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(deck.Name, requestedName, StringComparison.OrdinalIgnoreCase));
+        if (duplicate is not null)
+        {
+            SetLinkedDeckStatus($"A saved deck named '{requestedName}' already exists. Choose a different name.", hasError: true);
+            return;
+        }
+
+        var renamedSnapshot = existing.NormalizedDeck with
+        {
+            DeckName = requestedName,
+        };
+
+        var renamedDeck = existing with
+        {
+            Name = requestedName,
+            NormalizedDeck = renamedSnapshot,
+            OriginalDocumentText = string.Equals(existing.SourceFormatId, WorkspaceDeckSourceFormatId, StringComparison.OrdinalIgnoreCase)
+                ? BuildWorkspaceDocumentText(renamedSnapshot)
+                : existing.OriginalDocumentText,
+        };
+
+        try
+        {
+            await importedDeckLibraryState.UpdateDeckAsync(renamedDeck, cancellationToken).ConfigureAwait(false);
+            LinkedDeckName = renamedDeck.Name;
+            SetLinkedDeckStatus($"Renamed saved deck to '{renamedDeck.Name}'.", hasError: false);
+        }
+        catch (JSException exception)
+        {
+            SetLinkedDeckStatus($"Saved deck data could not be persisted locally. {exception.Message}", hasError: true);
+        }
+        catch (InvalidOperationException exception)
+        {
+            SetLinkedDeckStatus(exception.Message, hasError: true);
+        }
     }
 
     public Task UpdateExportFormatAsync(string value)
@@ -339,7 +535,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         PortableDeckSnapshot snapshot;
         try
         {
-            snapshot = CreatePortableSnapshotFromWorkspace();
+            snapshot = CreatePortableSnapshotFromWorkspace(requireCommander: true);
         }
         catch (InvalidOperationException exception)
         {
@@ -454,6 +650,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
         RefreshDerivedCards();
         await RefreshInsightsAsync(CancellationToken.None).ConfigureAwait(false);
+        await PersistActiveImportedDeckAsync().ConfigureAwait(false);
     }
 
     /// <summary>
@@ -509,6 +706,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         }
 
         RefreshDerivedCards();
+        await PersistActiveImportedDeckAsync().ConfigureAwait(false);
         await ScheduleRefreshAsync().ConfigureAwait(false);
     }
 
@@ -525,6 +723,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
         entry.AssignedPileId = entry.IsCommander ? CommandZonePileId : request.TargetPileId;
         RefreshDerivedCards();
+        await PersistActiveImportedDeckAsync().ConfigureAwait(false);
         await ScheduleRefreshAsync().ConfigureAwait(false);
     }
 
@@ -542,8 +741,38 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             State = stateFactory.CreateEmpty("Choose a commander to activate validation and synergy analysis.");
             return;
         }
-
+        await PersistActiveImportedDeckAsync().ConfigureAwait(false);
         await ScheduleRefreshAsync().ConfigureAwait(false);
+    }
+
+    private async Task PersistActiveImportedDeckAsync()
+    {
+        var activeId = importedDeckLibraryState.Library.ActiveDeckId;
+        if (string.IsNullOrWhiteSpace(activeId))
+        {
+            return;
+        }
+
+        var existing = importedDeckLibraryState.Library.Decks.FirstOrDefault(deck => string.Equals(deck.ImportedDeckId, activeId, StringComparison.OrdinalIgnoreCase));
+        if (existing is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var snapshot = CreatePortableSnapshotFromWorkspace(requireCommander: false, deckName: existing.Name);
+            var updated = existing with { NormalizedDeck = snapshot };
+            await importedDeckLibraryState.UpdateDeckAsync(updated).ConfigureAwait(false);
+        }
+        catch (JSException exception)
+        {
+            ImportStatusMessage = $"Saved deck data could not be persisted locally. {exception.Message}";
+        }
+        catch (Exception)
+        {
+            // Swallow unexpected persistence errors to avoid breaking the workspace UX.
+        }
     }
 
     /// <summary>
@@ -571,6 +800,36 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
     private ImportedDeckRecord? FindImportedDeckByName(string deckName) =>
         ImportedDecks.FirstOrDefault(deck => string.Equals(deck.Name, deckName, StringComparison.OrdinalIgnoreCase));
+
+    private void SyncLinkedDeckNameForActiveDeck()
+    {
+        LinkedDeckName = ActiveWorkspaceDeckName ?? string.Empty;
+    }
+
+    private void ClearLinkedDeckStatus()
+    {
+        LinkedDeckStatusMessage = null;
+        LinkedDeckStatusHasError = false;
+    }
+
+    private void SetLinkedDeckStatus(string message, bool hasError)
+    {
+        LinkedDeckStatusMessage = message;
+        LinkedDeckStatusHasError = hasError;
+    }
+
+    private string GetSuggestedWorkspaceDeckName()
+    {
+        var commanderCardId = GetCommanderCardId();
+        if (!string.IsNullOrWhiteSpace(commanderCardId)
+            && knownCards.TryGetValue(commanderCardId, out var commanderCard)
+            && !string.IsNullOrWhiteSpace(commanderCard.Name))
+        {
+            return commanderCard.Name;
+        }
+
+        return DefaultUnsavedDeckName;
+    }
 
     private string GetNextImportedDeckCopyName(string baseDeckName)
     {
@@ -667,10 +926,10 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         Piles = Piles,
     };
 
-    private PortableDeckSnapshot CreatePortableSnapshotFromWorkspace()
+    private PortableDeckSnapshot CreatePortableSnapshotFromWorkspace(bool requireCommander, string? deckName = null)
     {
         var commanderCardId = GetCommanderCardId();
-        if (string.IsNullOrWhiteSpace(commanderCardId))
+        if (requireCommander && string.IsNullOrWhiteSpace(commanderCardId))
         {
             throw new InvalidOperationException("Choose a commander before exporting the current workspace.");
         }
@@ -707,14 +966,53 @@ public sealed class DeckWorkspaceViewModel : IDisposable
                 portableEntries.Where(entry => string.Equals(entry.SectionId, pile.PileId, StringComparison.OrdinalIgnoreCase)).Sum(static entry => entry.Quantity)))
             .ToArray();
 
+        var resolvedDeckName = string.IsNullOrWhiteSpace(deckName)
+            ? ActiveWorkspaceDeckName ?? GetSuggestedWorkspaceDeckName()
+            : deckName;
+
+        var commanderCardIds = string.IsNullOrWhiteSpace(commanderCardId)
+            ? Array.Empty<string>()
+            : [commanderCardId];
+
         return new PortableDeckSnapshot(
-            "Commander Synergy Sphere",
-            [commanderCardId],
+            resolvedDeckName,
+            commanderCardIds,
             portableEntries.FirstOrDefault(static entry => entry.IsCompanion)?.CardId,
             portableEntries,
             sections,
             portableEntries.Sum(static entry => entry.Quantity),
             false);
+    }
+
+    private static string BuildWorkspaceDocumentText(PortableDeckSnapshot snapshot)
+    {
+        var lines = new List<string>
+        {
+            $"Deck: {snapshot.DeckName}",
+        };
+
+        foreach (var section in snapshot.Sections.OrderBy(static section => section.SortOrder))
+        {
+            var sectionEntries = snapshot.Entries
+                .Where(entry => string.Equals(entry.SectionId, section.SectionId, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(static entry => entry.DisplayName, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            if (sectionEntries.Length == 0)
+            {
+                continue;
+            }
+
+            lines.Add(string.Empty);
+            lines.Add($"# {section.DisplayName}");
+
+            foreach (var entry in sectionEntries)
+            {
+                lines.Add($"{entry.Quantity} {entry.DisplayName}");
+            }
+        }
+
+        return string.Join(Environment.NewLine, lines);
     }
 
     private void LoadSnapshotIntoWorkspace(DeckSnapshotContract snapshot, PortableDeckSnapshot portableSnapshot)
@@ -782,6 +1080,21 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
         piles.Clear();
         piles.AddRange(reorderedPiles);
+    }
+
+    private void EnsureDefaultWorkspacePiles()
+    {
+        piles.Clear();
+        piles.AddRange(
+        [
+            new PileDefinitionContract { PileId = CommandZonePileId, Name = "Command Zone", SortOrder = 0 },
+            new PileDefinitionContract { PileId = MainboardPileId, Name = "Mainboard", SortOrder = 1 },
+            new PileDefinitionContract { PileId = "engine", Name = "Engine", SortOrder = 2 },
+            new PileDefinitionContract { PileId = "interaction", Name = "Interaction", SortOrder = 3 },
+            new PileDefinitionContract { PileId = "finishers", Name = "Finishers", SortOrder = 4 },
+        ]);
+
+        Piles = piles.OrderBy(static pile => pile.SortOrder).ToArray();
     }
 
     private void EnsurePileExists(string pileId, string name, int sortOrder)

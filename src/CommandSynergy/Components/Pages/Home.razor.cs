@@ -47,6 +47,16 @@ public partial class Home : ComponentBase
 
     private Task OpenImportedDeckAsync() => ViewModel.OpenActiveImportedDeckAsync();
 
+    private Task StartNewDeckAsync() => ViewModel.StartNewDeckAsync();
+
+    private Task UpdateNewDeckNameAsync(string value) => ViewModel.UpdateNewDeckNameAsync(value);
+
+    private Task SaveNewDeckAsync() => ViewModel.SaveNewDeckAsync();
+
+    private Task UpdateLinkedDeckNameAsync(string value) => ViewModel.UpdateLinkedDeckNameAsync(value);
+
+    private Task RenameLinkedDeckAsync() => ViewModel.RenameActiveDeckAsync();
+
     private Task UpdateExportFormatAsync(string value) => ViewModel.UpdateExportFormatAsync(value);
 
     private Task GenerateExportPreviewAsync() => ViewModel.GenerateExportPreviewAsync();
