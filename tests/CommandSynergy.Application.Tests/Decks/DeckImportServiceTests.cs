@@ -143,12 +143,13 @@ public sealed class DeckImportServiceTests
     private sealed class CountingCardSearchService : ICardSearchService
     {
         private readonly StubCardSearchService inner = new();
+        private int searchCalls;
 
-        public int SearchCalls { get; private set; }
+        public int SearchCalls => searchCalls;
 
         public Task<CardSearchResponseContract> SearchAsync(CardSearchQueryContract request, CancellationToken cancellationToken = default)
         {
-            SearchCalls++;
+            Interlocked.Increment(ref searchCalls);
             return inner.SearchAsync(request, cancellationToken);
         }
     }
