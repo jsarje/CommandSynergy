@@ -5,30 +5,11 @@
     <MudContainer MaxWidth="MaxWidth.False" Class="workspace-shell__container">
         <section class="workspace-shell__hero">
             <div class="workspace-hero">
-                <div class="workspace-hero__content">
-                    <p class="workspace-shell__eyebrow">Commander Synergy Sphere</p>
-                    <h1>Build with tempo, inspect every face, and keep the rules engine in the loop.</h1>
+                <div class="workspace-hero__content">                    
+                    <h1>Synergy Sphere</h1>
                     <p class="workspace-shell__lede">
-                        Import plaintext decklists locally, switch between saved decks, open an explicit working copy, and export the current workspace without sending raw deck documents to the server.
-                    </p>
-
-                    <div class="workspace-hero__metrics">
-                        <article class="workspace-hero__metric">
-                            <span>Local decks</span>
-                            <strong>@ImportedDecks.Count.ToString("00")</strong>
-                            <p>Browser-resident imports ready for reopening and comparison.</p>
-                        </article>
-                        <article class="workspace-hero__metric">
-                            <span>Deck cards</span>
-                            <strong>@TotalDeckCards.ToString("00")</strong>
-                            <p>Cards currently staged across the command zone and support lanes.</p>
-                        </article>
-                        <article class="workspace-hero__metric">
-                            <span>Search hits</span>
-                            <strong>@SearchResults.Count.ToString("00")</strong>
-                            <p>Fresh matches from the local card index waiting for selection.</p>
-                        </article>
-                    </div>
+                        Build powerful commander decks and place them within brackets/powerlevels.
+                    </p>                    
                 </div>
 
                 <aside class="workspace-hero__rail">
@@ -41,19 +22,11 @@
                             <div>
                                 <span>Status</span>
                                 <strong>@State.Status</strong>
-                            </div>
-                            <div>
-                                <span>Legality</span>
-                                <strong>@ValidationStatusLabel</strong>
-                            </div>
+                            </div>                            
                             <div>
                                 <span>Findings</span>
                                 <strong>@State.Findings.Count</strong>
-                            </div>
-                            <div>
-                                <span>Formats</span>
-                                <strong>@SupportedImportFormats.Count/@SupportedExportFormats.Count</strong>
-                            </div>
+                            </div>                            
                         </div>
                     </section>
                 </aside>
