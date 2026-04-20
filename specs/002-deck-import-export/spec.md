@@ -2,7 +2,7 @@
 
 **Feature Branch**: `[002-deck-import-export]`  
 **Created**: 2026-04-19  
-**Status**: Draft  
+**Status**: Implemented  
 **Input**: User description: "lets extend the functionality so that users can import and export their existing commander decks. It should be possible to import/export in a variety of text based formats. There are a number of populate sites such as moxfield, manabox, etc so we should support known formats from those."
 
 ## User Scenarios & Testing *(mandatory)*
@@ -31,6 +31,9 @@ problems clearly reported.
 3. **Given** an imported list is structurally valid text but produces a rules-illegal Commander
    deck, **When** the deck opens in the workspace, **Then** the system keeps the imported cards and
    shows the resulting validation issues instead of rejecting the import outright.
+4. **Given** a user imports a decklist with a name that already exists in the workspace, **When** the
+   import is processed, **Then** the system prompts the user to either update the existing deck or 
+   create a new copy.
 
 ---
 
@@ -126,6 +129,9 @@ the workspace, and exporting it again in a portable text representation.
   clearly disclosed to the user.
 - **FR-011**: The system MUST treat import content as untrusted user input and MUST prevent it from
   executing scripts, markup, or other active content inside the product.
+- **FR-012**: The system MUST fully hydrate normalized metadata for imported cards (including mana cost, color identity, types, and commander eligibility) so that imported decks behave correctly in analysis workflows without additional fetches.
+- **FR-013**: The system MUST detect when a user is importing a deck that already exists by name, and prompt them to either update the existing deck or import it as a new copy.
+- **FR-014**: The system MUST resolve unmatched card metadata using parallel backend queries to maximize import performance and meet the required time constraints.
 
 ### Non-Functional Requirements
 
