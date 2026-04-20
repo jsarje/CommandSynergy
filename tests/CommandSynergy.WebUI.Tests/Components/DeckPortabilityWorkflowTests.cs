@@ -52,6 +52,19 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
+    public void Deck_workspace_closes_utility_drawer_when_backdrop_is_clicked()
+    {
+        var cut = RenderWorkspace();
+
+        OpenUtilityMenu(cut);
+        cut.Find("[data-testid='workspace-utility-menu']");
+
+        cut.Find("[data-testid='workspace-utility-drawer-backdrop']").Click();
+
+        cut.FindAll("[data-testid='workspace-utility-menu']").Should().BeEmpty();
+    }
+
+    [Fact]
     public void Deck_workspace_renders_duplicate_reimport_actions()
     {
         var cut = RenderWorkspace(hasPendingDuplicateImport: true, pendingDuplicateImportName: "Isshin Pressure", pendingDuplicateImportTargetName: "Isshin Pressure 001");
