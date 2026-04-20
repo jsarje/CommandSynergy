@@ -38,7 +38,8 @@ public sealed class DeckValidationService : IDeckValidationService
             deck.UpsertEntry(entry.CardId, entry.Quantity, entry.AssignedPileId, entry.IsCommander, entry.IsCompanion);
         }
 
-        if (deckSnapshot.Entries.All(entry => !entry.IsCommander))
+        if (!string.IsNullOrWhiteSpace(deckSnapshot.CommanderCardId)
+            && deckSnapshot.Entries.All(entry => !entry.IsCommander))
         {
             deck.SetCommander(deckSnapshot.CommanderCardId);
         }

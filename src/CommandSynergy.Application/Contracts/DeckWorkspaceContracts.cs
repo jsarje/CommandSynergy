@@ -15,7 +15,7 @@ public sealed record DeckSnapshotContract
     public string? Name { get; init; }
 
     [JsonPropertyName("commanderCardId")]
-    public required string CommanderCardId { get; init; }
+    public string? CommanderCardId { get; init; }
 
     [JsonPropertyName("companionCardId")]
     public string? CompanionCardId { get; init; }

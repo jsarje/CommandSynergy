@@ -175,7 +175,6 @@
                                     </button>
                                     <button type="button"
                                             class="workspace-search-result__secondary"
-                                            disabled="@string.IsNullOrWhiteSpace(CurrentCommanderCardId)"
                                             @onclick="() => CardAdded.InvokeAsync(card.CardId)">
                                         Add to deck
                                     </button>
@@ -267,8 +266,21 @@
             </MudPaper>
         </section>
 
+        @if (State.Status == DeckWorkspaceStatus.Empty && Cards.Count > 0)
+        {
+            <section class="workspace-banner workspace-banner--commander-needed" data-testid="commander-needed-banner">
+                <div>
+                    <p class="workspace-panel__label">Commander needed</p>
+                    <h2>Keep sorting now, choose the commander when you are ready.</h2>
+                    <p>Validation and synergy stay paused until you pick a legal commander from search results or use <strong>Set as commander</strong> on an eligible card already in the deck.</p>
+                </div>
+            </section>
+        }
+
         <PileBoard Piles="Piles"
                    Cards="Cards"
+                   CommanderSelectionEnabled="@true"
+                   SetCommanderRequested="CommanderSelected"
                    MoveRequested="CardMoved"
                    RemoveRequested="CardRemoved" />
 
@@ -427,8 +439,6 @@
     private ImportedDeckRecord? pendingDeleteDeck;
 
     private bool isDeletingImportedDeck;
-
-    private string? CurrentCommanderCardId => Cards.SingleOrDefault(static card => card.IsCommander)?.CardId;
 
     protected override void OnParametersSet()
     {

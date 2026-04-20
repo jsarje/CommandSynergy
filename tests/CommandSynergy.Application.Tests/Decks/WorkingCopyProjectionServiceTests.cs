@@ -58,4 +58,51 @@ public sealed class WorkingCopyProjectionServiceTests
         result.Piles.Should().Contain(pile => pile.PileId == "maybeboard");
         result.Entries.Should().Contain(entry => entry.IsCommander && entry.AssignedPileId == "command-zone");
     }
+
+    [Fact]
+    public void CreateWorkingCopy_allows_commanderless_imports_to_open_in_workspace()
+    {
+        var sut = new WorkingCopyProjectionService();
+
+        var result = sut.CreateWorkingCopy(new PortableDeckSnapshot(
+            "Mystery Stack",
+            Array.Empty<string>(),
+            null,
+            [
+                new PortableDeckEntry("sol-ring", null, "Sol Ring", null, "Artifact", Array.Empty<string>(), null, "https://cards.example/sol-ring.jpg", false, Domain.Cards.CommanderEligibilityBasis.Unknown, 1, "mainboard", false, false, ParseConfidence.Exact),
+                new PortableDeckEntry("arcane-signet", null, "Arcane Signet", null, "Artifact", Array.Empty<string>(), null, "https://cards.example/arcane-signet.jpg", false, Domain.Cards.CommanderEligibilityBasis.Unknown, 1, "mainboard", false, false, ParseConfidence.Exact),
+            ],
+            [
+                new DeckSectionState("mainboard", "Mainboard", DeckSectionRole.Mainboard, 1, 2),
+            ],
+            2,
+            false));
+
+        result.CommanderCardId.Should().BeNull();
+        result.Piles.Should().Contain(pile => pile.PileId == "command-zone" && pile.Name == "Command Zone");
+        result.Entries.Should().HaveCount(2);
+        result.Entries.Should().OnlyContain(entry => !entry.IsCommander);
+    }
+
+    [Fact]
+    public void CreateWorkingCopy_inserts_required_workspace_piles_when_import_uses_only_custom_sections()
+    {
+        var sut = new WorkingCopyProjectionService();
+
+        var result = sut.CreateWorkingCopy(new PortableDeckSnapshot(
+            "Workshop",
+            Array.Empty<string>(),
+            null,
+            [
+                new PortableDeckEntry("worn-powerstone", null, "Worn Powerstone", null, "Artifact", Array.Empty<string>(), null, "https://cards.example/worn-powerstone.jpg", false, Domain.Cards.CommanderEligibilityBasis.Unknown, 1, "ramp-package", false, false, ParseConfidence.Exact),
+            ],
+            [
+                new DeckSectionState("ramp-package", "Ramp Package", DeckSectionRole.Custom, 0, 1),
+            ],
+            1,
+            false));
+
+        result.Piles.Select(pile => pile.PileId).Should().ContainInOrder("command-zone", "mainboard");
+        result.Piles.Should().Contain(pile => pile.PileId == "ramp-package");
+    }
 }

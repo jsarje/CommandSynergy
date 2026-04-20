@@ -723,6 +723,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         {
             piles.Clear();
             piles.AddRange(snapshot.Piles.OrderBy(static pile => pile.SortOrder));
+            EnsureRequiredWorkspacePiles();
             Piles = piles.ToArray();
         }
 
@@ -761,6 +762,41 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         }
 
         RefreshDerivedCards();
+    }
+
+    private void EnsureRequiredWorkspacePiles()
+    {
+        EnsurePileExists(CommandZonePileId, "Command Zone", 0);
+        EnsurePileExists(MainboardPileId, "Mainboard", 1);
+
+        var reorderedPiles = piles
+            .OrderBy(static pile => string.Equals(pile.PileId, CommandZonePileId, StringComparison.OrdinalIgnoreCase) ? 0 : string.Equals(pile.PileId, MainboardPileId, StringComparison.OrdinalIgnoreCase) ? 1 : 2)
+            .ThenBy(static pile => pile.SortOrder)
+            .Select(static (pile, index) => new PileDefinitionContract
+            {
+                PileId = pile.PileId,
+                Name = pile.Name,
+                SortOrder = index,
+            })
+            .ToArray();
+
+        piles.Clear();
+        piles.AddRange(reorderedPiles);
+    }
+
+    private void EnsurePileExists(string pileId, string name, int sortOrder)
+    {
+        if (piles.Any(existing => string.Equals(existing.PileId, pileId, StringComparison.OrdinalIgnoreCase)))
+        {
+            return;
+        }
+
+        piles.Add(new PileDefinitionContract
+        {
+            PileId = pileId,
+            Name = name,
+            SortOrder = sortOrder,
+        });
     }
 
     private static DeckSectionRole ResolvePileRole(string? pileId)

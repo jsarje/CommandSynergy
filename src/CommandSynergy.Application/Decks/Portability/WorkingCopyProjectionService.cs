@@ -10,20 +10,10 @@ public sealed class WorkingCopyProjectionService : IWorkingCopyProjectionService
         ArgumentNullException.ThrowIfNull(snapshot);
 
         var normalizedSnapshot = PortableDeckSectionMapper.NormalizeImportedSnapshot(snapshot);
-
-        var piles = normalizedSnapshot.Sections
-            .OrderBy(static section => section.SortOrder)
-            .Select(static section => new PileDefinitionContract
-            {
-                PileId = section.SectionId,
-                Name = section.DisplayName,
-                SortOrder = section.SortOrder,
-            })
-            .ToArray();      
+        var piles = BuildWorkspacePiles(normalizedSnapshot);
 
         var commanderCardId = normalizedSnapshot.CommanderCardIds.FirstOrDefault()
-            ?? normalizedSnapshot.Entries.FirstOrDefault(static entry => entry.IsCommander && !string.IsNullOrWhiteSpace(entry.CardId))?.CardId            
-            ?? throw new InvalidOperationException("A working copy requires a resolved commander card.");
+            ?? normalizedSnapshot.Entries.FirstOrDefault(static entry => entry.IsCommander && !string.IsNullOrWhiteSpace(entry.CardId))?.CardId;
 
         return new DeckSnapshotContract
         {
@@ -44,5 +34,48 @@ public sealed class WorkingCopyProjectionService : IWorkingCopyProjectionService
                 })
                 .ToArray(),
         };
+    }
+
+    private static IReadOnlyList<PileDefinitionContract> BuildWorkspacePiles(PortableDeckSnapshot snapshot)
+    {
+        var piles = snapshot.Sections
+            .OrderBy(static section => section.SortOrder)
+            .Select(static section => new PileDefinitionContract
+            {
+                PileId = section.SectionId,
+                Name = section.DisplayName,
+                SortOrder = section.SortOrder,
+            })
+            .ToList();
+
+        if (piles.All(static pile => !string.Equals(pile.PileId, PortableDeckSectionMapper.CommandZonePileId, StringComparison.OrdinalIgnoreCase)))
+        {
+            piles.Insert(0, new PileDefinitionContract
+            {
+                PileId = PortableDeckSectionMapper.CommandZonePileId,
+                Name = "Command Zone",
+                SortOrder = 0,
+            });
+        }
+
+        if (piles.All(static pile => !string.Equals(pile.PileId, PortableDeckSectionMapper.MainboardPileId, StringComparison.OrdinalIgnoreCase)))
+        {
+            var mainboardIndex = Math.Min(1, piles.Count);
+            piles.Insert(mainboardIndex, new PileDefinitionContract
+            {
+                PileId = PortableDeckSectionMapper.MainboardPileId,
+                Name = "Mainboard",
+                SortOrder = mainboardIndex,
+            });
+        }
+
+        return piles
+            .Select(static (pile, index) => new PileDefinitionContract
+            {
+                PileId = pile.PileId,
+                Name = pile.Name,
+                SortOrder = index,
+            })
+            .ToArray();
     }
 }

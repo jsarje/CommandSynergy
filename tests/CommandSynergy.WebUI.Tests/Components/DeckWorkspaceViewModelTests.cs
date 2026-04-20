@@ -12,6 +12,59 @@ namespace CommandSynergy.WebUI.Tests.Components;
 public sealed class DeckWorkspaceViewModelTests
 {
     [Fact]
+    public async Task OpenActiveImportedDeckAsync_keeps_commanderless_import_editable_without_server_refresh()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = new ImportedDeckLibraryState(
+            new ImportedDeckLibraryStore(new StubLocalStorageService(), new ImportedDeckLibrarySerializer(), timeProvider),
+            timeProvider);
+
+        var importedDeck = new ImportedDeckRecord(
+            "deck-1",
+            "Mystery Stack",
+            "generic-plaintext",
+            timeProvider.GetUtcNow(),
+            null,
+            "Deck: Mystery Stack",
+            new PortableDeckSnapshot(
+                "Mystery Stack",
+                Array.Empty<string>(),
+                null,
+                [
+                    new PortableDeckEntry("sol-ring", "1 Sol Ring", "Sol Ring", "{1}", "Artifact", Array.Empty<string>(), 0.5m, "https://cards.example/sol-ring.jpg", false, Domain.Cards.CommanderEligibilityBasis.Unknown, 1, "mainboard", false, false, ParseConfidence.Exact),
+                ],
+                [
+                    new DeckSectionState("mainboard", "Mainboard", DeckSectionRole.Mainboard, 1, 1),
+                ],
+                1,
+                false),
+            Array.Empty<ImportDiagnostic>(),
+            Array.Empty<string>(),
+            new Dictionary<string, string>());
+
+        await libraryState.SaveImportedDeckAsync(importedDeck, setActive: true);
+
+        var workspaceClient = new CountingDeckWorkspaceClient();
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            workspaceClient,
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.OpenActiveImportedDeckAsync();
+
+        sut.Cards.Should().ContainSingle(card => card.CardId == "sol-ring");
+        sut.Piles.Should().Contain(pile => pile.PileId == DeckWorkspaceViewModel.CommandZonePileId);
+        sut.Piles.Should().Contain(pile => pile.PileId == DeckWorkspaceViewModel.MainboardPileId);
+        sut.State.Status.Should().Be(DeckWorkspaceStatus.Empty);
+        sut.Analysis.Should().BeNull();
+        workspaceClient.ValidateCallCount.Should().Be(0);
+        workspaceClient.AnalyzeCallCount.Should().Be(0);
+    }
+
+    [Fact]
     public async Task OpenActiveImportedDeckAsync_restores_imported_card_metadata_into_workspace_cards()
     {
         var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
@@ -63,6 +116,61 @@ public sealed class DeckWorkspaceViewModelTests
         importedCard.ImageUri.Should().Be("https://cards.example/wear-tear.jpg");
         importedCard.HasMultipleFaces.Should().BeTrue();
         importedCard.Faces.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task SetCommanderAsync_promotes_existing_deck_card_and_refreshes_server_feedback()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = new ImportedDeckLibraryState(
+            new ImportedDeckLibraryStore(new StubLocalStorageService(), new ImportedDeckLibrarySerializer(), timeProvider),
+            timeProvider);
+
+        var importedDeck = new ImportedDeckRecord(
+            "deck-1",
+            "Commander Candidate",
+            "generic-plaintext",
+            timeProvider.GetUtcNow(),
+            null,
+            "Deck: Commander Candidate",
+            new PortableDeckSnapshot(
+                "Commander Candidate",
+                Array.Empty<string>(),
+                null,
+                [
+                    new PortableDeckEntry("isshin-two-heavens-as-one", "1 Isshin, Two Heavens as One", "Isshin, Two Heavens as One", "{R}{W}{B}", "Legendary Creature", ["R", "W", "B"], 0.7m, "https://cards.example/isshin.jpg", false, Domain.Cards.CommanderEligibilityBasis.LegendaryCreature, 1, "mainboard", false, false, ParseConfidence.Exact),
+                    new PortableDeckEntry("sol-ring", "1 Sol Ring", "Sol Ring", "{1}", "Artifact", Array.Empty<string>(), 0.5m, "https://cards.example/sol-ring.jpg", false, Domain.Cards.CommanderEligibilityBasis.Unknown, 1, "mainboard", false, false, ParseConfidence.Exact),
+                ],
+                [
+                    new DeckSectionState("mainboard", "Mainboard", DeckSectionRole.Mainboard, 1, 2),
+                ],
+                2,
+                false),
+            Array.Empty<ImportDiagnostic>(),
+            Array.Empty<string>(),
+            new Dictionary<string, string>());
+
+        await libraryState.SaveImportedDeckAsync(importedDeck, setActive: true);
+        var workspaceClient = new CountingDeckWorkspaceClient();
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            workspaceClient,
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.OpenActiveImportedDeckAsync();
+        await sut.SetCommanderAsync("isshin-two-heavens-as-one");
+
+        sut.Cards.Should().ContainSingle(card => card.CardId == "isshin-two-heavens-as-one" && card.IsCommander);
+        sut.State.Status.Should().Be(DeckWorkspaceStatus.Ready);
+        sut.Analysis.Should().NotBeNull();
+        workspaceClient.ValidateCallCount.Should().Be(1);
+        workspaceClient.AnalyzeCallCount.Should().Be(1);
+        workspaceClient.LastValidationSnapshot.Should().NotBeNull();
+        workspaceClient.LastValidationSnapshot!.CommanderCardId.Should().Be("isshin-two-heavens-as-one");
+        workspaceClient.LastValidationSnapshot.Entries.Should().ContainSingle(entry => entry.CardId == "isshin-two-heavens-as-one" && entry.IsCommander);
     }
 
     [Fact]
@@ -222,9 +330,50 @@ public sealed class DeckWorkspaceViewModelTests
             : base(new HttpClient())
         {
         }
+
+        public override Task<CardSearchResponseContract> SearchAsync(
+            string query,
+            string? commanderCardId,
+            IReadOnlyList<string>? colors = null,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(new CardSearchResponseContract
+            {
+                SnapshotVersion = "stub",
+                Results =
+                [
+                    new CardSearchResultContract
+                    {
+                        CardId = "sol-ring",
+                        Name = "Sol Ring",
+                        ManaCost = "{1}",
+                        TypeLine = "Artifact",
+                        ColorIdentity = Array.Empty<string>(),
+                        SaltScore = 0.5m,
+                        ImageUri = "https://cards.example/sol-ring.jpg",
+                        HasMultipleFaces = false,
+                        CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown,
+                    },
+                    new CardSearchResultContract
+                    {
+                        CardId = "isshin-two-heavens-as-one",
+                        Name = "Isshin, Two Heavens as One",
+                        ManaCost = "{R}{W}{B}",
+                        TypeLine = "Legendary Creature",
+                        ColorIdentity = ["R", "W", "B"],
+                        SaltScore = 0.7m,
+                        ImageUri = "https://cards.example/isshin.jpg",
+                        HasMultipleFaces = false,
+                        CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.LegendaryCreature,
+                    },
+                ],
+            });
+        }
     }
 
-    private sealed class StubDeckWorkspaceClient : DeckWorkspaceClient
+    private class StubDeckWorkspaceClient : DeckWorkspaceClient
     {
         public StubDeckWorkspaceClient(IDeckImportService? deckImportService = null)
             : base(new HttpClient(), deckImportService ?? new StubDeckImportService(), new StubDeckExportService(), new WorkingCopyProjectionService())
@@ -254,6 +403,28 @@ public sealed class DeckWorkspaceViewModelTests
                     Summary = "Stub",
                 },
             });
+    }
+
+    private sealed class CountingDeckWorkspaceClient : StubDeckWorkspaceClient
+    {
+        public int ValidateCallCount { get; private set; }
+
+        public int AnalyzeCallCount { get; private set; }
+
+        public DeckSnapshotContract? LastValidationSnapshot { get; private set; }
+
+        public override Task<DeckValidationResponseContract> ValidateAsync(DeckSnapshotContract deckSnapshot, CancellationToken cancellationToken = default)
+        {
+            ValidateCallCount += 1;
+            LastValidationSnapshot = deckSnapshot;
+            return base.ValidateAsync(deckSnapshot, cancellationToken);
+        }
+
+        public override Task<DeckAnalysisResponseContract> AnalyzeAsync(DeckSnapshotContract deckSnapshot, CancellationToken cancellationToken = default)
+        {
+            AnalyzeCallCount += 1;
+            return base.AnalyzeAsync(deckSnapshot, cancellationToken);
+        }
     }
 
     private sealed class StubDeckImportService : IDeckImportService
