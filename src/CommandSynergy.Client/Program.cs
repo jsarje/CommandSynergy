@@ -18,6 +18,7 @@ builder.Services.AddScoped<CardSearchIndexClient>();
 builder.Services.AddScoped<ICardSearchService, BrowserCardSearchService>();
 builder.Services.AddScoped<DeckWorkspaceStateFactory>();
 builder.Services.AddScoped<DeckWorkspaceClient>();
+builder.Services.AddScoped<ILocalStorageStringStore, StreamingLocalStorageStringStore>();
 builder.Services.AddScoped<ImportedDeckLibrarySerializer>();
 builder.Services.AddScoped<ImportedDeckLibraryStore>();
 builder.Services.AddScoped<ImportedDeckLibraryState>();

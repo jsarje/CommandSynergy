@@ -4,6 +4,7 @@ using CommandSynergy.Application.Decks.Portability;
 using CommandSynergy.Client.Services;
 using CommandSynergy.Domain.Cards;
 using System.Globalization;
+using Microsoft.JSInterop;
 
 namespace CommandSynergy.Components.Decks;
 
@@ -180,31 +181,46 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         ExportStatusMessage = null;
         ClearPendingDuplicateImport();
 
-        var result = await deckWorkspaceClient.ImportAsync(new DeckImportRequestContract
+        try
         {
-            RawDocumentText = ImportDocumentText,
-            HintedFormatId = SelectedImportFormatId,
-        }, cancellationToken).ConfigureAwait(false);
+            var result = await deckWorkspaceClient.ImportAsync(new DeckImportRequestContract
+            {
+                RawDocumentText = ImportDocumentText,
+                HintedFormatId = SelectedImportFormatId,
+            }, cancellationToken).ConfigureAwait(false);
 
-        var importedDeck = ImportedDeckRecord.FromContract(result.ImportedDeck);
-        if (result.RequiresFormatConfirmation && string.IsNullOrWhiteSpace(SelectedImportFormatId))
-        {
-            ImportStatusMessage = $"Multiple formats matched. Choose one of: {string.Join(", ", result.CandidateFormatIds)}.";
-            return;
+            var importedDeck = ImportedDeckRecord.FromContract(result.ImportedDeck);
+            if (result.RequiresFormatConfirmation && string.IsNullOrWhiteSpace(SelectedImportFormatId))
+            {
+                ImportStatusMessage = $"Multiple formats matched. Choose one of: {string.Join(", ", result.CandidateFormatIds)}.";
+                return;
+            }
+
+            var existingDeck = FindImportedDeckByName(importedDeck.Name);
+            if (existingDeck is not null)
+            {
+                pendingImportedDeck = importedDeck;
+                ImportStatusMessage = $"A deck named '{importedDeck.Name}' already exists. Update the saved deck or import a suffixed copy.";
+                return;
+            }
+
+            await importedDeckLibraryState.SaveImportedDeckAsync(importedDeck, setActive: true, cancellationToken).ConfigureAwait(false);
+            ImportStatusMessage = importedDeck.Diagnostics.Count == 0
+                ? $"Imported '{importedDeck.Name}' and saved it locally."
+                : $"Imported '{importedDeck.Name}' with {importedDeck.Diagnostics.Count} diagnostic(s).";
         }
-
-        var existingDeck = FindImportedDeckByName(importedDeck.Name);
-        if (existingDeck is not null)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            pendingImportedDeck = importedDeck;
-            ImportStatusMessage = $"A deck named '{importedDeck.Name}' already exists. Update the saved deck or import a suffixed copy.";
-            return;
+            throw;
         }
-
-        await importedDeckLibraryState.SaveImportedDeckAsync(importedDeck, setActive: true, cancellationToken).ConfigureAwait(false);
-        ImportStatusMessage = importedDeck.Diagnostics.Count == 0
-            ? $"Imported '{importedDeck.Name}' and saved it locally."
-            : $"Imported '{importedDeck.Name}' with {importedDeck.Diagnostics.Count} diagnostic(s).";
+        catch (JSException exception)
+        {
+            ImportStatusMessage = $"Imported deck data could not be saved locally. {exception.Message}";
+        }
+        catch (InvalidOperationException exception)
+        {
+            ImportStatusMessage = exception.Message;
+        }
     }
 
     public async Task UpdateExistingImportedDeckAsync(CancellationToken cancellationToken = default)

@@ -1,4 +1,3 @@
-using Blazored.LocalStorage;
 using CommandSynergy.Application.Contracts;
 using CommandSynergy.Application.Decks.Portability;
 
@@ -8,16 +7,16 @@ public sealed class ImportedDeckLibraryStore
 {
     public const int MaxPersistedPayloadLength = 256 * 1024;
 
-    private readonly ILocalStorageService localStorageService;
+    private readonly ILocalStorageStringStore localStorageStringStore;
     private readonly ImportedDeckLibrarySerializer serializer;
     private readonly TimeProvider timeProvider;
 
     public ImportedDeckLibraryStore(
-        ILocalStorageService localStorageService,
+        ILocalStorageStringStore localStorageStringStore,
         ImportedDeckLibrarySerializer serializer,
         TimeProvider timeProvider)
     {
-        this.localStorageService = localStorageService;
+        this.localStorageStringStore = localStorageStringStore;
         this.serializer = serializer;
         this.timeProvider = timeProvider;
     }
@@ -26,7 +25,7 @@ public sealed class ImportedDeckLibraryStore
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var payload = await localStorageService.GetItemAsStringAsync(DeckPortabilityContract.StorageKey).ConfigureAwait(false);
+        var payload = await localStorageStringStore.GetItemAsync(DeckPortabilityContract.StorageKey, cancellationToken).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(payload))
         {
             return new ImportedDeckLibraryLoadResult(ImportedDeckLibraryDocument.Empty, false, null);
@@ -34,7 +33,7 @@ public sealed class ImportedDeckLibraryStore
 
         if (payload.Length > MaxPersistedPayloadLength)
         {
-            await localStorageService.RemoveItemAsync(DeckPortabilityContract.StorageKey).ConfigureAwait(false);
+            await localStorageStringStore.RemoveItemAsync(DeckPortabilityContract.StorageKey, cancellationToken).ConfigureAwait(false);
             return new ImportedDeckLibraryLoadResult(
                 ImportedDeckLibraryDocument.Empty,
                 true,
@@ -47,7 +46,7 @@ public sealed class ImportedDeckLibraryStore
         }
         catch
         {
-            await localStorageService.RemoveItemAsync(DeckPortabilityContract.StorageKey).ConfigureAwait(false);
+            await localStorageStringStore.RemoveItemAsync(DeckPortabilityContract.StorageKey, cancellationToken).ConfigureAwait(false);
             return new ImportedDeckLibraryLoadResult(
                 ImportedDeckLibraryDocument.Empty,
                 true,
@@ -72,13 +71,13 @@ public sealed class ImportedDeckLibraryStore
             throw new InvalidOperationException("The imported deck library exceeds the safe local storage payload limit.");
         }
 
-        await localStorageService.SetItemAsStringAsync(DeckPortabilityContract.StorageKey, payload).ConfigureAwait(false);
+        await localStorageStringStore.SetItemAsync(DeckPortabilityContract.StorageKey, payload, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await localStorageService.RemoveItemAsync(DeckPortabilityContract.StorageKey).ConfigureAwait(false);
+        await localStorageStringStore.RemoveItemAsync(DeckPortabilityContract.StorageKey, cancellationToken).ConfigureAwait(false);
     }
 }
 

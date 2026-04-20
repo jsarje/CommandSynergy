@@ -19,10 +19,10 @@ public sealed class WorkingCopyProjectionService : IWorkingCopyProjectionService
                 Name = section.DisplayName,
                 SortOrder = section.SortOrder,
             })
-            .ToArray();
+            .ToArray();      
 
         var commanderCardId = normalizedSnapshot.CommanderCardIds.FirstOrDefault()
-            ?? normalizedSnapshot.Entries.FirstOrDefault(static entry => entry.IsCommander && !string.IsNullOrWhiteSpace(entry.CardId))?.CardId
+            ?? normalizedSnapshot.Entries.FirstOrDefault(static entry => entry.IsCommander && !string.IsNullOrWhiteSpace(entry.CardId))?.CardId            
             ?? throw new InvalidOperationException("A working copy requires a resolved commander card.");
 
         return new DeckSnapshotContract

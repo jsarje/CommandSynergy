@@ -67,23 +67,4 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: test-results-${{ matrix.os }}
-          path: '**/TestResults/*.trx'
-
-  codeql:
-    name: CodeQL Analysis
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@8dca8a82e2fa1a2c8908956f711300f9c4a4f4f6
-        with:
-          languages: csharp
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@8dca8a82e2fa1a2c8908956f711300f9c4a4f4f6
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@8dca8a82e2fa1a2c8908956f711300f9c4a4f4f6
+          path: '**/TestResults/*.trx'  

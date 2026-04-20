@@ -1,5 +1,3 @@
-using System.Text.Json;
-using Blazored.LocalStorage;
 using CommandSynergy.Application.Abstractions;
 using CommandSynergy.Application.Contracts;
 using CommandSynergy.Application.Decks;
@@ -133,6 +131,29 @@ public sealed class DeckWorkspaceViewModelTests
     }
 
     [Fact]
+    public async Task ImportDeckAsync_surfaces_local_library_persistence_failures()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = new ImportedDeckLibraryState(
+            new ImportedDeckLibraryStore(new ThrowingLocalStorageService(), new ImportedDeckLibrarySerializer(), timeProvider),
+            timeProvider);
+        var importedDeck = CreateImportedDeck("deck-1", "Isshin Pressure", timeProvider.GetUtcNow(), "Deck: Latest");
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new StubDeckWorkspaceClient(new StubDeckImportService(CreateImportResult(importedDeck))),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.UpdateImportDocumentTextAsync("Deck: Latest");
+        await sut.ImportDeckAsync();
+
+        sut.ImportStatusMessage.Should().Be("The imported deck library exceeds the safe local storage payload limit.");
+        sut.ImportedDecks.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task DeleteImportedDeckAsync_removes_deck_and_reassigns_active_selection()
     {
         var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
@@ -256,62 +277,14 @@ public sealed class DeckWorkspaceViewModelTests
             throw new NotSupportedException();
     }
 
-    private sealed class StubLocalStorageService : ILocalStorageService
+    private sealed class StubLocalStorageService : ILocalStorageStringStore
     {
         private readonly Dictionary<string, string?> items = new(StringComparer.OrdinalIgnoreCase);
 
-#pragma warning disable CS0067
-        public event EventHandler<ChangingEventArgs>? Changing;
-
-        public event EventHandler<ChangedEventArgs>? Changed;
-#pragma warning restore CS0067
-
-        public ValueTask ClearAsync(CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            items.Clear();
-            return ValueTask.CompletedTask;
-        }
-
-        public ValueTask<bool> ContainKeyAsync(string key, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return ValueTask.FromResult(items.ContainsKey(key));
-        }
-
-        public ValueTask<T?> GetItemAsync<T>(string key, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (!items.TryGetValue(key, out var value) || string.IsNullOrWhiteSpace(value))
-            {
-                return ValueTask.FromResult<T?>(default);
-            }
-
-            return ValueTask.FromResult(JsonSerializer.Deserialize<T>(value));
-        }
-
-        public ValueTask<string?> GetItemAsStringAsync(string key, CancellationToken cancellationToken = default)
+        public ValueTask<string?> GetItemAsync(string key, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return ValueTask.FromResult(items.TryGetValue(key, out var value) ? value : null);
-        }
-
-        public ValueTask<string?> KeyAsync(int index, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return ValueTask.FromResult<string?>(items.Keys.ElementAt(index));
-        }
-
-        public ValueTask<IEnumerable<string>> KeysAsync(CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return ValueTask.FromResult<IEnumerable<string>>(items.Keys.ToArray());
-        }
-
-        public ValueTask<int> LengthAsync(CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return ValueTask.FromResult(items.Count);
         }
 
         public ValueTask RemoveItemAsync(string key, CancellationToken cancellationToken = default)
@@ -321,29 +294,32 @@ public sealed class DeckWorkspaceViewModelTests
             return ValueTask.CompletedTask;
         }
 
-        public ValueTask RemoveItemsAsync(IEnumerable<string> keys, CancellationToken cancellationToken = default)
+        public ValueTask SetItemAsync(string key, string value, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            foreach (var key in keys)
-            {
-                items.Remove(key);
-            }
+            items[key] = value;
+            return ValueTask.CompletedTask;
+        }
+    }
 
+    private sealed class ThrowingLocalStorageService : ILocalStorageStringStore
+    {
+        public ValueTask<string?> GetItemAsync(string key, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return ValueTask.FromResult<string?>(null);
+        }
+
+        public ValueTask RemoveItemAsync(string key, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             return ValueTask.CompletedTask;
         }
 
-        public ValueTask SetItemAsync<T>(string key, T data, CancellationToken cancellationToken = default)
+        public ValueTask SetItemAsync(string key, string value, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            items[key] = JsonSerializer.Serialize(data);
-            return ValueTask.CompletedTask;
-        }
-
-        public ValueTask SetItemAsStringAsync(string key, string data, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            items[key] = data;
-            return ValueTask.CompletedTask;
+            throw new InvalidOperationException("The imported deck library exceeds the safe local storage payload limit.");
         }
     }
 }
