@@ -77,4 +77,73 @@ public sealed class ContractSerializationTests
         roundTrip!.Bracket.Level.Should().Be(3);
         roundTrip.Synergy.StapleOverloadIndicators.Should().ContainSingle("rhystic study");
     }
+
+    [Fact]
+    public void Deck_portability_contracts_round_trip_with_expected_json_shape()
+    {
+        var payload = new ImportedDeckLibraryDocumentContract
+        {
+            SchemaVersion = 1,
+            ActiveDeckId = "deck-1",
+            LastSavedUtc = DateTimeOffset.Parse("2026-04-20T00:00:00Z"),
+            Decks =
+            [
+                new ImportedDeckRecordContract
+                {
+                    ImportedDeckId = "deck-1",
+                    Name = "Atraxa Blink",
+                    SourceFormatId = "moxfield-text",
+                    ImportedAtUtc = DateTimeOffset.Parse("2026-04-20T00:00:00Z"),
+                    NormalizedDeck = new PortableDeckSnapshotContract
+                    {
+                        DeckName = "Atraxa Blink",
+                        CommanderCardIds = ["atraxa-praetors-voice"],
+                        ImportedCardCount = 2,
+                        HasUnresolvedLines = false,
+                        Entries =
+                        [
+                            new PortableDeckEntryContract
+                            {
+                                CardId = "atraxa-praetors-voice",
+                                DisplayName = "Atraxa, Praetors' Voice",
+                                Quantity = 1,
+                                SectionId = "commander",
+                                ParseConfidence = "exact",
+                                IsCommander = true,
+                            },
+                        ],
+                        Sections =
+                        [
+                            new DeckSectionStateContract
+                            {
+                                SectionId = "commander",
+                                DisplayName = "Commander",
+                                Role = "commander",
+                            },
+                        ],
+                    },
+                    Diagnostics =
+                    [
+                        new ImportDiagnosticContract
+                        {
+                            DiagnosticId = "diag-1",
+                            Severity = "warning",
+                            Code = "unrecognized-line",
+                            Message = "Example warning",
+                        },
+                    ],
+                },
+            ],
+        };
+
+        var json = JsonSerializer.Serialize(payload, SerializerOptions);
+        var roundTrip = JsonSerializer.Deserialize<ImportedDeckLibraryDocumentContract>(json, SerializerOptions);
+
+        json.Should().Contain("\"schemaVersion\":1");
+        json.Should().Contain("\"sourceFormatId\":\"moxfield-text\"");
+        json.Should().Contain("\"parseConfidence\":\"exact\"");
+        roundTrip.Should().NotBeNull();
+        roundTrip!.Decks.Should().ContainSingle();
+        roundTrip.Decks[0].NormalizedDeck.CommanderCardIds.Should().ContainSingle("atraxa-praetors-voice");
+    }
 }

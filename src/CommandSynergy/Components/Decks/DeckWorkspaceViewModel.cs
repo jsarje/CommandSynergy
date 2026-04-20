@@ -1,5 +1,6 @@
 using CommandSynergy.Application.Contracts;
 using CommandSynergy.Application.Decks;
+using CommandSynergy.Application.Decks.Portability;
 using CommandSynergy.Client.Services;
 using CommandSynergy.Domain.Cards;
 
@@ -23,9 +24,12 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     private readonly DeckWorkspaceStateFactory stateFactory;
     private readonly CardSearchIndexClient cardSearchIndexClient;
     private readonly DeckWorkspaceClient deckWorkspaceClient;
+    private readonly ImportedDeckLibraryState importedDeckLibraryState;
     private readonly List<PileDefinitionContract> piles = [];
     private readonly List<DeckEntryState> entries = [];
     private readonly Dictionary<string, WorkspaceCardView> knownCards = new(StringComparer.OrdinalIgnoreCase);
+    private readonly IReadOnlyList<FormatOptionView> supportedImportFormats;
+    private readonly IReadOnlyList<FormatOptionView> supportedExportFormats;
     private CancellationTokenSource? refreshCancellationTokenSource;
 
     /// <summary>
@@ -34,15 +38,25 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     public DeckWorkspaceViewModel(
         DeckWorkspaceStateFactory stateFactory,
         CardSearchIndexClient cardSearchIndexClient,
-        DeckWorkspaceClient deckWorkspaceClient)
+        DeckWorkspaceClient deckWorkspaceClient,
+        ImportedDeckLibraryState importedDeckLibraryState)
     {
         this.stateFactory = stateFactory;
         this.cardSearchIndexClient = cardSearchIndexClient;
         this.deckWorkspaceClient = deckWorkspaceClient;
+        this.importedDeckLibraryState = importedDeckLibraryState;
         State = stateFactory.CreateLoading();
         Piles = Array.Empty<PileDefinitionContract>();
         Cards = Array.Empty<WorkspaceCardView>();
         SearchResults = Array.Empty<WorkspaceCardView>();
+        supportedImportFormats =
+        [
+            new FormatOptionView("", "Auto-detect"),
+            new FormatOptionView("moxfield-text", "Moxfield Text"),
+            new FormatOptionView("manabox-text", "ManaBox Text"),
+            new FormatOptionView("generic-plaintext", "Generic Plaintext"),
+        ];
+        supportedExportFormats = supportedImportFormats.Where(static option => !string.IsNullOrWhiteSpace(option.Value)).ToArray();
     }
 
     /// <summary>
@@ -80,6 +94,34 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     /// </summary>
     public IReadOnlyList<WorkspaceCardView> SearchResults { get; private set; }
 
+    public bool IsHydratingLibrary => importedDeckLibraryState.IsHydrating;
+
+    public string? LibraryRecoveryMessage => importedDeckLibraryState.RecoveryMessage;
+
+    public IReadOnlyList<ImportedDeckRecord> ImportedDecks => importedDeckLibraryState.Library.Decks;
+
+    public string? ActiveImportedDeckId => importedDeckLibraryState.Library.ActiveDeckId;
+
+    public IReadOnlyList<ImportDiagnostic> ActiveImportedDeckDiagnostics =>
+        ImportedDecks.FirstOrDefault(deck => string.Equals(deck.ImportedDeckId, ActiveImportedDeckId, StringComparison.OrdinalIgnoreCase))?.Diagnostics
+        ?? Array.Empty<ImportDiagnostic>();
+
+    public IReadOnlyList<FormatOptionView> SupportedImportFormats => supportedImportFormats;
+
+    public IReadOnlyList<FormatOptionView> SupportedExportFormats => supportedExportFormats;
+
+    public string ImportDocumentText { get; private set; } = string.Empty;
+
+    public string? SelectedImportFormatId { get; private set; }
+
+    public string SelectedExportFormatId { get; private set; } = "moxfield-text";
+
+    public string? ImportStatusMessage { get; private set; }
+
+    public string? ExportStatusMessage { get; private set; }
+
+    public ExportPreviewContract? ExportPreview { get; private set; }
+
     /// <summary>
     /// Initializes the default workspace piles and empty state.
     /// </summary>
@@ -101,6 +143,112 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         RefreshDerivedCards();
         State = stateFactory.CreateEmpty("Choose a commander to activate validation and synergy analysis.");
         return Task.CompletedTask;
+    }
+
+    public async Task HydrateImportedDeckLibraryAsync()
+    {
+        await importedDeckLibraryState.HydrateAsync().ConfigureAwait(false);
+    }
+
+    public Task UpdateImportDocumentTextAsync(string importDocumentText)
+    {
+        ImportDocumentText = importDocumentText;
+        ImportStatusMessage = null;
+        return Task.CompletedTask;
+    }
+
+    public Task UpdateImportFormatAsync(string? formatId)
+    {
+        SelectedImportFormatId = string.IsNullOrWhiteSpace(formatId) ? null : formatId;
+        return Task.CompletedTask;
+    }
+
+    public async Task ImportDeckAsync(CancellationToken cancellationToken = default)
+    {
+        ImportStatusMessage = null;
+        ExportPreview = null;
+        ExportStatusMessage = null;
+
+        var result = await deckWorkspaceClient.ImportAsync(new DeckImportRequestContract
+        {
+            RawDocumentText = ImportDocumentText,
+            HintedFormatId = SelectedImportFormatId,
+        }, cancellationToken).ConfigureAwait(false);
+
+        var importedDeck = ImportedDeckRecord.FromContract(result.ImportedDeck);
+        if (result.RequiresFormatConfirmation && string.IsNullOrWhiteSpace(SelectedImportFormatId))
+        {
+            ImportStatusMessage = $"Multiple formats matched. Choose one of: {string.Join(", ", result.CandidateFormatIds)}.";
+            return;
+        }
+
+        await importedDeckLibraryState.SaveImportedDeckAsync(importedDeck, setActive: true, cancellationToken).ConfigureAwait(false);
+        ImportStatusMessage = importedDeck.Diagnostics.Count == 0
+            ? $"Imported '{importedDeck.Name}' and saved it locally."
+            : $"Imported '{importedDeck.Name}' with {importedDeck.Diagnostics.Count} diagnostic(s).";
+    }
+
+    public Task SelectImportedDeckAsync(string deckId) => importedDeckLibraryState.SetActiveDeckAsync(deckId);
+
+    public async Task OpenActiveImportedDeckAsync()
+    {
+        var deck = ImportedDecks.FirstOrDefault(candidate => string.Equals(candidate.ImportedDeckId, ActiveImportedDeckId, StringComparison.OrdinalIgnoreCase));
+        if (deck is null)
+        {
+            ImportStatusMessage = "Choose an imported deck before opening a workspace copy.";
+            return;
+        }
+
+        var snapshot = deckWorkspaceClient.CreateWorkingCopy(deck.NormalizedDeck, deck.ImportedDeckId, deck.Name);
+        LoadSnapshotIntoWorkspace(snapshot, deck.NormalizedDeck);
+        await RefreshInsightsAsync(CancellationToken.None).ConfigureAwait(false);
+        ImportStatusMessage = $"Opened '{deck.Name}' as a working copy in the workspace.";
+    }
+
+    public Task UpdateExportFormatAsync(string value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            SelectedExportFormatId = value;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public async Task GenerateExportPreviewAsync(CancellationToken cancellationToken = default)
+    {
+        ExportPreview = null;
+        ExportStatusMessage = null;
+
+        PortableDeckSnapshot snapshot;
+        try
+        {
+            snapshot = CreatePortableSnapshotFromWorkspace();
+        }
+        catch (InvalidOperationException exception)
+        {
+            ExportStatusMessage = exception.Message;
+            return;
+        }
+
+        var request = new DeckExportRequestContract
+        {
+            ImportedDeckId = ActiveImportedDeckId ?? "workspace",
+            TargetFormatId = SelectedExportFormatId,
+        };
+
+        var preview = await deckWorkspaceClient.ExportAsync(request, snapshot, cancellationToken).ConfigureAwait(false);
+        ExportPreview = new ExportPreviewContract
+        {
+            TargetFormatId = preview.TargetFormatId,
+            DocumentText = preview.DocumentText,
+            Warnings = preview.Warnings,
+            GeneratedUtc = DateTimeOffset.UtcNow,
+        };
+
+        ExportStatusMessage = preview.Warnings.Count == 0
+            ? $"Prepared {GetFormatDisplayName(preview.TargetFormatId)} export preview."
+            : $"Prepared export preview with {preview.Warnings.Count} warning(s).";
     }
 
     /// <summary>
@@ -378,6 +526,89 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         Piles = Piles,
     };
 
+    private PortableDeckSnapshot CreatePortableSnapshotFromWorkspace()
+    {
+        var commanderCardId = GetCommanderCardId();
+        if (string.IsNullOrWhiteSpace(commanderCardId))
+        {
+            throw new InvalidOperationException("Choose a commander before exporting the current workspace.");
+        }
+
+        var portableEntries = entries
+            .Select(entry =>
+            {
+                var card = GetKnownCard(entry.CardId);
+                return new PortableDeckEntry(
+                    entry.CardId,
+                    card.Name,
+                    card.Name,
+                    entry.Quantity,
+                    entry.IsCommander ? CommandZonePileId : entry.AssignedPileId ?? MainboardPileId,
+                    entry.IsCommander,
+                    entry.IsCompanion,
+                    ParseConfidence.Exact);
+            })
+            .ToArray();
+
+        var sections = Piles
+            .Select(pile => new DeckSectionState(
+                pile.PileId,
+                pile.Name,
+                string.Equals(pile.PileId, CommandZonePileId, StringComparison.OrdinalIgnoreCase) ? DeckSectionRole.Commander : DeckSectionRole.Mainboard,
+                pile.SortOrder,
+                portableEntries.Where(entry => string.Equals(entry.SectionId, pile.PileId, StringComparison.OrdinalIgnoreCase)).Sum(static entry => entry.Quantity)))
+            .ToArray();
+
+        return new PortableDeckSnapshot(
+            "Commander Synergy Sphere",
+            [commanderCardId],
+            portableEntries.FirstOrDefault(static entry => entry.IsCompanion)?.CardId,
+            portableEntries,
+            sections,
+            portableEntries.Sum(static entry => entry.Quantity),
+            false);
+    }
+
+    private void LoadSnapshotIntoWorkspace(DeckSnapshotContract snapshot, PortableDeckSnapshot portableSnapshot)
+    {
+        entries.Clear();
+
+        foreach (var entry in snapshot.Entries)
+        {
+            entries.Add(new DeckEntryState(entry.CardId)
+            {
+                Quantity = entry.Quantity,
+                AssignedPileId = entry.AssignedPileId,
+                IsCommander = entry.IsCommander,
+                IsCompanion = entry.IsCompanion,
+            });
+        }
+
+        foreach (var portableEntry in portableSnapshot.Entries.Where(static entry => !string.IsNullOrWhiteSpace(entry.CardId)))
+        {
+            knownCards[portableEntry.CardId!] = new WorkspaceCardView
+            {
+                CardId = portableEntry.CardId!,
+                Name = portableEntry.DisplayName,
+                TypeLine = portableEntry.IsCommander ? "Commander" : "Imported Card",
+                ColorIdentity = Array.Empty<string>(),
+                Faces = [new WorkspaceCardFaceView(portableEntry.DisplayName, null, portableEntry.IsCommander ? "Commander" : "Imported Card", null, true)],
+                Quantity = portableEntry.Quantity,
+                AssignedPileId = portableEntry.SectionId,
+                IsCommander = portableEntry.IsCommander,
+                IsCompanion = portableEntry.IsCompanion,
+                CommanderEligibilityBasis = portableEntry.IsCommander ? CommanderEligibilityBasis.LegendaryCreature : CommanderEligibilityBasis.Unknown,
+            };
+        }
+
+        RefreshDerivedCards();
+    }
+
+    private string GetFormatDisplayName(string formatId) =>
+        supportedExportFormats.Concat(supportedImportFormats)
+            .FirstOrDefault(option => string.Equals(option.Value, formatId, StringComparison.OrdinalIgnoreCase))?.Label
+        ?? formatId;
+
     private void RefreshDerivedCards()
     {
         Cards = entries
@@ -480,6 +711,8 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         public bool IsCompanion { get; set; }
     }
 }
+
+public sealed record FormatOptionView(string Value, string Label);
 
 /// <summary>
 /// Represents a rendered card in the interactive workspace.

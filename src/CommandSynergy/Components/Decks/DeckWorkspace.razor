@@ -1,4 +1,5 @@
 @using CommandSynergy.Application.Contracts
+@using CommandSynergy.Application.Decks.Portability
 
 <div class="workspace-shell">
     <MudContainer MaxWidth="MaxWidth.False" Class="workspace-shell__container">
@@ -6,8 +7,102 @@
             <p class="workspace-shell__eyebrow">Commander Synergy Sphere</p>
             <h1>Build with tempo, inspect every face, and keep the rules engine in the loop.</h1>
             <p class="workspace-shell__lede">
-                Search the catalog, choose a commander, sort the list into tactical piles, and keep legality and power signals synchronized with the server.
+                Import plaintext decklists locally, switch between saved decks, open an explicit working copy, and export the current workspace without sending raw deck documents to the server.
             </p>
+        </section>
+
+        <section class="workspace-shell__summary-grid">
+            <MudPaper Elevation="0" Class="workspace-panel workspace-panel--search">
+                <div class="workspace-panel__header">
+                    <div>
+                        <p class="workspace-panel__label">Import</p>
+                        <h2>Local deck library</h2>
+                    </div>
+                    @if (IsHydratingLibrary)
+                    {
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                    }
+                </div>
+
+                <MudSelect T="string" Label="Source format" Value="@SelectedImportFormatId" ValueChanged="ImportFormatChanged">
+                    @foreach (var option in SupportedImportFormats)
+                    {
+                        <MudSelectItem Value="@option.Value">@option.Label</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudTextField T="string"
+                              Label="Paste deck text"
+                              Lines="10"
+                              Value="@ImportDocumentText"
+                              ValueChanged="ImportDocumentTextChanged"
+                              Variant="Variant.Outlined" />
+
+                <div class="workspace-search">
+                    <button type="button" class="workspace-search__button" @onclick="ImportRequested">Import deck</button>
+                    <button type="button" class="workspace-search__button" @onclick="OpenImportedDeckRequested" disabled="@string.IsNullOrWhiteSpace(ActiveImportedDeckId)">Open working copy</button>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(LibraryRecoveryMessage))
+                {
+                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">@LibraryRecoveryMessage</MudAlert>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(ImportStatusMessage))
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">@ImportStatusMessage</MudAlert>
+                }
+
+                <div class="workspace-search-results" data-testid="imported-deck-library">
+                    @if (ImportedDecks.Count == 0)
+                    {
+                        <p class="workspace-panel__empty">Imported decks stay in this browser only. Paste a supported decklist to start a local library.</p>
+                    }
+                    else
+                    {
+                        @foreach (var importedDeck in ImportedDecks)
+                        {
+                            var isActiveDeck = string.Equals(importedDeck.ImportedDeckId, ActiveImportedDeckId, StringComparison.OrdinalIgnoreCase);
+                            <article class="workspace-search-result">
+                                <div>
+                                    <strong>@importedDeck.Name</strong>
+                                    <p>@importedDeck.SourceFormatId</p>
+                                </div>
+                                <div class="workspace-search-result__actions">
+                                    <button type="button"
+                                            class="workspace-search-result__primary"
+                                            data-testid="@($"select-imported-deck-{importedDeck.ImportedDeckId}")"
+                                            @onclick="() => ImportedDeckSelected.InvokeAsync(importedDeck.ImportedDeckId)">
+                                        @(isActiveDeck ? "Selected" : "Select")
+                                    </button>
+                                </div>
+                            </article>
+                        }
+                    }
+                </div>
+
+                @if (ActiveImportedDeckDiagnostics.Count > 0)
+                {
+                    <div class="workspace-callouts">
+                        <div>
+                            <h3>Import diagnostics</h3>
+                            <ul class="workspace-findings" data-testid="import-diagnostics">
+                                @foreach (var diagnostic in ActiveImportedDeckDiagnostics)
+                                {
+                                    <li class="workspace-finding workspace-finding--@diagnostic.Severity.ToString().ToLowerInvariant()">@diagnostic.Message</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                }
+            </MudPaper>
+
+            <DeckExportPanel ExportPreview="@ExportPreview"
+                             SupportedFormats="@SupportedExportFormats"
+                             SelectedFormatId="@SelectedExportFormatId"
+                             ExportStatusMessage="@ExportStatusMessage"
+                             ExportFormatChanged="@ExportFormatChanged"
+                             ExportRequested="@ExportRequested" />
         </section>
 
         <section class="workspace-shell__summary-grid">
@@ -171,6 +266,12 @@
     public bool IsBusy { get; set; }
 
     [Parameter]
+    public bool IsHydratingLibrary { get; set; }
+
+    [Parameter]
+    public string? LibraryRecoveryMessage { get; set; }
+
+    [Parameter]
     public required IReadOnlyList<PileDefinitionContract> Piles { get; set; }
 
     [Parameter]
@@ -180,7 +281,61 @@
     public required IReadOnlyList<WorkspaceCardView> SearchResults { get; set; }
 
     [Parameter]
+    public required IReadOnlyList<FormatOptionView> SupportedImportFormats { get; set; }
+
+    [Parameter]
+    public string? SelectedImportFormatId { get; set; }
+
+    [Parameter]
+    public required string ImportDocumentText { get; set; }
+
+    [Parameter]
+    public required IReadOnlyList<ImportedDeckRecord> ImportedDecks { get; set; }
+
+    [Parameter]
+    public string? ActiveImportedDeckId { get; set; }
+
+    [Parameter]
+    public required IReadOnlyList<ImportDiagnostic> ActiveImportedDeckDiagnostics { get; set; }
+
+    [Parameter]
+    public string? ImportStatusMessage { get; set; }
+
+    [Parameter]
+    public ExportPreviewContract? ExportPreview { get; set; }
+
+    [Parameter]
+    public required IReadOnlyList<FormatOptionView> SupportedExportFormats { get; set; }
+
+    [Parameter]
+    public required string SelectedExportFormatId { get; set; }
+
+    [Parameter]
+    public string? ExportStatusMessage { get; set; }
+
+    [Parameter]
     public EventCallback<string> SearchQueryChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ImportDocumentTextChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ImportFormatChanged { get; set; }
+
+    [Parameter]
+    public EventCallback ImportRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ImportedDeckSelected { get; set; }
+
+    [Parameter]
+    public EventCallback OpenImportedDeckRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ExportFormatChanged { get; set; }
+
+    [Parameter]
+    public EventCallback ExportRequested { get; set; }
 
     [Parameter]
     public EventCallback SearchRequested { get; set; }

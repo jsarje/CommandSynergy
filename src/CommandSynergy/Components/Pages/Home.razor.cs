@@ -20,6 +20,31 @@ public partial class Home : ComponentBase
         await ViewModel.InitializeAsync().ConfigureAwait(false);
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await ViewModel.HydrateImportedDeckLibraryAsync().ConfigureAwait(false);
+        await InvokeAsync(StateHasChanged).ConfigureAwait(false);
+    }
+
+    private Task UpdateImportDocumentTextAsync(string value) => ViewModel.UpdateImportDocumentTextAsync(value);
+
+    private Task UpdateImportFormatAsync(string? value) => ViewModel.UpdateImportFormatAsync(value);
+
+    private Task ImportDeckAsync() => ViewModel.ImportDeckAsync();
+
+    private Task SelectImportedDeckAsync(string deckId) => ViewModel.SelectImportedDeckAsync(deckId);
+
+    private Task OpenImportedDeckAsync() => ViewModel.OpenActiveImportedDeckAsync();
+
+    private Task UpdateExportFormatAsync(string value) => ViewModel.UpdateExportFormatAsync(value);
+
+    private Task GenerateExportPreviewAsync() => ViewModel.GenerateExportPreviewAsync();
+
     private Task UpdateSearchQueryAsync(string value) => ViewModel.UpdateSearchQueryAsync(value);
 
     private Task SearchAsync() => ViewModel.SearchAsync();

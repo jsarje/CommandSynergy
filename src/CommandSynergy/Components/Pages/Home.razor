@@ -1,5 +1,5 @@
 ﻿@page "/"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 
 <PageTitle>Commander Synergy Sphere</PageTitle>
 
@@ -7,10 +7,30 @@
 			   Analysis="@ViewModel.Analysis"
 			   SearchQuery="@ViewModel.SearchQuery"
 			   IsBusy="@ViewModel.IsBusy"
+			   IsHydratingLibrary="@ViewModel.IsHydratingLibrary"
+			   LibraryRecoveryMessage="@ViewModel.LibraryRecoveryMessage"
 			   Piles="@ViewModel.Piles"
 			   Cards="@ViewModel.Cards"
 			   SearchResults="@ViewModel.SearchResults"
+			   SupportedImportFormats="@ViewModel.SupportedImportFormats"
+			   SelectedImportFormatId="@ViewModel.SelectedImportFormatId"
+			   ImportDocumentText="@ViewModel.ImportDocumentText"
+			   ImportedDecks="@ViewModel.ImportedDecks"
+			   ActiveImportedDeckId="@ViewModel.ActiveImportedDeckId"
+			   ActiveImportedDeckDiagnostics="@ViewModel.ActiveImportedDeckDiagnostics"
+			   ImportStatusMessage="@ViewModel.ImportStatusMessage"
+			   ExportPreview="@ViewModel.ExportPreview"
+			   SupportedExportFormats="@ViewModel.SupportedExportFormats"
+			   SelectedExportFormatId="@ViewModel.SelectedExportFormatId"
+			   ExportStatusMessage="@ViewModel.ExportStatusMessage"
 			   SearchQueryChanged="@UpdateSearchQueryAsync"
+			   ImportDocumentTextChanged="@UpdateImportDocumentTextAsync"
+			   ImportFormatChanged="@UpdateImportFormatAsync"
+			   ImportRequested="@ImportDeckAsync"
+			   ImportedDeckSelected="@SelectImportedDeckAsync"
+			   OpenImportedDeckRequested="@OpenImportedDeckAsync"
+			   ExportFormatChanged="@UpdateExportFormatAsync"
+			   ExportRequested="@GenerateExportPreviewAsync"
 			   SearchRequested="@SearchAsync"
 			   RetryRequested="@RetryAsync"
 			   CommanderSelected="@SetCommanderAsync"
