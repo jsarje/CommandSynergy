@@ -1,8 +1,6 @@
 using CommandSynergy.Application.Abstractions;
 using CommandSynergy.Application.Analysis;
 using CommandSynergy.Application.Configuration;
-using CommandSynergy.Application.Cards;
-using CommandSynergy.Application.Decks;
 using CommandSynergy.Application.Decks.Portability;
 using CommandSynergy.Application.Decks.Portability.Formats;
 using CommandSynergy.Domain.Analysis;
@@ -35,11 +33,6 @@ public static class DependencyInjection
         services.AddSingleton<CommanderRules>();
         services.AddSingleton<BracketEngine>();
         services.AddSingleton<AnalysisExplanationBuilder>();
-        services.AddScoped<CardSearchService>();
-        services.AddScoped<DeckValidationService>();
-        services.AddScoped<BracketCalculationService>();
-        services.AddScoped<SynergyScoringService>();
-        services.AddScoped<DeckAnalysisService>();
         services.AddSingleton<TimeProvider>(TimeProvider.System);
         services.AddScoped<DeckFormatDetectionService>();
         services.AddScoped<IDeckFormatRegistry, DeckFormatRegistry>();
