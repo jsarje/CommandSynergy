@@ -1,5 +1,7 @@
 <Solution>
-  <Folder Name="/SolutionItems/" />
+  <Folder Name="/SolutionItems/">
+    <File Path="../.gitignore" />
+  </Folder>
   <Project Path="../tests/CommandSynergy.Application.Tests/CommandSynergy.Application.Tests.csproj" />
   <Project Path="../tests/CommandSynergy.Domain.Tests/CommandSynergy.Domain.Tests.csproj" />
   <Project Path="../tests/CommandSynergy.Infrastructure.Tests/CommandSynergy.Infrastructure.Tests.csproj" />
@@ -7,7 +9,7 @@
   <Project Path="CommandSynergy.Application/CommandSynergy.Application.csproj" />
   <Project Path="CommandSynergy.Client/CommandSynergy.Client.csproj" />
   <Project Path="CommandSynergy.Domain/CommandSynergy.Domain.csproj" />
-  <Project Path="CommandSynergy.Ingestion/CommandSynergy.Ingestion.csproj" />
   <Project Path="CommandSynergy.Infrastructure/CommandSynergy.Infrastructure.csproj" />
+  <Project Path="CommandSynergy.Ingestion/CommandSynergy.Ingestion.csproj" />
   <Project Path="CommandSynergy/CommandSynergy.csproj" />
 </Solution>

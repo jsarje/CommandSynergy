@@ -53,6 +53,7 @@
 }
 
 .workspace-panel,
+.workspace-banner,
 .pile-board__pile {
     border: 1px solid var(--cs-outline);
     border-radius: var(--cs-radius-xl);
@@ -63,6 +64,26 @@
 
 .workspace-panel {
     padding: 1.35rem;
+}
+
+.workspace-banner {
+    padding: 1.15rem 1.35rem;
+}
+
+.workspace-banner--commander-needed {
+    background:
+        linear-gradient(135deg, rgba(234, 143, 67, 0.16), rgba(255, 248, 236, 0.92)),
+        var(--cs-surface);
+    border-color: rgba(170, 75, 31, 0.18);
+}
+
+.workspace-banner--commander-needed h2 {
+    margin: 0.25rem 0 0;
+    font-size: clamp(1.2rem, 2vw, 1.6rem);
+}
+
+.workspace-banner--commander-needed p:last-child {
+    margin-top: 0.45rem;
 }
 
 .workspace-panel__header,
@@ -259,13 +280,15 @@
 
 .pile-board__pile-header h3,
 .workspace-state h3,
-.workspace-callouts h3 {
+.workspace-callouts h3,
+.workspace-banner h3 {
     margin: 0;
 }
 
 .pile-board__pile-header p,
 .workspace-state p,
 .workspace-callouts p,
+.workspace-banner p,
 .pile-board__hint {
     margin: 0;
 }

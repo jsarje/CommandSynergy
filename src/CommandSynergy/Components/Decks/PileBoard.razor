@@ -43,6 +43,18 @@
                                 <CommanderCard Card="card" />
 
                                 <div class="pile-board__actions">
+                                    @if (CommanderSelectionEnabled && !card.IsCommander)
+                                    {
+                                        <button type="button"
+                                                class="pile-board__move-button"
+                                                data-testid="set-commander-from-pile-@card.CardId"
+                                                disabled="@(!card.IsCommanderEligible)"
+                                                title="@(card.IsCommanderEligible ? "Set this card as your commander" : "Only legal commanders can be selected.")"
+                                                @onclick="() => SetCommanderRequested.InvokeAsync(card.CardId)">
+                                            Set as commander
+                                        </button>
+                                    }
+
                                     @foreach (var targetPile in Piles.Where(targetPile => !string.Equals(targetPile.PileId, ResolvePileId(card), StringComparison.OrdinalIgnoreCase)))
                                     {
                                         <button type="button"
@@ -75,6 +87,12 @@
 
     [Parameter]
     public required IReadOnlyList<WorkspaceCardView> Cards { get; set; }
+
+    [Parameter]
+    public bool CommanderSelectionEnabled { get; set; }
+
+    [Parameter]
+    public EventCallback<string> SetCommanderRequested { get; set; }
 
     [Parameter]
     public EventCallback<MoveCardRequest> MoveRequested { get; set; }

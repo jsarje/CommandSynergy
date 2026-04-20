@@ -32,6 +32,11 @@ public static class DependencyInjection
         services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<BracketCatalogLoader>().Load());
         services.AddSingleton<DeckAnalysisCache>();
         services.AddSingleton<AnalysisTelemetry>();
+        services.AddScoped<CardSearchService>();
+        services.AddScoped<DeckValidationService>();
+        services.AddScoped<BracketCalculationService>();
+        services.AddScoped<SynergyScoringService>();
+        services.AddScoped<DeckAnalysisService>();
         services.AddScoped<ICardCatalogGateway, CardMetadataQueryService>();
         services.AddScoped<ICardSearchService>(serviceProvider => new CardSearchLoggingDecorator(
             serviceProvider.GetRequiredService<CardSearchService>(),

@@ -20,6 +20,47 @@ public partial class Home : ComponentBase
         await ViewModel.InitializeAsync().ConfigureAwait(false);
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await ViewModel.HydrateImportedDeckLibraryAsync().ConfigureAwait(false);
+        await InvokeAsync(StateHasChanged).ConfigureAwait(false);
+    }
+
+    private Task UpdateImportDocumentTextAsync(string value) => ViewModel.UpdateImportDocumentTextAsync(value);
+
+    private Task UpdateImportFormatAsync(string? value) => ViewModel.UpdateImportFormatAsync(value);
+
+    private Task ImportDeckAsync() => ViewModel.ImportDeckAsync();
+
+    private Task UpdateExistingImportedDeckAsync() => ViewModel.UpdateExistingImportedDeckAsync();
+
+    private Task ImportDuplicateAsNewDeckAsync() => ViewModel.ImportDuplicateAsNewDeckAsync();
+
+    private Task SelectImportedDeckAsync(string deckId) => ViewModel.SelectImportedDeckAsync(deckId);
+
+    private Task DeleteImportedDeckAsync(string deckId) => ViewModel.DeleteImportedDeckAsync(deckId);
+
+    private Task OpenImportedDeckAsync() => ViewModel.OpenActiveImportedDeckAsync();
+
+    private Task StartNewDeckAsync() => ViewModel.StartNewDeckAsync();
+
+    private Task UpdateNewDeckNameAsync(string value) => ViewModel.UpdateNewDeckNameAsync(value);
+
+    private Task SaveNewDeckAsync() => ViewModel.SaveNewDeckAsync();
+
+    private Task UpdateLinkedDeckNameAsync(string value) => ViewModel.UpdateLinkedDeckNameAsync(value);
+
+    private Task RenameLinkedDeckAsync() => ViewModel.RenameActiveDeckAsync();
+
+    private Task UpdateExportFormatAsync(string value) => ViewModel.UpdateExportFormatAsync(value);
+
+    private Task GenerateExportPreviewAsync() => ViewModel.GenerateExportPreviewAsync();
+
     private Task UpdateSearchQueryAsync(string value) => ViewModel.UpdateSearchQueryAsync(value);
 
     private Task SearchAsync() => ViewModel.SearchAsync();

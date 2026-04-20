@@ -14,7 +14,13 @@
         "&": true,
         "dotnet test": true,
         "dotnet run": true,
-        "dotnet build": true
+        "dotnet build": true,
+        "git rev-parse": true,
+        ".\\.specify\\extensions\\git\\scripts\\powershell\\create-new-feature.ps1": true,
+        "ConvertTo-Json": true,
+        "Push-Location": true,
+        "Pop-Location": true,
+        "dotnet list": true
     }
 }
 

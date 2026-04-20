@@ -1,5 +1,7 @@
 using System.Net.Http.Json;
+using CommandSynergy.Application.Abstractions;
 using CommandSynergy.Application.Contracts;
+using CommandSynergy.Application.Decks.Portability;
 
 namespace CommandSynergy.Client.Services;
 
@@ -9,13 +11,23 @@ namespace CommandSynergy.Client.Services;
 public class DeckWorkspaceClient
 {
     private readonly HttpClient httpClient;
+    private readonly IDeckImportService deckImportService;
+    private readonly IDeckExportService deckExportService;
+    private readonly IWorkingCopyProjectionService workingCopyProjectionService;
 
     /// <summary>
     /// Creates a deck workspace endpoint client.
     /// </summary>
-    public DeckWorkspaceClient(HttpClient httpClient)
+    public DeckWorkspaceClient(
+        HttpClient httpClient,
+        IDeckImportService deckImportService,
+        IDeckExportService deckExportService,
+        IWorkingCopyProjectionService workingCopyProjectionService)
     {
         this.httpClient = httpClient;
+        this.deckImportService = deckImportService;
+        this.deckExportService = deckExportService;
+        this.workingCopyProjectionService = workingCopyProjectionService;
     }
 
     /// <summary>
@@ -41,4 +53,13 @@ public class DeckWorkspaceClient
         return await response.Content.ReadFromJsonAsync<DeckAnalysisResponseContract>(cancellationToken).ConfigureAwait(false)
             ?? throw new InvalidOperationException("The analysis response payload was empty.");
     }
+
+    public virtual Task<DeckImportResultContract> ImportAsync(DeckImportRequestContract request, CancellationToken cancellationToken = default) =>
+        deckImportService.ImportAsync(request, cancellationToken);
+
+    public virtual Task<DeckExportResultContract> ExportAsync(DeckExportRequestContract request, PortableDeckSnapshot snapshot, CancellationToken cancellationToken = default) =>
+        deckExportService.ExportAsync(request, snapshot, cancellationToken);
+
+    public virtual DeckSnapshotContract CreateWorkingCopy(PortableDeckSnapshot snapshot, string? deckId = null, string? deckName = null) =>
+        workingCopyProjectionService.CreateWorkingCopy(snapshot, deckId, deckName);
 }

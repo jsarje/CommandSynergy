@@ -13,6 +13,9 @@ public sealed class ParquetCardMetadataStore
 {
     private readonly CardMetadataOptions options;
     private readonly ILogger<ParquetCardMetadataStore> logger;
+    private readonly SemaphoreSlim snapshotCacheLock = new(1, 1);
+
+    private SnapshotCacheEntry? cachedSnapshot;
 
     /// <summary>
     /// Creates a snapshot loader for local Parquet-backed card metadata.
@@ -31,6 +34,19 @@ public sealed class ParquetCardMetadataStore
         cancellationToken.ThrowIfCancellationRequested();
 
         var snapshotPath = Path.Combine(options.SnapshotDirectory, options.SnapshotFileName);
+        if (TryGetCachedSnapshot(snapshotPath, out var cachedSnapshot))
+        {
+            return cachedSnapshot;
+        }
+
+        await snapshotCacheLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            if (TryGetCachedSnapshot(snapshotPath, out cachedSnapshot))
+            {
+                return cachedSnapshot;
+            }
+
         if (!File.Exists(snapshotPath))
         {
             logger.LogWarning("Card metadata snapshot was not found at {SnapshotPath}", snapshotPath);
@@ -59,6 +75,7 @@ public sealed class ParquetCardMetadataStore
                 snapshotPath,
                 snapshot.Cards.Count);
 
+            UpdateSnapshotCache(snapshot);
             return snapshot;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -69,6 +86,11 @@ public sealed class ParquetCardMetadataStore
         {
             logger.LogWarning(exception, "Failed to read card metadata snapshot from {SnapshotPath}", snapshotPath);
             return CardMetadataSnapshot.Empty(snapshotPath);
+        }
+        }
+        finally
+        {
+            snapshotCacheLock.Release();
         }
     }
 
@@ -169,6 +191,7 @@ public sealed class ParquetCardMetadataStore
             }
 
             File.Move(tempPath, snapshotPath, overwrite: true);
+            UpdateSnapshotCache(CreateSnapshot(snapshotPath, rows));
 
             logger.LogInformation(successLogTemplate, successLogArgs);
         }
@@ -199,6 +222,43 @@ public sealed class ParquetCardMetadataStore
             logger.LogDebug(ex, "Could not delete temp file {TempPath} after failed upsert", tempPath);
         }
     }
+
+    private bool TryGetCachedSnapshot(string snapshotPath, out CardMetadataSnapshot snapshot)
+    {
+        var currentCache = cachedSnapshot;
+        if (currentCache is not null
+            && string.Equals(currentCache.SnapshotPath, snapshotPath, StringComparison.OrdinalIgnoreCase)
+            && File.Exists(snapshotPath))
+        {
+            var fileInfo = new FileInfo(snapshotPath);
+            if (fileInfo.Length == currentCache.FileLength && fileInfo.LastWriteTimeUtc == currentCache.LastWriteTimeUtc)
+            {
+                snapshot = currentCache.Snapshot;
+                return true;
+            }
+        }
+
+        snapshot = null!;
+        return false;
+    }
+
+    private void UpdateSnapshotCache(CardMetadataSnapshot snapshot)
+    {
+        if (!File.Exists(snapshot.SourcePath))
+        {
+            cachedSnapshot = null;
+            return;
+        }
+
+        var fileInfo = new FileInfo(snapshot.SourcePath);
+        cachedSnapshot = new SnapshotCacheEntry(snapshot.SourcePath, fileInfo.Length, fileInfo.LastWriteTimeUtc, snapshot);
+    }
+
+    private CardMetadataSnapshot CreateSnapshot(string snapshotPath, IReadOnlyCollection<ParquetCardMetadataRow> rows) => new(
+        Path.GetFileNameWithoutExtension(snapshotPath),
+        snapshotPath,
+        File.GetLastWriteTimeUtc(snapshotPath),
+        rows.Select(MapRecord).ToArray());
 
     private static CardMetadataRecord MapRecord(ParquetCardMetadataRow row) => new(
         row.CardId,
@@ -288,6 +348,8 @@ public sealed class ParquetCardMetadataStore
         /// <summary>UTC ticks stored as a nullable long for Parquet compatibility.</summary>
         public long? LastSyncedUtcTicks { get; init; }
     }
+
+    private sealed record SnapshotCacheEntry(string SnapshotPath, long FileLength, DateTime LastWriteTimeUtc, CardMetadataSnapshot Snapshot);
 }
 
 /// <summary>

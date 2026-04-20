@@ -1,0 +1,276 @@
+version: 0.1.0
+title: Commander Deck Portability Contract
+description: |
+  Client-side contract for browser-local imported deck persistence and text-based deck
+  import/export behavior. This contract intentionally describes no HTTP endpoints because imported
+  deck documents must remain client-side.
+
+browserLibrary:
+  storageKey: command-synergy.imported-decks
+  schemaVersion: 1
+  document:
+    type: object
+    required:
+      - schemaVersion
+      - decks
+    properties:
+      schemaVersion:
+        type: integer
+        minimum: 1
+      activeDeckId:
+        type:
+          - string
+          - 'null'
+      lastSavedUtc:
+        type: string
+        format: date-time
+      decks:
+        type: array
+        items:
+          $ref: '#/components/schemas/ImportedDeckRecord'
+
+operations:
+  importDeck:
+    input:
+      rawDocumentText:
+        type: string
+      hintedFormatId:
+        type:
+          - string
+          - 'null'
+      sourceFileName:
+        type:
+          - string
+          - 'null'
+    output:
+      type: object
+      required:
+        - detectedFormatId
+        - requiresFormatConfirmation
+        - importedDeck
+        - diagnostics
+      properties:
+        detectedFormatId:
+          type:
+            - string
+            - 'null'
+        requiresFormatConfirmation:
+          type: boolean
+        importedDeck:
+          $ref: '#/components/schemas/ImportedDeckRecord'
+        diagnostics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportDiagnostic'
+  exportDeck:
+    input:
+      importedDeckId:
+        type: string
+      targetFormatId:
+        type: string
+    output:
+      type: object
+      required:
+        - targetFormatId
+        - documentText
+        - warnings
+      properties:
+        targetFormatId:
+          type: string
+        documentText:
+          type: string
+        warnings:
+          type: array
+          items:
+            type: string
+
+formats:
+  supported:
+    - formatId: moxfield-text
+      displayName: Moxfield Text
+      importSupported: true
+      exportSupported: true
+      detectionMarkers:
+        - lines beginning with commander-specific headers or Moxfield-style section labels
+        - quantity and card-name lines matching Moxfield plaintext exports
+    - formatId: manabox-text
+      displayName: ManaBox Text
+      importSupported: true
+      exportSupported: true
+      detectionMarkers:
+        - ManaBox section headers and quantity line conventions
+        - common ManaBox annotations preserved when representable
+    - formatId: generic-plaintext
+      displayName: Generic Plaintext
+      importSupported: true
+      exportSupported: true
+      detectionMarkers:
+        - simple quantity plus card-name lines with optional section headers
+
+guarantees:
+  - Imported raw document text is parsed and persisted only in browser-local storage.
+  - The app must not automatically POST imported documents or the persisted browser deck library to the server.
+  - Multiple imported decks can coexist in one browser library and be switched without network calls.
+  - Export output is generated solely from the local normalized deck state.
+  - Unsupported or lossy transforms must be disclosed through diagnostics or export warnings.
+
+components:
+  schemas:
+    ImportedDeckRecord:
+      type: object
+      required:
+        - importedDeckId
+        - name
+        - sourceFormatId
+        - importedAtUtc
+        - normalizedDeck
+        - diagnostics
+      properties:
+        importedDeckId:
+          type: string
+        name:
+          type: string
+        sourceFormatId:
+          type: string
+        importedAtUtc:
+          type: string
+          format: date-time
+        lastOpenedUtc:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        originalDocumentText:
+          type: string
+        normalizedDeck:
+          $ref: '#/components/schemas/PortableDeckSnapshot'
+        diagnostics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportDiagnostic'
+        exportWarnings:
+          type: array
+          items:
+            type: string
+    PortableDeckSnapshot:
+      type: object
+      required:
+        - deckName
+        - commanderCardIds
+        - entries
+        - sections
+      properties:
+        deckName:
+          type: string
+        commanderCardIds:
+          type: array
+          items:
+            type: string
+        companionCardId:
+          type:
+            - string
+            - 'null'
+        importedCardCount:
+          type: integer
+          minimum: 0
+        hasUnresolvedLines:
+          type: boolean
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortableDeckEntry'
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeckSectionState'
+    PortableDeckEntry:
+      type: object
+      required:
+        - displayName
+        - quantity
+        - sectionId
+      properties:
+        cardId:
+          type:
+            - string
+            - 'null'
+        originalCardText:
+          type:
+            - string
+            - 'null'
+        displayName:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        sectionId:
+          type: string
+        isCommander:
+          type: boolean
+        isCompanion:
+          type: boolean
+        parseConfidence:
+          type: string
+          enum:
+            - exact
+            - normalized
+            - ambiguous
+            - unresolved
+    DeckSectionState:
+      type: object
+      required:
+        - sectionId
+        - displayName
+        - role
+      properties:
+        sectionId:
+          type: string
+        displayName:
+          type: string
+        role:
+          type: string
+          enum:
+            - commander
+            - mainboard
+            - sideboard
+            - maybeboard
+            - companion
+            - custom
+        sortOrder:
+          type: integer
+        entryCount:
+          type: integer
+          minimum: 0
+    ImportDiagnostic:
+      type: object
+      required:
+        - diagnosticId
+        - severity
+        - code
+        - message
+      properties:
+        diagnosticId:
+          type: string
+        severity:
+          type: string
+          enum:
+            - info
+            - warning
+            - error
+        code:
+          type: string
+        message:
+          type: string
+        sourceLineNumber:
+          type:
+            - integer
+            - 'null'
+          minimum: 1
+        sourceLineText:
+          type:
+            - string
+            - 'null'
+        suggestedAction:
+          type:
+            - string
+            - 'null'
