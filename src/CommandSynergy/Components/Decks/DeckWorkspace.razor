@@ -53,6 +53,22 @@
                     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">@ImportStatusMessage</MudAlert>
                 }
 
+                @if (HasPendingDuplicateImport)
+                {
+                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" data-testid="duplicate-import-resolution">
+                        <div class="workspace-callouts">
+                            <div>
+                                <h3>Reimport options</h3>
+                                <p>Update the existing <strong>@PendingDuplicateImportName</strong> entry or keep both by saving the new import as <strong>@PendingDuplicateImportTargetName</strong>.</p>
+                            </div>
+                        </div>
+                        <div class="workspace-search">
+                            <button type="button" class="workspace-search__button" @onclick="UpdateExistingImportedDeckRequested">Update existing deck</button>
+                            <button type="button" class="workspace-search__button" @onclick="ImportDuplicateAsNewDeckRequested">Import as new deck</button>
+                        </div>
+                    </MudAlert>
+                }
+
                 <div class="workspace-search-results" data-testid="imported-deck-library">
                     @if (ImportedDecks.Count == 0)
                     {
@@ -302,6 +318,15 @@
     public string? ImportStatusMessage { get; set; }
 
     [Parameter]
+    public bool HasPendingDuplicateImport { get; set; }
+
+    [Parameter]
+    public string? PendingDuplicateImportName { get; set; }
+
+    [Parameter]
+    public string? PendingDuplicateImportTargetName { get; set; }
+
+    [Parameter]
     public ExportPreviewContract? ExportPreview { get; set; }
 
     [Parameter]
@@ -324,6 +349,12 @@
 
     [Parameter]
     public EventCallback ImportRequested { get; set; }
+
+    [Parameter]
+    public EventCallback UpdateExistingImportedDeckRequested { get; set; }
+
+    [Parameter]
+    public EventCallback ImportDuplicateAsNewDeckRequested { get; set; }
 
     [Parameter]
     public EventCallback<string> ImportedDeckSelected { get; set; }

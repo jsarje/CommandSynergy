@@ -67,6 +67,109 @@ public sealed class DeckWorkspaceViewModelTests
         importedCard.Faces.Should().HaveCount(2);
     }
 
+    [Fact]
+    public async Task ImportDeckAsync_prompts_for_duplicate_name_and_can_update_existing_deck()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = CreateLibraryState(timeProvider);
+        var existingDeck = CreateImportedDeck("deck-1", "Isshin Pressure", timeProvider.GetUtcNow(), "Deck: Original");
+        await libraryState.SaveImportedDeckAsync(existingDeck, setActive: false);
+
+        var importedDeck = CreateImportedDeck("deck-2", "Isshin Pressure", timeProvider.GetUtcNow().AddMinutes(5), "Deck: Updated");
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new StubDeckWorkspaceClient(new StubDeckImportService(CreateImportResult(importedDeck))),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.UpdateImportDocumentTextAsync("Deck: Updated");
+        await sut.ImportDeckAsync();
+
+        sut.HasPendingDuplicateImport.Should().BeTrue();
+        sut.PendingDuplicateImportName.Should().Be("Isshin Pressure");
+        sut.ImportedDecks.Should().HaveCount(1);
+
+        await sut.UpdateExistingImportedDeckAsync();
+
+        sut.HasPendingDuplicateImport.Should().BeFalse();
+        sut.ImportedDecks.Should().HaveCount(1);
+        sut.ActiveImportedDeckId.Should().Be("deck-1");
+        sut.ImportedDecks[0].ImportedDeckId.Should().Be("deck-1");
+        sut.ImportedDecks[0].OriginalDocumentText.Should().Be("Deck: Updated");
+        sut.ImportStatusMessage.Should().Contain("Updated 'Isshin Pressure'");
+    }
+
+    [Fact]
+    public async Task ImportDeckAsync_can_save_duplicate_name_as_incremented_copy()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = CreateLibraryState(timeProvider);
+        await libraryState.SaveImportedDeckAsync(CreateImportedDeck("deck-1", "Isshin Pressure", timeProvider.GetUtcNow(), "Deck: Original"), setActive: false);
+        await libraryState.SaveImportedDeckAsync(CreateImportedDeck("deck-2", "Isshin Pressure 001", timeProvider.GetUtcNow().AddMinutes(1), "Deck: Copy"), setActive: false);
+
+        var importedDeck = CreateImportedDeck("deck-3", "Isshin Pressure", timeProvider.GetUtcNow().AddMinutes(2), "Deck: Latest");
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new StubDeckWorkspaceClient(new StubDeckImportService(CreateImportResult(importedDeck))),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.UpdateImportDocumentTextAsync("Deck: Latest");
+        await sut.ImportDeckAsync();
+
+        sut.PendingDuplicateImportTargetName.Should().Be("Isshin Pressure 002");
+
+        await sut.ImportDuplicateAsNewDeckAsync();
+
+        sut.HasPendingDuplicateImport.Should().BeFalse();
+        sut.ActiveImportedDeckId.Should().Be("deck-3");
+        sut.ImportedDecks.Select(deck => deck.Name).Should().BeEquivalentTo(["Isshin Pressure 002", "Isshin Pressure 001", "Isshin Pressure"]);
+        sut.ImportedDecks.Should().ContainSingle(deck => deck.ImportedDeckId == "deck-3" && deck.NormalizedDeck.DeckName == "Isshin Pressure 002");
+        sut.ImportStatusMessage.Should().Contain("Imported 'Isshin Pressure 002' as a new saved deck.");
+    }
+
+    private static ImportedDeckLibraryState CreateLibraryState(FakeTimeProvider timeProvider) =>
+        new(
+            new ImportedDeckLibraryStore(new StubLocalStorageService(), new ImportedDeckLibrarySerializer(), timeProvider),
+            timeProvider);
+
+    private static ImportedDeckRecord CreateImportedDeck(string deckId, string name, DateTimeOffset importedAtUtc, string originalDocumentText) =>
+        new(
+            deckId,
+            name,
+            "manabox-text",
+            importedAtUtc,
+            null,
+            originalDocumentText,
+            new PortableDeckSnapshot(
+                name,
+                ["isshin-two-heavens-as-one"],
+                null,
+                [
+                    new PortableDeckEntry("isshin-two-heavens-as-one", "1 Isshin, Two Heavens as One", "Isshin, Two Heavens as One", "{R}{W}{B}", "Legendary Creature", ["R", "W", "B"], 0.7m, "https://cards.example/isshin.jpg", false, Domain.Cards.CommanderEligibilityBasis.LegendaryCreature, 1, "command-zone", true, false, ParseConfidence.Exact),
+                ],
+                [
+                    new DeckSectionState("command-zone", "Command Zone", DeckSectionRole.Commander, 0, 1),
+                ],
+                1,
+                false),
+            Array.Empty<ImportDiagnostic>(),
+            Array.Empty<string>(),
+            new Dictionary<string, string>());
+
+    private static DeckImportResultContract CreateImportResult(ImportedDeckRecord importedDeck) => new()
+    {
+        DetectedFormatId = importedDeck.SourceFormatId,
+        RequiresFormatConfirmation = false,
+        CandidateFormatIds = Array.Empty<string>(),
+        ImportedDeck = importedDeck.ToContract(),
+        Diagnostics = Array.Empty<ImportDiagnosticContract>(),
+    };
+
     private sealed class StubCardSearchIndexClient : CardSearchIndexClient
     {
         public StubCardSearchIndexClient()
@@ -77,8 +180,8 @@ public sealed class DeckWorkspaceViewModelTests
 
     private sealed class StubDeckWorkspaceClient : DeckWorkspaceClient
     {
-        public StubDeckWorkspaceClient()
-            : base(new HttpClient(), new StubDeckImportService(), new StubDeckExportService(), new WorkingCopyProjectionService())
+        public StubDeckWorkspaceClient(IDeckImportService? deckImportService = null)
+            : base(new HttpClient(), deckImportService ?? new StubDeckImportService(), new StubDeckExportService(), new WorkingCopyProjectionService())
         {
         }
 
@@ -109,8 +212,17 @@ public sealed class DeckWorkspaceViewModelTests
 
     private sealed class StubDeckImportService : IDeckImportService
     {
+        private readonly DeckImportResultContract? result;
+
+        public StubDeckImportService(DeckImportResultContract? result = null)
+        {
+            this.result = result;
+        }
+
         public Task<DeckImportResultContract> ImportAsync(DeckImportRequestContract request, CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
+            result is null
+                ? throw new NotSupportedException()
+                : Task.FromResult(result);
     }
 
     private sealed class StubDeckExportService : IDeckExportService

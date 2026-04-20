@@ -37,6 +37,10 @@ public partial class Home : ComponentBase
 
     private Task ImportDeckAsync() => ViewModel.ImportDeckAsync();
 
+    private Task UpdateExistingImportedDeckAsync() => ViewModel.UpdateExistingImportedDeckAsync();
+
+    private Task ImportDuplicateAsNewDeckAsync() => ViewModel.ImportDuplicateAsNewDeckAsync();
+
     private Task SelectImportedDeckAsync(string deckId) => ViewModel.SelectImportedDeckAsync(deckId);
 
     private Task OpenImportedDeckAsync() => ViewModel.OpenActiveImportedDeckAsync();

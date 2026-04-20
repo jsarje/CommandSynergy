@@ -44,7 +44,20 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
         cut.Markup.Should().Contain("&lt;script&gt;alert(1)&lt;/script&gt;");
     }
 
-    private IRenderedComponent<DeckWorkspace> RenderWorkspace(IReadOnlyList<ImportDiagnostic>? activeDiagnostics = null)
+    [Fact]
+    public void Deck_workspace_renders_duplicate_reimport_actions()
+    {
+        var cut = RenderWorkspace(hasPendingDuplicateImport: true, pendingDuplicateImportName: "Isshin Pressure", pendingDuplicateImportTargetName: "Isshin Pressure 001");
+
+        cut.Find("[data-testid='duplicate-import-resolution']").TextContent.Should().Contain("Update the existing Isshin Pressure entry");
+        cut.Find("[data-testid='duplicate-import-resolution']").TextContent.Should().Contain("Isshin Pressure 001");
+    }
+
+    private IRenderedComponent<DeckWorkspace> RenderWorkspace(
+        IReadOnlyList<ImportDiagnostic>? activeDiagnostics = null,
+        bool hasPendingDuplicateImport = false,
+        string? pendingDuplicateImportName = null,
+        string? pendingDuplicateImportTargetName = null)
     {
         Render<MudPopoverProvider>();
 
@@ -59,6 +72,9 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
             .Add(component => component.Cards, Array.Empty<WorkspaceCardView>())
             .Add(component => component.SearchResults, Array.Empty<WorkspaceCardView>())
             .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
+                .Add(component => component.HasPendingDuplicateImport, hasPendingDuplicateImport)
+                .Add(component => component.PendingDuplicateImportName, pendingDuplicateImportName)
+                .Add(component => component.PendingDuplicateImportTargetName, pendingDuplicateImportTargetName)
             .Add(component => component.ActiveImportedDeckDiagnostics, activeDiagnostics ?? Array.Empty<ImportDiagnostic>()));
     }
 

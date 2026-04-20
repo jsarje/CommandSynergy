@@ -3,6 +3,7 @@ using CommandSynergy.Application.Decks;
 using CommandSynergy.Application.Decks.Portability;
 using CommandSynergy.Client.Services;
 using CommandSynergy.Domain.Cards;
+using System.Globalization;
 
 namespace CommandSynergy.Components.Decks;
 
@@ -30,6 +31,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     private readonly Dictionary<string, WorkspaceCardView> knownCards = new(StringComparer.OrdinalIgnoreCase);
     private readonly IReadOnlyList<FormatOptionView> supportedImportFormats;
     private readonly IReadOnlyList<FormatOptionView> supportedExportFormats;
+    private ImportedDeckRecord? pendingImportedDeck;
     private CancellationTokenSource? refreshCancellationTokenSource;
 
     /// <summary>
@@ -118,6 +120,12 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
     public string? ImportStatusMessage { get; private set; }
 
+    public bool HasPendingDuplicateImport => pendingImportedDeck is not null;
+
+    public string? PendingDuplicateImportName => pendingImportedDeck?.Name;
+
+    public string? PendingDuplicateImportTargetName => pendingImportedDeck is null ? null : GetNextImportedDeckCopyName(pendingImportedDeck.Name);
+
     public string? ExportStatusMessage { get; private set; }
 
     public ExportPreviewContract? ExportPreview { get; private set; }
@@ -154,12 +162,14 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     {
         ImportDocumentText = importDocumentText;
         ImportStatusMessage = null;
+        ClearPendingDuplicateImport();
         return Task.CompletedTask;
     }
 
     public Task UpdateImportFormatAsync(string? formatId)
     {
         SelectedImportFormatId = string.IsNullOrWhiteSpace(formatId) ? null : formatId;
+        ClearPendingDuplicateImport();
         return Task.CompletedTask;
     }
 
@@ -168,6 +178,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         ImportStatusMessage = null;
         ExportPreview = null;
         ExportStatusMessage = null;
+        ClearPendingDuplicateImport();
 
         var result = await deckWorkspaceClient.ImportAsync(new DeckImportRequestContract
         {
@@ -182,10 +193,82 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             return;
         }
 
+        var existingDeck = FindImportedDeckByName(importedDeck.Name);
+        if (existingDeck is not null)
+        {
+            pendingImportedDeck = importedDeck;
+            ImportStatusMessage = $"A deck named '{importedDeck.Name}' already exists. Update the saved deck or import a suffixed copy.";
+            return;
+        }
+
         await importedDeckLibraryState.SaveImportedDeckAsync(importedDeck, setActive: true, cancellationToken).ConfigureAwait(false);
         ImportStatusMessage = importedDeck.Diagnostics.Count == 0
             ? $"Imported '{importedDeck.Name}' and saved it locally."
             : $"Imported '{importedDeck.Name}' with {importedDeck.Diagnostics.Count} diagnostic(s).";
+    }
+
+    public async Task UpdateExistingImportedDeckAsync(CancellationToken cancellationToken = default)
+    {
+        if (pendingImportedDeck is null)
+        {
+            ImportStatusMessage = "Import a deck before resolving a duplicate name.";
+            return;
+        }
+
+        var importedDeck = pendingImportedDeck;
+        var existingDeck = FindImportedDeckByName(importedDeck.Name);
+        if (existingDeck is null)
+        {
+            await importedDeckLibraryState.SaveImportedDeckAsync(importedDeck, setActive: true, cancellationToken).ConfigureAwait(false);
+            ClearPendingDuplicateImport();
+            ImportStatusMessage = importedDeck.Diagnostics.Count == 0
+                ? $"Imported '{importedDeck.Name}' and saved it locally."
+                : $"Imported '{importedDeck.Name}' with {importedDeck.Diagnostics.Count} diagnostic(s).";
+            return;
+        }
+
+        var updatedDeck = importedDeck with
+        {
+            ImportedDeckId = existingDeck.ImportedDeckId,
+            Name = existingDeck.Name,
+            LastOpenedUtc = existingDeck.LastOpenedUtc,
+            NormalizedDeck = importedDeck.NormalizedDeck with
+            {
+                DeckName = existingDeck.Name,
+            },
+        };
+
+        await importedDeckLibraryState.SaveImportedDeckAsync(updatedDeck, setActive: true, cancellationToken).ConfigureAwait(false);
+        ClearPendingDuplicateImport();
+        ImportStatusMessage = updatedDeck.Diagnostics.Count == 0
+            ? $"Updated '{updatedDeck.Name}' from the latest import and kept it selected."
+            : $"Updated '{updatedDeck.Name}' with {updatedDeck.Diagnostics.Count} diagnostic(s).";
+    }
+
+    public async Task ImportDuplicateAsNewDeckAsync(CancellationToken cancellationToken = default)
+    {
+        if (pendingImportedDeck is null)
+        {
+            ImportStatusMessage = "Import a deck before resolving a duplicate name.";
+            return;
+        }
+
+        var importedDeck = pendingImportedDeck;
+        var nextDeckName = GetNextImportedDeckCopyName(importedDeck.Name);
+        var renamedDeck = importedDeck with
+        {
+            Name = nextDeckName,
+            NormalizedDeck = importedDeck.NormalizedDeck with
+            {
+                DeckName = nextDeckName,
+            },
+        };
+
+        await importedDeckLibraryState.SaveImportedDeckAsync(renamedDeck, setActive: true, cancellationToken).ConfigureAwait(false);
+        ClearPendingDuplicateImport();
+        ImportStatusMessage = renamedDeck.Diagnostics.Count == 0
+            ? $"Imported '{renamedDeck.Name}' as a new saved deck."
+            : $"Imported '{renamedDeck.Name}' with {renamedDeck.Diagnostics.Count} diagnostic(s).";
     }
 
     public Task SelectImportedDeckAsync(string deckId) => importedDeckLibraryState.SetActiveDeckAsync(deckId);
@@ -451,6 +534,31 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     {
         refreshCancellationTokenSource?.Cancel();
         refreshCancellationTokenSource?.Dispose();
+    }
+
+    private ImportedDeckRecord? FindImportedDeckByName(string deckName) =>
+        ImportedDecks.FirstOrDefault(deck => string.Equals(deck.Name, deckName, StringComparison.OrdinalIgnoreCase));
+
+    private string GetNextImportedDeckCopyName(string baseDeckName)
+    {
+        var existingNames = new HashSet<string>(ImportedDecks.Select(static deck => deck.Name), StringComparer.OrdinalIgnoreCase);
+        var suffix = 1;
+
+        while (true)
+        {
+            var candidateName = string.Create(CultureInfo.InvariantCulture, $"{baseDeckName} {suffix:000}");
+            if (!existingNames.Contains(candidateName))
+            {
+                return candidateName;
+            }
+
+            suffix += 1;
+        }
+    }
+
+    private void ClearPendingDuplicateImport()
+    {
+        pendingImportedDeck = null;
     }
 
     private async Task ScheduleRefreshAsync()
