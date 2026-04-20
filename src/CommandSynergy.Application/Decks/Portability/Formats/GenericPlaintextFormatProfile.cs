@@ -9,7 +9,7 @@ public sealed class GenericPlaintextFormatProfile : DeckFormatProfileBase
     public override int Detect(string documentText)
     {
         var quantityLines = documentText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)
-            .Count(line => TryParseQuantityLine(line, out _, out _));
+            .Count(line => TryParseEntryLine(line, out _, out _, out _, out _, out _));
 
         return quantityLines > 0 ? 1 : 0;
     }

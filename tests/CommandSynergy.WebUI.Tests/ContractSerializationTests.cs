@@ -115,6 +115,9 @@ public sealed class ContractSerializationTests
                                 SectionId = "commander",
                                 ParseConfidence = "exact",
                                 IsCommander = true,
+                                SourceSetCode = "2XM",
+                                SourceCollectorNumber = "190",
+                                SourceTag = "Blink",
                             },
                         ],
                         Sections =
@@ -148,9 +151,13 @@ public sealed class ContractSerializationTests
         json.Should().Contain("\"sourceFormatId\":\"moxfield-text\"");
         json.Should().Contain("\"parseConfidence\":\"exact\"");
         json.Should().Contain("\"imageUri\":\"https://cards.example/atraxa-praetors-voice.jpg\"");
+        json.Should().Contain("\"sourceSetCode\":\"2XM\"");
+        json.Should().Contain("\"sourceCollectorNumber\":\"190\"");
+        json.Should().Contain("\"sourceTag\":\"Blink\"");
         roundTrip.Should().NotBeNull();
         roundTrip!.Decks.Should().ContainSingle();
         roundTrip.Decks[0].NormalizedDeck.CommanderCardIds.Should().ContainSingle("atraxa-praetors-voice");
         roundTrip.Decks[0].NormalizedDeck.Entries[0].TypeLine.Should().Be("Legendary Creature");
+        roundTrip.Decks[0].NormalizedDeck.Entries[0].SourceTag.Should().Be("Blink");
     }
 }

@@ -178,6 +178,15 @@ public sealed record PortableDeckEntryContract
 
     [JsonPropertyName("parseConfidence")]
     public required string ParseConfidence { get; init; }
+
+    [JsonPropertyName("sourceSetCode")]
+    public string? SourceSetCode { get; init; }
+
+    [JsonPropertyName("sourceCollectorNumber")]
+    public string? SourceCollectorNumber { get; init; }
+
+    [JsonPropertyName("sourceTag")]
+    public string? SourceTag { get; init; }
 }
 
 public sealed record DeckSectionStateContract

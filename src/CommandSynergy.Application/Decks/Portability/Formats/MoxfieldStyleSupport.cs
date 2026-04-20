@@ -30,16 +30,6 @@ internal static class MoxfieldStyleParser
                 continue;
             }
 
-            if (!metadata.ContainsKey("deckName")
-                && entries.Count == 0
-                && !sawExplicitSectionHeader
-                && !trimmedLine.Contains(':', StringComparison.Ordinal)
-                && !DeckFormatProfileBase.TryParseQuantityLine(trimmedLine, out _, out _))
-            {
-                metadata["deckName"] = trimmedLine;
-                continue;
-            }
-
             if (isSectionHeader(trimmedLine))
             {
                 sawExplicitSectionHeader = true;
@@ -52,7 +42,7 @@ internal static class MoxfieldStyleParser
                 continue;
             }
 
-            if (DeckFormatProfileBase.TryParseQuantityLine(trimmedLine, out var quantity, out var name))
+            if (DeckFormatProfileBase.TryParseEntryLine(trimmedLine, out var quantity, out var name, out var setCode, out var collectorNumber, out var tag))
             {
                 entries.Add(new FormatDeckEntryDraft(
                     lineNumber,
@@ -61,7 +51,19 @@ internal static class MoxfieldStyleParser
                     quantity,
                     currentSection.SectionId,
                     currentSection.Role == DeckSectionRole.Commander,
-                    currentSection.Role == DeckSectionRole.Companion));
+                    currentSection.Role == DeckSectionRole.Companion,
+                    setCode,
+                    collectorNumber,
+                    tag));
+                continue;
+            }
+
+            if (!metadata.ContainsKey("deckName")
+                && entries.Count == 0
+                && !sawExplicitSectionHeader
+                && !trimmedLine.Contains(':', StringComparison.Ordinal))
+            {
+                metadata["deckName"] = trimmedLine;
                 continue;
             }
 

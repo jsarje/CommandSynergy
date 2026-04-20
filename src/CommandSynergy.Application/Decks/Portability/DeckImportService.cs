@@ -82,7 +82,10 @@ public sealed class DeckImportService : IDeckImportService
                 draft.SectionId,
                 draft.IsCommander,
                 draft.IsCompanion,
-                resolution.Confidence));
+                resolution.Confidence,
+                draft.SourceSetCode,
+                draft.SourceCollectorNumber,
+                draft.SourceTag));
         }
 
         var sections = parsed.Sections

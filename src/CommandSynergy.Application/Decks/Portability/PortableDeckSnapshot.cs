@@ -48,7 +48,10 @@ public sealed record PortableDeckEntry(
     string SectionId,
     bool IsCommander,
     bool IsCompanion,
-    ParseConfidence ParseConfidence)
+    ParseConfidence ParseConfidence,
+    string? SourceSetCode = null,
+    string? SourceCollectorNumber = null,
+    string? SourceTag = null)
 {
     public PortableDeckEntryContract ToContract() => new()
     {
@@ -67,6 +70,9 @@ public sealed record PortableDeckEntry(
         IsCommander = IsCommander,
         IsCompanion = IsCompanion,
         ParseConfidence = ParseConfidence.ToContractValue(),
+        SourceSetCode = SourceSetCode,
+        SourceCollectorNumber = SourceCollectorNumber,
+        SourceTag = SourceTag,
     };
 
     public static PortableDeckEntry FromContract(PortableDeckEntryContract contract) => new(
@@ -84,7 +90,10 @@ public sealed record PortableDeckEntry(
         contract.SectionId,
         contract.IsCommander,
         contract.IsCompanion,
-        ParseConfidenceExtensions.FromContractValue(contract.ParseConfidence));
+        ParseConfidenceExtensions.FromContractValue(contract.ParseConfidence),
+        contract.SourceSetCode,
+        contract.SourceCollectorNumber,
+        contract.SourceTag);
 }
 
 public sealed record DeckSectionState(

@@ -61,6 +61,31 @@ public sealed class DeckImportServiceTests
             && entry.ColorIdentity.Count == 0);
     }
 
+    [Fact]
+    public async Task ImportAsync_preserves_entry_level_source_metadata_for_supported_plaintext_variants()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.ImportAsync(new DeckImportRequestContract
+        {
+            RawDocumentText = "Magar of the Magic Strings (UNF) 171\n1x Aftermath Analyst (eoc) 91 [Mill]",
+        });
+
+        result.DetectedFormatId.Should().Be("generic-plaintext");
+        result.ImportedDeck.NormalizedDeck.Entries.Should().ContainSingle(entry =>
+            entry.DisplayName == "Magar of the Magic Strings"
+            && entry.Quantity == 1
+            && entry.SourceSetCode == "UNF"
+            && entry.SourceCollectorNumber == "171"
+            && entry.SourceTag == null);
+        result.ImportedDeck.NormalizedDeck.Entries.Should().ContainSingle(entry =>
+            entry.DisplayName == "Aftermath Analyst"
+            && entry.Quantity == 1
+            && entry.SourceSetCode == "eoc"
+            && entry.SourceCollectorNumber == "91"
+            && entry.SourceTag == "Mill");
+    }
+
     private static DeckImportService CreateSut()
     {
         var registry = new DeckFormatRegistry([new MoxfieldTextFormatProfile(), new ManaBoxTextFormatProfile(), new GenericPlaintextFormatProfile()]);
@@ -81,6 +106,8 @@ public sealed class DeckImportServiceTests
             ["Swords to Plowshares"] = new() { CardId = "swords-to-plowshares", Name = "Swords to Plowshares", ManaCost = "{W}", TypeLine = "Instant", ColorIdentity = ["W"], ImageUri = "https://cards.example/swords-to-plowshares.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
             ["Cultivate"] = new() { CardId = "cultivate", Name = "Cultivate", ManaCost = "{2}{G}", TypeLine = "Sorcery", ColorIdentity = ["G"], ImageUri = "https://cards.example/cultivate.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
             ["Arcane Signet"] = new() { CardId = "arcane-signet", Name = "Arcane Signet", ManaCost = "{2}", TypeLine = "Artifact", ColorIdentity = Array.Empty<string>(), ImageUri = "https://cards.example/arcane-signet.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
+            ["Aftermath Analyst"] = new() { CardId = "aftermath-analyst", Name = "Aftermath Analyst", ManaCost = "{2}{G}", TypeLine = "Creature", ColorIdentity = ["G"], ImageUri = "https://cards.example/aftermath-analyst.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
+            ["Magar of the Magic Strings"] = new() { CardId = "magar-of-the-magic-strings", Name = "Magar of the Magic Strings", ManaCost = "{1}{B}{R}", TypeLine = "Legendary Creature", ColorIdentity = ["B", "R"], ImageUri = "https://cards.example/magar-of-the-magic-strings.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.LegendaryCreature },
         };
 
         public Task<CardSearchResponseContract> SearchAsync(CardSearchQueryContract request, CancellationToken cancellationToken = default)
