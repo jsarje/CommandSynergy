@@ -51,9 +51,9 @@ public sealed class DeckExportServiceTests
             ["isshin-two-heavens-as-one"],
             null,
             [
-                new PortableDeckEntry("isshin-two-heavens-as-one", "1 Isshin, Two Heavens as One", "Isshin, Two Heavens as One", 1, "command-zone", true, false, ParseConfidence.Exact),
-                new PortableDeckEntry("sol-ring", "1 Sol Ring", "Sol Ring", 1, "mainboard", false, false, ParseConfidence.Exact),
-                new PortableDeckEntry("wear-tear", "1 Wear // Tear", "Wear // Tear", 1, "maybeboard", false, false, ParseConfidence.Exact),
+                new PortableDeckEntry("isshin-two-heavens-as-one", "1 Isshin, Two Heavens as One", "Isshin, Two Heavens as One", null, "Legendary Creature", ["R", "W", "B"], null, "https://cards.example/isshin.jpg", false, Domain.Cards.CommanderEligibilityBasis.LegendaryCreature, 1, "command-zone", true, false, ParseConfidence.Exact),
+                new PortableDeckEntry("sol-ring", "1 Sol Ring", "Sol Ring", null, "Artifact", Array.Empty<string>(), null, "https://cards.example/sol-ring.jpg", false, Domain.Cards.CommanderEligibilityBasis.Unknown, 1, "mainboard", false, false, ParseConfidence.Exact),
+                new PortableDeckEntry("wear-tear", "1 Wear // Tear", "Wear // Tear", null, "Instant", ["R", "W"], null, "https://cards.example/wear-tear.jpg", true, Domain.Cards.CommanderEligibilityBasis.Unknown, 1, "maybeboard", false, false, ParseConfidence.Exact),
             ],
             [
                 new DeckSectionState("command-zone", "Command Zone", DeckSectionRole.Commander, 0, 1),
@@ -74,8 +74,8 @@ public sealed class DeckExportServiceTests
         ["atraxa-praetors-voice"],
         null,
         [
-            new PortableDeckEntry("atraxa-praetors-voice", "1 Atraxa, Praetors' Voice", "Atraxa, Praetors' Voice", 1, "commander", true, false, ParseConfidence.Exact),
-            new PortableDeckEntry("sol-ring", "1 Sol Ring", "Sol Ring", 1, "mainboard", false, false, ParseConfidence.Exact),
+            new PortableDeckEntry("atraxa-praetors-voice", "1 Atraxa, Praetors' Voice", "Atraxa, Praetors' Voice", null, "Legendary Creature", ["W", "U", "B", "G"], null, "https://cards.example/atraxa.jpg", false, Domain.Cards.CommanderEligibilityBasis.LegendaryCreature, 1, "commander", true, false, ParseConfidence.Exact),
+            new PortableDeckEntry("sol-ring", "1 Sol Ring", "Sol Ring", null, "Artifact", Array.Empty<string>(), null, "https://cards.example/sol-ring.jpg", false, Domain.Cards.CommanderEligibilityBasis.Unknown, 1, "mainboard", false, false, ParseConfidence.Exact),
         ],
         [
             new DeckSectionState("commander", "Commander", DeckSectionRole.Commander, 0, 1),

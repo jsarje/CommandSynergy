@@ -1,11 +1,12 @@
 using System.Text.Json.Serialization;
+using CommandSynergy.Domain.Cards;
 
 namespace CommandSynergy.Application.Contracts;
 
 public static class DeckPortabilityContract
 {
     public const string StorageKey = "command-synergy.imported-decks";
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 }
 
 public sealed record DeckImportRequestContract
@@ -141,6 +142,27 @@ public sealed record PortableDeckEntryContract
 
     [JsonPropertyName("displayName")]
     public required string DisplayName { get; init; }
+
+    [JsonPropertyName("manaCost")]
+    public string? ManaCost { get; init; }
+
+    [JsonPropertyName("typeLine")]
+    public string? TypeLine { get; init; }
+
+    [JsonPropertyName("colorIdentity")]
+    public IReadOnlyList<string> ColorIdentity { get; init; } = Array.Empty<string>();
+
+    [JsonPropertyName("saltScore")]
+    public decimal? SaltScore { get; init; }
+
+    [JsonPropertyName("imageUri")]
+    public string? ImageUri { get; init; }
+
+    [JsonPropertyName("hasMultipleFaces")]
+    public bool HasMultipleFaces { get; init; }
+
+    [JsonPropertyName("commanderEligibilityBasis")]
+    public CommanderEligibilityBasis CommanderEligibilityBasis { get; init; } = CommanderEligibilityBasis.Unknown;
 
     [JsonPropertyName("quantity")]
     public required int Quantity { get; init; }

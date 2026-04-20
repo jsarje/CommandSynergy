@@ -83,7 +83,7 @@ public sealed class ContractSerializationTests
     {
         var payload = new ImportedDeckLibraryDocumentContract
         {
-            SchemaVersion = 1,
+            SchemaVersion = DeckPortabilityContract.CurrentSchemaVersion,
             ActiveDeckId = "deck-1",
             LastSavedUtc = DateTimeOffset.Parse("2026-04-20T00:00:00Z"),
             Decks =
@@ -106,6 +106,11 @@ public sealed class ContractSerializationTests
                             {
                                 CardId = "atraxa-praetors-voice",
                                 DisplayName = "Atraxa, Praetors' Voice",
+                                ManaCost = "{G}{W}{U}{B}",
+                                TypeLine = "Legendary Creature",
+                                ColorIdentity = ["W", "U", "B", "G"],
+                                ImageUri = "https://cards.example/atraxa-praetors-voice.jpg",
+                                CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.LegendaryCreature,
                                 Quantity = 1,
                                 SectionId = "commander",
                                 ParseConfidence = "exact",
@@ -139,11 +144,13 @@ public sealed class ContractSerializationTests
         var json = JsonSerializer.Serialize(payload, SerializerOptions);
         var roundTrip = JsonSerializer.Deserialize<ImportedDeckLibraryDocumentContract>(json, SerializerOptions);
 
-        json.Should().Contain("\"schemaVersion\":1");
+        json.Should().Contain($"\"schemaVersion\":{DeckPortabilityContract.CurrentSchemaVersion}");
         json.Should().Contain("\"sourceFormatId\":\"moxfield-text\"");
         json.Should().Contain("\"parseConfidence\":\"exact\"");
+        json.Should().Contain("\"imageUri\":\"https://cards.example/atraxa-praetors-voice.jpg\"");
         roundTrip.Should().NotBeNull();
         roundTrip!.Decks.Should().ContainSingle();
         roundTrip.Decks[0].NormalizedDeck.CommanderCardIds.Should().ContainSingle("atraxa-praetors-voice");
+        roundTrip.Decks[0].NormalizedDeck.Entries[0].TypeLine.Should().Be("Legendary Creature");
     }
 }

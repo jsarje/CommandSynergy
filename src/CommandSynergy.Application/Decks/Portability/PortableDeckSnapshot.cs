@@ -1,4 +1,5 @@
 using CommandSynergy.Application.Contracts;
+using CommandSynergy.Domain.Cards;
 
 namespace CommandSynergy.Application.Decks.Portability;
 
@@ -36,6 +37,13 @@ public sealed record PortableDeckEntry(
     string? CardId,
     string? OriginalCardText,
     string DisplayName,
+    string? ManaCost,
+    string? TypeLine,
+    IReadOnlyList<string> ColorIdentity,
+    decimal? SaltScore,
+    string? ImageUri,
+    bool HasMultipleFaces,
+    CommanderEligibilityBasis CommanderEligibilityBasis,
     int Quantity,
     string SectionId,
     bool IsCommander,
@@ -47,6 +55,13 @@ public sealed record PortableDeckEntry(
         CardId = CardId,
         OriginalCardText = OriginalCardText,
         DisplayName = DisplayName,
+        ManaCost = ManaCost,
+        TypeLine = TypeLine,
+        ColorIdentity = ColorIdentity,
+        SaltScore = SaltScore,
+        ImageUri = ImageUri,
+        HasMultipleFaces = HasMultipleFaces,
+        CommanderEligibilityBasis = CommanderEligibilityBasis,
         Quantity = Quantity,
         SectionId = SectionId,
         IsCommander = IsCommander,
@@ -58,6 +73,13 @@ public sealed record PortableDeckEntry(
         contract.CardId,
         contract.OriginalCardText,
         contract.DisplayName,
+        contract.ManaCost,
+        contract.TypeLine,
+        contract.ColorIdentity,
+        contract.SaltScore,
+        contract.ImageUri,
+        contract.HasMultipleFaces,
+        contract.CommanderEligibilityBasis,
         contract.Quantity,
         contract.SectionId,
         contract.IsCommander,

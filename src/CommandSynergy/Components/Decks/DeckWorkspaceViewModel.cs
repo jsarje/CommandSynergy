@@ -542,6 +542,13 @@ public sealed class DeckWorkspaceViewModel : IDisposable
                     entry.CardId,
                     card.Name,
                     card.Name,
+                    card.ManaCost,
+                    card.TypeLine,
+                    card.ColorIdentity,
+                    card.SaltScore,
+                    card.ImageUri,
+                    card.HasMultipleFaces,
+                    card.CommanderEligibilityBasis,
                     entry.Quantity,
                     entry.IsCommander ? CommandZonePileId : entry.AssignedPileId ?? MainboardPileId,
                     entry.IsCommander,
@@ -597,14 +604,18 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             {
                 CardId = portableEntry.CardId!,
                 Name = portableEntry.DisplayName,
-                TypeLine = portableEntry.IsCommander ? "Commander" : "Imported Card",
-                ColorIdentity = Array.Empty<string>(),
-                Faces = [new WorkspaceCardFaceView(portableEntry.DisplayName, null, portableEntry.IsCommander ? "Commander" : "Imported Card", null, true)],
+                ManaCost = portableEntry.ManaCost,
+                TypeLine = portableEntry.TypeLine ?? (portableEntry.IsCommander ? "Commander" : "Imported Card"),
+                ColorIdentity = portableEntry.ColorIdentity,
+                SaltScore = portableEntry.SaltScore,
+                ImageUri = portableEntry.ImageUri,
+                HasMultipleFaces = portableEntry.HasMultipleFaces,
+                Faces = CreateFacesFromPortableEntry(portableEntry),
                 Quantity = portableEntry.Quantity,
                 AssignedPileId = portableEntry.SectionId,
                 IsCommander = portableEntry.IsCommander,
                 IsCompanion = portableEntry.IsCompanion,
-                CommanderEligibilityBasis = portableEntry.IsCommander ? CommanderEligibilityBasis.LegendaryCreature : CommanderEligibilityBasis.Unknown,
+                CommanderEligibilityBasis = portableEntry.CommanderEligibilityBasis,
             };
         }
 
@@ -678,6 +689,21 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             Quantity = 1,
             CommanderEligibilityBasis = result.CommanderEligibilityBasis,
         };
+    }
+
+    private static IReadOnlyList<WorkspaceCardFaceView> CreateFacesFromPortableEntry(PortableDeckEntry portableEntry)
+    {
+        var primaryTypeLine = portableEntry.TypeLine ?? (portableEntry.IsCommander ? "Commander" : "Imported Card");
+        if (portableEntry.HasMultipleFaces)
+        {
+            return
+            [
+                new WorkspaceCardFaceView(portableEntry.DisplayName, portableEntry.ManaCost, primaryTypeLine, portableEntry.ImageUri, true),
+                new WorkspaceCardFaceView($"{portableEntry.DisplayName} Reverse", null, "Alternate face", portableEntry.ImageUri, false),
+            ];
+        }
+
+        return [new WorkspaceCardFaceView(portableEntry.DisplayName, portableEntry.ManaCost, primaryTypeLine, portableEntry.ImageUri, true)];
     }
 
     private WorkspaceCardView GetKnownCard(string cardId)
