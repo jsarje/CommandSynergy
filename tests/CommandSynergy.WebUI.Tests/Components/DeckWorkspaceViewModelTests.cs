@@ -132,6 +132,31 @@ public sealed class DeckWorkspaceViewModelTests
         sut.ImportStatusMessage.Should().Contain("Imported 'Isshin Pressure 002' as a new saved deck.");
     }
 
+    [Fact]
+    public async Task DeleteImportedDeckAsync_removes_deck_and_reassigns_active_selection()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = CreateLibraryState(timeProvider);
+        var newestDeck = CreateImportedDeck("deck-2", "Alesha Tempo", timeProvider.GetUtcNow().AddMinutes(1), "Deck: Alesha");
+        var activeDeck = CreateImportedDeck("deck-1", "Isshin Pressure", timeProvider.GetUtcNow(), "Deck: Isshin");
+
+        await libraryState.SaveImportedDeckAsync(activeDeck, setActive: true);
+        await libraryState.SaveImportedDeckAsync(newestDeck, setActive: false);
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new StubDeckWorkspaceClient(),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.DeleteImportedDeckAsync("deck-1");
+
+        sut.ImportedDecks.Select(deck => deck.ImportedDeckId).Should().Equal(["deck-2"]);
+        sut.ActiveImportedDeckId.Should().Be("deck-2");
+        sut.ImportStatusMessage.Should().Contain("Deleted 'Isshin Pressure'");
+    }
+
     private static ImportedDeckLibraryState CreateLibraryState(FakeTimeProvider timeProvider) =>
         new(
             new ImportedDeckLibraryStore(new StubLocalStorageService(), new ImportedDeckLibrarySerializer(), timeProvider),

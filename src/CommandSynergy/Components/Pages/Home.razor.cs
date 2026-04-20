@@ -43,6 +43,8 @@ public partial class Home : ComponentBase
 
     private Task SelectImportedDeckAsync(string deckId) => ViewModel.SelectImportedDeckAsync(deckId);
 
+    private Task DeleteImportedDeckAsync(string deckId) => ViewModel.DeleteImportedDeckAsync(deckId);
+
     private Task OpenImportedDeckAsync() => ViewModel.OpenActiveImportedDeckAsync();
 
     private Task UpdateExportFormatAsync(string value) => ViewModel.UpdateExportFormatAsync(value);

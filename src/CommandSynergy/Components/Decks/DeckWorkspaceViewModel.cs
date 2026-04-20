@@ -273,6 +273,23 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
     public Task SelectImportedDeckAsync(string deckId) => importedDeckLibraryState.SetActiveDeckAsync(deckId);
 
+    /// <summary>
+    /// Deletes an imported deck from the local browser library.
+    /// </summary>
+    public async Task DeleteImportedDeckAsync(string deckId, CancellationToken cancellationToken = default)
+    {
+        var deck = ImportedDecks.FirstOrDefault(candidate => string.Equals(candidate.ImportedDeckId, deckId, StringComparison.OrdinalIgnoreCase));
+        if (deck is null)
+        {
+            ImportStatusMessage = "Choose an imported deck before deleting it.";
+            return;
+        }
+
+        ClearPendingDuplicateImport();
+        await importedDeckLibraryState.RemoveImportedDeckAsync(deckId, cancellationToken).ConfigureAwait(false);
+        ImportStatusMessage = $"Deleted '{deck.Name}' from the local library.";
+    }
+
     public async Task OpenActiveImportedDeckAsync()
     {
         var deck = ImportedDecks.FirstOrDefault(candidate => string.Equals(candidate.ImportedDeckId, ActiveImportedDeckId, StringComparison.OrdinalIgnoreCase));

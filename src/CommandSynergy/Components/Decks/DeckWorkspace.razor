@@ -91,6 +91,12 @@
                                             @onclick="() => ImportedDeckSelected.InvokeAsync(importedDeck.ImportedDeckId)">
                                         @(isActiveDeck ? "Selected" : "Select")
                                     </button>
+                                    <button type="button"
+                                            class="workspace-search-result__danger"
+                                            data-testid="@($"delete-imported-deck-{importedDeck.ImportedDeckId}")"
+                                            @onclick="() => OpenDeleteImportedDeckDialog(importedDeck.ImportedDeckId)">
+                                        Delete
+                                    </button>
                                 </div>
                             </article>
                         }
@@ -265,6 +271,35 @@
                    Cards="Cards"
                    MoveRequested="CardMoved"
                    RemoveRequested="CardRemoved" />
+
+        @if (pendingDeleteDeck is not null)
+        {
+            <div class="workspace-dialog-backdrop" data-testid="delete-imported-deck-dialog">
+                <section class="workspace-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-imported-deck-title">
+                    <div class="workspace-dialog__content">
+                        <p class="workspace-panel__label">Confirm delete</p>
+                        <h2 id="delete-imported-deck-title">Delete @pendingDeleteDeck.Name?</h2>
+                        <p>This removes the imported deck from this browser only. Your open working copy stays available until you replace it.</p>
+                    </div>
+                    <div class="workspace-dialog__actions">
+                        <button type="button"
+                                class="workspace-search-result__secondary"
+                                data-testid="cancel-delete-imported-deck"
+                                disabled="@isDeletingImportedDeck"
+                                @onclick="CancelDeleteImportedDeck">
+                            Cancel
+                        </button>
+                        <button type="button"
+                                class="workspace-search-result__danger"
+                                data-testid="confirm-delete-imported-deck"
+                                disabled="@isDeletingImportedDeck"
+                                @onclick="ConfirmDeleteImportedDeckAsync">
+                            @(isDeletingImportedDeck ? "Deleting..." : "Delete deck")
+                        </button>
+                    </div>
+                </section>
+            </div>
+        }
     </MudContainer>
 </div>
 
@@ -360,6 +395,9 @@
     public EventCallback<string> ImportedDeckSelected { get; set; }
 
     [Parameter]
+    public EventCallback<string> ImportedDeckDeleteRequested { get; set; }
+
+    [Parameter]
     public EventCallback OpenImportedDeckRequested { get; set; }
 
     [Parameter]
@@ -386,7 +424,51 @@
     [Parameter]
     public EventCallback<string> CardRemoved { get; set; }
 
+    private ImportedDeckRecord? pendingDeleteDeck;
+
+    private bool isDeletingImportedDeck;
+
     private string? CurrentCommanderCardId => Cards.SingleOrDefault(static card => card.IsCommander)?.CardId;
 
+    protected override void OnParametersSet()
+    {
+        if (pendingDeleteDeck is not null
+            && ImportedDecks.All(deck => !string.Equals(deck.ImportedDeckId, pendingDeleteDeck.ImportedDeckId, StringComparison.OrdinalIgnoreCase)))
+        {
+            pendingDeleteDeck = null;
+            isDeletingImportedDeck = false;
+        }
+    }
+
     private Task HandleSearchQueryInput(ChangeEventArgs args) => SearchQueryChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private void OpenDeleteImportedDeckDialog(string importedDeckId)
+    {
+        pendingDeleteDeck = ImportedDecks.FirstOrDefault(deck => string.Equals(deck.ImportedDeckId, importedDeckId, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void CancelDeleteImportedDeck()
+    {
+        pendingDeleteDeck = null;
+    }
+
+    private async Task ConfirmDeleteImportedDeckAsync()
+    {
+        if (pendingDeleteDeck is null)
+        {
+            return;
+        }
+
+        isDeletingImportedDeck = true;
+
+        try
+        {
+            await ImportedDeckDeleteRequested.InvokeAsync(pendingDeleteDeck.ImportedDeckId);
+            pendingDeleteDeck = null;
+        }
+        finally
+        {
+            isDeletingImportedDeck = false;
+        }
+    }
 }

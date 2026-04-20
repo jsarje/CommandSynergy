@@ -77,6 +77,33 @@ public sealed class ImportedDeckLibraryState
         await SaveImportedDeckAsync(record, string.Equals(record.ImportedDeckId, Library.ActiveDeckId, StringComparison.OrdinalIgnoreCase), cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task RemoveImportedDeckAsync(string importedDeckId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(importedDeckId))
+        {
+            return;
+        }
+
+        var nextDecks = Library.Decks
+            .Where(deck => !string.Equals(deck.ImportedDeckId, importedDeckId, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+
+        if (nextDecks.Length == Library.Decks.Count)
+        {
+            return;
+        }
+
+        var nextActiveDeckId = string.Equals(Library.ActiveDeckId, importedDeckId, StringComparison.OrdinalIgnoreCase)
+            ? nextDecks.FirstOrDefault()?.ImportedDeckId
+            : Library.ActiveDeckId;
+
+        await PersistAsync(Library with
+        {
+            ActiveDeckId = nextActiveDeckId,
+            Decks = nextDecks,
+        }, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
         await store.ClearAsync(cancellationToken).ConfigureAwait(false);

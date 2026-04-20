@@ -232,6 +232,7 @@ h1:focus {
 .workspace-search__button,
 .workspace-search-result__primary,
 .workspace-search-result__secondary,
+.workspace-search-result__danger,
 .workspace-state__retry,
 .pile-board__move-button,
 .pile-board__remove-button,
@@ -252,11 +253,18 @@ h1:focus {
 }
 
 .workspace-search-result__secondary,
+.workspace-search-result__danger,
 .pile-board__move-button,
 .commander-card__flip-button {
     background: rgba(255, 255, 255, 0.78);
     color: var(--cs-forest);
     border: 1px solid rgba(34, 72, 56, 0.12);
+}
+
+.workspace-search-result__danger {
+    background: rgba(156, 47, 24, 0.1);
+    color: var(--cs-warning);
+    border-color: rgba(156, 47, 24, 0.16);
 }
 
 .pile-board__remove-button {
@@ -267,6 +275,7 @@ h1:focus {
 .workspace-search__button:hover,
 .workspace-search-result__primary:hover,
 .workspace-search-result__secondary:hover,
+.workspace-search-result__danger:hover,
 .workspace-state__retry:hover,
 .pile-board__move-button:hover,
 .pile-board__remove-button:hover,
@@ -293,6 +302,43 @@ h1:focus {
     margin-top: 1rem;
     display: grid;
     gap: 1rem;
+}
+
+.workspace-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    background: rgba(19, 28, 23, 0.56);
+    z-index: 1400;
+}
+
+.workspace-dialog {
+    width: min(100%, 30rem);
+    display: grid;
+    gap: 1rem;
+    padding: 1.35rem;
+    border-radius: var(--cs-radius-xl);
+    border: 1px solid rgba(25, 42, 33, 0.12);
+    background: var(--cs-surface);
+    box-shadow: 0 26px 60px rgba(13, 20, 17, 0.24);
+}
+
+.workspace-dialog__content {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.workspace-dialog__content h2,
+.workspace-dialog__content p {
+    margin: 0;
+}
+
+.workspace-dialog__actions {
+    display: flex;
+    gap: 0.85rem;
+    justify-content: end;
 }
 
 .workspace-state--loading,
@@ -523,6 +569,7 @@ h1:focus {
     .workspace-panel__header,
     .pile-board__header,
     .workspace-search-result__actions,
+    .workspace-dialog__actions,
     .commander-card__footer,
     .pile-board__actions {
         flex-direction: column;
