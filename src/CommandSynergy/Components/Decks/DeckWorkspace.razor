@@ -5,11 +5,231 @@
     <MudContainer MaxWidth="MaxWidth.False" Class="workspace-shell__container">
         <section class="workspace-shell__hero">
             <div class="workspace-hero">
-                <div class="workspace-hero__content">                    
-                    <h1>Synergy Sphere</h1>
-                    <p class="workspace-shell__lede">
-                        Build powerful commander decks and place them within brackets/powerlevels.
-                    </p>                    
+                <div class="workspace-hero__content">
+                    <div class="workspace-hero__topline">
+                        <div>
+                            <h1>Synergy Sphere</h1>
+                            <p class="workspace-shell__lede">
+                                Build powerful commander decks and place them within brackets and power levels.
+                            </p>
+                        </div>
+
+                        <div class="workspace-hero__menu-shell">
+                            <button type="button"
+                                    class="workspace-menu-button"
+                                    aria-expanded="@isUtilityMenuOpen.ToString().ToLowerInvariant()"
+                                    aria-controls="workspace-utility-menu"
+                                    aria-label="Open import and export menu"
+                                    @onclick="ToggleUtilityMenu">
+                                <span class="workspace-menu-button__line"></span>
+                                <span class="workspace-menu-button__line"></span>
+                                <span class="workspace-menu-button__line"></span>
+                            </button>
+
+                            @if (isUtilityMenuOpen)
+                            {
+                                <section class="workspace-utility-menu" id="workspace-utility-menu" data-testid="workspace-utility-menu">
+                                    <div class="workspace-utility-menu__header">
+                                        <div>
+                                            <p class="workspace-panel__label">Utilities</p>
+                                            <h2>Import, library, and export</h2>
+                                        </div>
+                                        <button type="button"
+                                                class="workspace-utility-menu__close"
+                                                aria-label="Close import and export menu"
+                                                @onclick="CloseUtilityMenu">
+                                            Close
+                                        </button>
+                                    </div>
+
+                                    <div class="workspace-utility-menu__content">
+                                        <section class="workspace-utility-section">
+                                            <div class="workspace-panel__header">
+                                                <div>
+                                                    <p class="workspace-panel__label">Import</p>
+                                                    <h2>Local deck library</h2>
+                                                </div>
+                                                <div class="workspace-panel__header-side">
+                                                    <span class="workspace-panel__badge">@ImportedDecks.Count local decks</span>
+                                                    @if (IsHydratingLibrary)
+                                                    {
+                                                        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            <p class="workspace-panel__intro">
+                                                Keep raw imports inside this browser, reopen saved lists instantly, and branch them into a working copy when you want to tune the shell.
+                                            </p>
+
+                                            <MudSelect T="string" Label="Source format" Value="@SelectedImportFormatId" ValueChanged="ImportFormatChanged">
+                                                @foreach (var option in SupportedImportFormats)
+                                                {
+                                                    <MudSelectItem Value="@option.Value">@option.Label</MudSelectItem>
+                                                }
+                                            </MudSelect>
+
+                                            <MudTextField T="string"
+                                                          Label="Paste deck text"
+                                                          Lines="10"
+                                                          Value="@ImportDocumentText"
+                                                          ValueChanged="ImportDocumentTextChanged"
+                                                          Variant="Variant.Outlined" />
+
+                                            <div class="workspace-search">
+                                                <button type="button" class="workspace-search__button" @onclick="ImportRequested">Import deck</button>
+                                                <button type="button" class="workspace-search__button" @onclick="OpenImportedDeckRequested" disabled="@string.IsNullOrWhiteSpace(ActiveImportedDeckId)">Open working copy</button>
+                                                <button type="button" class="workspace-search__button" @onclick="StartNewDeckRequested">New deck</button>
+                                            </div>
+
+                                            @if (IsWorkspaceLinkedToSavedDeck)
+                                            {
+                                                <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" data-testid="workspace-link-status">
+                                                    Editing <strong>@ActiveWorkspaceDeckName</strong>. Changes in this working copy persist automatically to the selected saved deck.
+                                                </MudAlert>
+
+                                                <div class="workspace-search" data-testid="linked-deck-rename-controls">
+                                                    <MudTextField T="string"
+                                                                  Label="Saved deck name"
+                                                                  Value="@LinkedDeckName"
+                                                                  ValueChanged="LinkedDeckNameChanged"
+                                                                  Variant="Variant.Outlined" />
+                                                    <button type="button"
+                                                            class="workspace-search__button"
+                                                            @onclick="RenameLinkedDeckRequested"
+                                                            disabled="@(!CanRenameLinkedDeck)">
+                                                        Rename saved deck
+                                                    </button>
+                                                </div>
+
+                                                @if (!string.IsNullOrWhiteSpace(LinkedDeckStatusMessage))
+                                                {
+                                                    <MudAlert Severity="@(LinkedDeckStatusHasError ? Severity.Warning : Severity.Success)"
+                                                              Variant="Variant.Outlined"
+                                                              data-testid="linked-deck-rename-status">
+                                                        @LinkedDeckStatusMessage
+                                                    </MudAlert>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" data-testid="workspace-link-status">
+                                                    This workspace is detached from the local library. Save it when you want a new deck entry that reopens with its latest changes.
+                                                </MudAlert>
+
+                                                <div class="workspace-search" data-testid="new-deck-save-controls">
+                                                    <MudTextField T="string"
+                                                                  Label="New deck name"
+                                                                  Value="@NewDeckName"
+                                                                  ValueChanged="NewDeckNameChanged"
+                                                                  Variant="Variant.Outlined" />
+                                                    <button type="button"
+                                                            class="workspace-search__button"
+                                                            @onclick="SaveNewDeckRequested"
+                                                            disabled="@(!CanSaveNewDeck)">
+                                                        Save to library
+                                                    </button>
+                                                </div>
+                                            }
+
+                                            @if (!string.IsNullOrWhiteSpace(LibraryRecoveryMessage))
+                                            {
+                                                <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">@LibraryRecoveryMessage</MudAlert>
+                                            }
+
+                                            @if (!string.IsNullOrWhiteSpace(ImportStatusMessage))
+                                            {
+                                                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">@ImportStatusMessage</MudAlert>
+                                            }
+
+                                            @if (HasPendingDuplicateImport)
+                                            {
+                                                <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" data-testid="duplicate-import-resolution">
+                                                    <div class="workspace-callouts">
+                                                        <div>
+                                                            <h3>Reimport options</h3>
+                                                            <p>Update the existing <strong>@PendingDuplicateImportName</strong> entry or keep both by saving the new import as <strong>@PendingDuplicateImportTargetName</strong>.</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="workspace-search">
+                                                        <button type="button" class="workspace-search__button" @onclick="UpdateExistingImportedDeckRequested">Update existing deck</button>
+                                                        <button type="button" class="workspace-search__button" @onclick="ImportDuplicateAsNewDeckRequested">Import as new deck</button>
+                                                    </div>
+                                                </MudAlert>
+                                            }
+
+                                            <div class="workspace-subheader">
+                                                <span class="workspace-subheader__label">Deck library</span>
+                                                <span class="workspace-subheader__value">@ImportedDecks.Count.ToString("00")</span>
+                                            </div>
+
+                                            <div class="workspace-search-results" data-testid="imported-deck-library">
+                                                @if (ImportedDecks.Count == 0)
+                                                {
+                                                    <p class="workspace-panel__empty">Imported decks stay in this browser only. Paste a supported decklist to start a local library.</p>
+                                                }
+                                                else
+                                                {
+                                                    @foreach (var importedDeck in ImportedDecks)
+                                                    {
+                                                        var isActiveDeck = string.Equals(importedDeck.ImportedDeckId, ActiveImportedDeckId, StringComparison.OrdinalIgnoreCase);
+                                                        <article class="workspace-search-result">
+                                                            <div class="workspace-search-result__body">
+                                                                <div class="workspace-search-result__headline">
+                                                                    <strong>@importedDeck.Name</strong>
+                                                                    <span class="workspace-search-result__meta">@(isActiveDeck ? "Active" : importedDeck.SourceFormatId)</span>
+                                                                </div>
+                                                                <p>@importedDeck.SourceFormatId</p>
+                                                                <span class="workspace-search-result__timestamp">Imported @importedDeck.ImportedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</span>
+                                                            </div>
+                                                            <div class="workspace-search-result__actions">
+                                                                <button type="button"
+                                                                        class="workspace-search-result__primary"
+                                                                        data-testid="@($"select-imported-deck-{importedDeck.ImportedDeckId}")"
+                                                                        @onclick="() => ImportedDeckSelected.InvokeAsync(importedDeck.ImportedDeckId)">
+                                                                    @(isActiveDeck ? "Selected" : "Select")
+                                                                </button>
+                                                                <button type="button"
+                                                                        class="workspace-search-result__danger"
+                                                                        data-testid="@($"delete-imported-deck-{importedDeck.ImportedDeckId}")"
+                                                                        @onclick="() => OpenDeleteImportedDeckDialog(importedDeck.ImportedDeckId)">
+                                                                    Delete
+                                                                </button>
+                                                            </div>
+                                                        </article>
+                                                    }
+                                                }
+                                            </div>
+
+                                            @if (ActiveImportedDeckDiagnostics.Count > 0)
+                                            {
+                                                <div class="workspace-callouts">
+                                                    <div>
+                                                        <h3>Import diagnostics</h3>
+                                                        <ul class="workspace-findings" data-testid="import-diagnostics">
+                                                            @foreach (var diagnostic in ActiveImportedDeckDiagnostics)
+                                                            {
+                                                                <li class="workspace-finding workspace-finding--@diagnostic.Severity.ToString().ToLowerInvariant()">@diagnostic.Message</li>
+                                                            }
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </section>
+
+                                        <section class="workspace-utility-section">
+                                            <DeckExportPanel ExportPreview="@ExportPreview"
+                                                             SupportedFormats="@SupportedExportFormats"
+                                                             SelectedFormatId="@SelectedExportFormatId"
+                                                             ExportStatusMessage="@ExportStatusMessage"
+                                                             ExportFormatChanged="ExportFormatChanged"
+                                                             ExportRequested="ExportRequested" />
+                                        </section>
+                                    </div>
+                                </section>
+                            }
+                        </div>
+                    </div>
                 </div>
 
                 <aside class="workspace-hero__rail">
@@ -20,200 +240,21 @@
 
                         <div class="workspace-hero__status-grid">
                             <div>
+                                <span>Cards</span>
+                                <strong>@TotalDeckCards</strong>
+                            </div>
+                            <div>
                                 <span>Status</span>
                                 <strong>@State.Status</strong>
-                            </div>                            
+                            </div>
                             <div>
                                 <span>Findings</span>
                                 <strong>@State.Findings.Count</strong>
-                            </div>                            
+                            </div>
                         </div>
                     </section>
                 </aside>
             </div>
-        </section>
-
-        <section class="workspace-shell__summary-grid">
-            <MudPaper Elevation="0" Class="workspace-panel workspace-panel--library">
-                <div class="workspace-panel__header">
-                    <div>
-                        <p class="workspace-panel__label">Import</p>
-                        <h2>Local deck library</h2>
-                    </div>
-                    <div class="workspace-panel__header-side">
-                        <span class="workspace-panel__badge">@ImportedDecks.Count local decks</span>
-                        @if (IsHydratingLibrary)
-                        {
-                            <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-                        }
-                    </div>
-                </div>
-
-                <p class="workspace-panel__intro">
-                    Keep raw imports inside this browser, reopen saved lists instantly, and branch them into a working copy when you want to tune the shell.
-                </p>
-
-                <MudSelect T="string" Label="Source format" Value="@SelectedImportFormatId" ValueChanged="ImportFormatChanged">
-                    @foreach (var option in SupportedImportFormats)
-                    {
-                        <MudSelectItem Value="@option.Value">@option.Label</MudSelectItem>
-                    }
-                </MudSelect>
-
-                <MudTextField T="string"
-                              Label="Paste deck text"
-                              Lines="10"
-                              Value="@ImportDocumentText"
-                              ValueChanged="ImportDocumentTextChanged"
-                              Variant="Variant.Outlined" />
-
-                <div class="workspace-search">
-                    <button type="button" class="workspace-search__button" @onclick="ImportRequested">Import deck</button>
-                    <button type="button" class="workspace-search__button" @onclick="OpenImportedDeckRequested" disabled="@string.IsNullOrWhiteSpace(ActiveImportedDeckId)">Open working copy</button>
-                    <button type="button" class="workspace-search__button" @onclick="StartNewDeckRequested">New deck</button>
-                </div>
-
-                @if (IsWorkspaceLinkedToSavedDeck)
-                {
-                    <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" data-testid="workspace-link-status">
-                        Editing <strong>@ActiveWorkspaceDeckName</strong>. Changes in this working copy persist automatically to the selected saved deck.
-                    </MudAlert>
-
-                    <div class="workspace-search" data-testid="linked-deck-rename-controls">
-                        <MudTextField T="string"
-                                      Label="Saved deck name"
-                                      Value="@LinkedDeckName"
-                                      ValueChanged="LinkedDeckNameChanged"
-                                      Variant="Variant.Outlined" />
-                        <button type="button"
-                                class="workspace-search__button"
-                                @onclick="RenameLinkedDeckRequested"
-                                disabled="@(!CanRenameLinkedDeck)">
-                            Rename saved deck
-                        </button>
-                    </div>
-
-                    @if (!string.IsNullOrWhiteSpace(LinkedDeckStatusMessage))
-                    {
-                        <MudAlert Severity="@(LinkedDeckStatusHasError ? Severity.Warning : Severity.Success)"
-                                  Variant="Variant.Outlined"
-                                  data-testid="linked-deck-rename-status">
-                            @LinkedDeckStatusMessage
-                        </MudAlert>
-                    }
-                }
-                else
-                {
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" data-testid="workspace-link-status">
-                        This workspace is detached from the local library. Save it when you want a new deck entry that reopens with its latest changes.
-                    </MudAlert>
-
-                    <div class="workspace-search" data-testid="new-deck-save-controls">
-                        <MudTextField T="string"
-                                      Label="New deck name"
-                                      Value="@NewDeckName"
-                                      ValueChanged="NewDeckNameChanged"
-                                      Variant="Variant.Outlined" />
-                        <button type="button"
-                                class="workspace-search__button"
-                                @onclick="SaveNewDeckRequested"
-                                disabled="@(!CanSaveNewDeck)">
-                            Save to library
-                        </button>
-                    </div>
-                }
-
-                @if (!string.IsNullOrWhiteSpace(LibraryRecoveryMessage))
-                {
-                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">@LibraryRecoveryMessage</MudAlert>
-                }
-
-                @if (!string.IsNullOrWhiteSpace(ImportStatusMessage))
-                {
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">@ImportStatusMessage</MudAlert>
-                }
-
-                @if (HasPendingDuplicateImport)
-                {
-                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" data-testid="duplicate-import-resolution">
-                        <div class="workspace-callouts">
-                            <div>
-                                <h3>Reimport options</h3>
-                                <p>Update the existing <strong>@PendingDuplicateImportName</strong> entry or keep both by saving the new import as <strong>@PendingDuplicateImportTargetName</strong>.</p>
-                            </div>
-                        </div>
-                        <div class="workspace-search">
-                            <button type="button" class="workspace-search__button" @onclick="UpdateExistingImportedDeckRequested">Update existing deck</button>
-                            <button type="button" class="workspace-search__button" @onclick="ImportDuplicateAsNewDeckRequested">Import as new deck</button>
-                        </div>
-                    </MudAlert>
-                }
-
-                <div class="workspace-subheader">
-                    <span class="workspace-subheader__label">Deck library</span>
-                    <span class="workspace-subheader__value">@ImportedDecks.Count.ToString("00")</span>
-                </div>
-
-                <div class="workspace-search-results" data-testid="imported-deck-library">
-                    @if (ImportedDecks.Count == 0)
-                    {
-                        <p class="workspace-panel__empty">Imported decks stay in this browser only. Paste a supported decklist to start a local library.</p>
-                    }
-                    else
-                    {
-                        @foreach (var importedDeck in ImportedDecks)
-                        {
-                            var isActiveDeck = string.Equals(importedDeck.ImportedDeckId, ActiveImportedDeckId, StringComparison.OrdinalIgnoreCase);
-                            <article class="workspace-search-result">
-                                <div class="workspace-search-result__body">
-                                    <div class="workspace-search-result__headline">
-                                        <strong>@importedDeck.Name</strong>
-                                        <span class="workspace-search-result__meta">@(isActiveDeck ? "Active" : importedDeck.SourceFormatId)</span>
-                                    </div>
-                                    <p>@importedDeck.SourceFormatId</p>
-                                    <span class="workspace-search-result__timestamp">Imported @importedDeck.ImportedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</span>
-                                </div>
-                                <div class="workspace-search-result__actions">
-                                    <button type="button"
-                                            class="workspace-search-result__primary"
-                                            data-testid="@($"select-imported-deck-{importedDeck.ImportedDeckId}")"
-                                            @onclick="() => ImportedDeckSelected.InvokeAsync(importedDeck.ImportedDeckId)">
-                                        @(isActiveDeck ? "Selected" : "Select")
-                                    </button>
-                                    <button type="button"
-                                            class="workspace-search-result__danger"
-                                            data-testid="@($"delete-imported-deck-{importedDeck.ImportedDeckId}")"
-                                            @onclick="() => OpenDeleteImportedDeckDialog(importedDeck.ImportedDeckId)">
-                                        Delete
-                                    </button>
-                                </div>
-                            </article>
-                        }
-                    }
-                </div>
-
-                @if (ActiveImportedDeckDiagnostics.Count > 0)
-                {
-                    <div class="workspace-callouts">
-                        <div>
-                            <h3>Import diagnostics</h3>
-                            <ul class="workspace-findings" data-testid="import-diagnostics">
-                                @foreach (var diagnostic in ActiveImportedDeckDiagnostics)
-                                {
-                                    <li class="workspace-finding workspace-finding--@diagnostic.Severity.ToString().ToLowerInvariant()">@diagnostic.Message</li>
-                                }
-                            </ul>
-                        </div>
-                    </div>
-                }
-            </MudPaper>
-
-            <DeckExportPanel ExportPreview="@ExportPreview"
-                             SupportedFormats="@SupportedExportFormats"
-                             SelectedFormatId="@SelectedExportFormatId"
-                             ExportStatusMessage="@ExportStatusMessage"
-                             ExportFormatChanged="@ExportFormatChanged"
-                             ExportRequested="@ExportRequested" />
         </section>
 
         <section class="workspace-shell__summary-grid">
@@ -590,6 +631,8 @@
 
     private bool isDeletingImportedDeck;
 
+    private bool isUtilityMenuOpen;
+
     private WorkspaceCardView? ActiveCommander => Cards.FirstOrDefault(static card => card.IsCommander);
 
     private int TotalDeckCards => Cards.Sum(static card => card.Quantity);
@@ -612,9 +655,20 @@
 
     private Task HandleSearchQueryInput(ChangeEventArgs args) => SearchQueryChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
 
+    private void ToggleUtilityMenu()
+    {
+        isUtilityMenuOpen = !isUtilityMenuOpen;
+    }
+
+    private void CloseUtilityMenu()
+    {
+        isUtilityMenuOpen = false;
+    }
+
     private void OpenDeleteImportedDeckDialog(string importedDeckId)
     {
         pendingDeleteDeck = ImportedDecks.FirstOrDefault(deck => string.Equals(deck.ImportedDeckId, importedDeckId, StringComparison.OrdinalIgnoreCase));
+        isUtilityMenuOpen = true;
     }
 
     private void CancelDeleteImportedDeck()

@@ -162,7 +162,7 @@ h1:focus {
 }
 
 .workspace-shell {
-    padding: 2.75rem 1.5rem 5rem;
+    padding: 2rem 1.5rem 5rem;
 }
 
 .workspace-shell__container {
@@ -180,8 +180,8 @@ h1:focus {
     position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.82fr);
-    gap: 1.4rem;
-    padding: 1.6rem;
+    gap: 1rem;
+    padding: 1.15rem 1.2rem;
     border: 1px solid var(--cs-outline-strong);
     border-radius: calc(var(--cs-radius-xl) + 4px);
     background:
@@ -223,7 +223,7 @@ h1:focus {
 }
 
 .workspace-shell__hero h1 {
-    font-size: clamp(3rem, 5vw, 5.25rem);
+    font-size: clamp(2.35rem, 4vw, 4rem);
     max-width: 12ch;
 }
 
@@ -236,9 +236,96 @@ h1:focus {
 
 .workspace-shell__lede {
     max-width: 48rem;
-    margin: 1rem 0 0;
+    margin: 0.55rem 0 0;
     color: var(--cs-muted);
-    font-size: 1.02rem;
+    font-size: 0.96rem;
+}
+
+.workspace-hero__topline {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.workspace-hero__menu-shell {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.workspace-menu-button {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.24rem;
+    width: 3rem;
+    height: 3rem;
+    padding: 0.72rem;
+    border: 1px solid rgba(31, 91, 75, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 12px 22px rgba(22, 30, 24, 0.08);
+    cursor: pointer;
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.workspace-menu-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 26px rgba(22, 30, 24, 0.12);
+}
+
+.workspace-menu-button:focus-visible,
+.workspace-utility-menu__close:focus-visible {
+    outline: 3px solid rgba(31, 91, 75, 0.26);
+    outline-offset: 2px;
+}
+
+.workspace-menu-button__line {
+    display: block;
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--cs-panel-title);
+}
+
+.workspace-utility-menu {
+    position: absolute;
+    top: calc(100% + 0.7rem);
+    right: 0;
+    z-index: 20;
+    width: min(44rem, calc(100vw - 3rem));
+    padding: 1rem;
+    border: 1px solid var(--cs-outline-strong);
+    border-radius: var(--cs-radius-xl);
+    background: rgba(255, 251, 244, 0.98);
+    box-shadow: 0 24px 48px rgba(22, 30, 24, 0.18);
+    backdrop-filter: blur(18px);
+}
+
+.workspace-utility-menu__header,
+.workspace-utility-menu__content {
+    display: grid;
+    gap: 1rem;
+}
+
+.workspace-utility-menu__header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    margin-bottom: 0.5rem;
+}
+
+.workspace-utility-menu__close {
+    border: 1px solid rgba(31, 91, 75, 0.16);
+    border-radius: 999px;
+    padding: 0.6rem 0.95rem;
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--cs-panel-title);
+    cursor: pointer;
+}
+
+.workspace-utility-section {
+    display: grid;
+    gap: 1rem;
 }
 
 .workspace-hero__metrics {
@@ -312,7 +399,7 @@ h1:focus {
 
 .workspace-hero__status-card {
     height: 100%;
-    padding: 1.25rem;
+    padding: 1rem;
     background:
         linear-gradient(180deg, rgba(31, 91, 75, 0.08), rgba(255, 255, 255, 0)),
         linear-gradient(145deg, rgba(255, 251, 242, 0.96), rgba(243, 237, 226, 0.88));
@@ -340,14 +427,14 @@ h1:focus {
 
 .workspace-hero__status-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.85rem;
-    margin-top: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-top: 0.8rem;
 }
 
 .workspace-hero__status-grid > div,
 .workspace-metric-strip > div {
-    padding: 0.9rem 0.95rem;
+    padding: 0.75rem 0.8rem;
     border-radius: var(--cs-radius-md);
     background: rgba(255, 255, 255, 0.55);
     border: 1px solid rgba(31, 91, 75, 0.08);
@@ -369,6 +456,18 @@ h1:focus {
 .pile-board__pile {
     position: relative;
     padding: 1.35rem;
+}
+
+.workspace-utility-menu .workspace-panel {
+    padding: 1.1rem;
+}
+
+.workspace-utility-menu .workspace-panel__intro,
+.workspace-utility-menu .workspace-search,
+.workspace-utility-menu .workspace-subheader,
+.workspace-utility-menu .workspace-search-results,
+.workspace-utility-menu .workspace-findings {
+    margin-top: 0.8rem;
 }
 
 .workspace-panel--library::before,
@@ -825,6 +924,10 @@ h1:focus {
     }
 }
 
+
+    .workspace-utility-menu {
+        width: min(100%, 46rem);
+    }
 @media (max-width: 920px) {
     .workspace-hero__metrics,
     .pile-board__grid {
@@ -834,10 +937,11 @@ h1:focus {
 
 @media (max-width: 720px) {
     .workspace-shell {
-        padding: 2rem 1rem 4rem;
+        padding: 1.35rem 1rem 4rem;
     }
 
     .workspace-hero,
+    .workspace-hero__topline,
     .workspace-panel__header,
     .workspace-search,
     .workspace-search-result,
@@ -859,12 +963,28 @@ h1:focus {
     }
 
     .workspace-shell__hero h1 {
-        font-size: clamp(2.55rem, 14vw, 3.6rem);
+        font-size: clamp(2.15rem, 14vw, 3.1rem);
+    }
+
+    .workspace-menu-button {
+        width: 2.75rem;
+        height: 2.75rem;
+    }
+
+    .workspace-utility-menu {
+        position: static;
+        width: 100%;
+        margin-top: 0.85rem;
+    }
+
+    .workspace-utility-menu__header {
+        grid-template-columns: 1fr;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .workspace-shell__hero,
+    .workspace-menu-button,
     .workspace-search__button,
     .workspace-search-result__primary,
     .workspace-search-result__secondary,
