@@ -879,23 +879,48 @@ h1:focus {
 
 .pile-board {
     display: grid;
-    gap: 1rem;
+    gap: clamp(1rem, 1.4vw, 1.5rem);
 }
 
 .pile-board__header {
     align-items: end;
 }
 
-.pile-board__grid {
+.pile-board__lanes {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 1rem;
+    grid-template-columns: minmax(17rem, 0.72fr) minmax(0, 1.68fr);
+    gap: clamp(1rem, 1.8vw, 1.75rem);
+    align-items: start;
 }
 
 .pile-board__pile {
     min-height: 16rem;
     display: grid;
     align-content: start;
+    gap: 0.85rem;
+}
+
+.pile-board__pile--command {
+    min-height: 20rem;
+}
+
+.pile-board__pile--mainboard {
+    min-height: 24rem;
+}
+
+.pile-board__pile-note {
+    margin: 0;
+    max-width: 34ch;
+    color: var(--cs-muted);
+}
+
+.pile-board__cards--command {
+    gap: 0.9rem;
+}
+
+.pile-board__cards--mainboard {
+    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+    gap: 1.1rem;
 }
 
 .pile-board__lane-badge {
@@ -936,8 +961,12 @@ h1:focus {
 
 @media (max-width: 920px) {
     .workspace-hero__metrics,
-    .pile-board__grid {
+    .pile-board__lanes {
         grid-template-columns: 1fr 1fr;
+    }
+
+    .pile-board__cards--mainboard {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -964,7 +993,7 @@ h1:focus {
 
     .workspace-hero__status-grid,
     .workspace-hero__metrics,
-    .pile-board__grid {
+    .pile-board__lanes {
         grid-template-columns: 1fr;
     }
 
