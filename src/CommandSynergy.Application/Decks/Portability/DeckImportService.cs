@@ -52,9 +52,10 @@ public sealed class DeckImportService : IDeckImportService
         diagnostics.AddRange(parsed.Diagnostics);
 
         var entries = new List<PortableDeckEntry>();
+        var resolutionCache = new Dictionary<string, CardResolutionResult>(StringComparer.OrdinalIgnoreCase);
         foreach (var draft in parsed.Entries)
         {
-            var resolution = await ResolveCardAsync(draft.DisplayName, cancellationToken).ConfigureAwait(false);
+            var resolution = await ResolveCardAsync(draft.DisplayName, resolutionCache, cancellationToken).ConfigureAwait(false);
             if (resolution.Match is null)
             {
                 diagnostics.Add(new ImportDiagnostic(
@@ -152,8 +153,16 @@ public sealed class DeckImportService : IDeckImportService
         Array.Empty<string>(),
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
 
-    private async Task<CardResolutionResult> ResolveCardAsync(string cardName, CancellationToken cancellationToken)
+    private async Task<CardResolutionResult> ResolveCardAsync(
+        string cardName,
+        IDictionary<string, CardResolutionResult> resolutionCache,
+        CancellationToken cancellationToken)
     {
+        if (resolutionCache.TryGetValue(cardName, out var cachedResolution))
+        {
+            return cachedResolution;
+        }
+
         var response = await cardSearchService.SearchAsync(new CardSearchQueryContract
         {
             Query = cardName,
@@ -163,15 +172,21 @@ public sealed class DeckImportService : IDeckImportService
         var exactMatch = response.Results.FirstOrDefault(result => string.Equals(result.Name, cardName, StringComparison.OrdinalIgnoreCase));
         if (exactMatch is not null)
         {
-            return new CardResolutionResult(exactMatch, ParseConfidence.Exact);
+            var exactResolution = new CardResolutionResult(exactMatch, ParseConfidence.Exact);
+            resolutionCache[cardName] = exactResolution;
+            return exactResolution;
         }
 
         if (response.Results.Count == 1)
         {
-            return new CardResolutionResult(response.Results[0], ParseConfidence.Normalized);
+            var normalizedResolution = new CardResolutionResult(response.Results[0], ParseConfidence.Normalized);
+            resolutionCache[cardName] = normalizedResolution;
+            return normalizedResolution;
         }
 
-        return new CardResolutionResult(null, ParseConfidence.Unresolved);
+        var unresolvedResolution = new CardResolutionResult(null, ParseConfidence.Unresolved);
+        resolutionCache[cardName] = unresolvedResolution;
+        return unresolvedResolution;
     }
 
     private static string GuessDeckName(IReadOnlyList<PortableDeckEntry> entries) =>

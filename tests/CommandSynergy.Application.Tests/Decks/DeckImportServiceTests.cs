@@ -86,6 +86,22 @@ public sealed class DeckImportServiceTests
             && entry.SourceTag == "Mill");
     }
 
+    [Fact]
+    public async Task ImportAsync_reuses_card_resolution_for_duplicate_card_names()
+    {
+        var cardSearchService = new CountingCardSearchService();
+        var registry = new DeckFormatRegistry([new MoxfieldTextFormatProfile(), new ManaBoxTextFormatProfile(), new GenericPlaintextFormatProfile()]);
+        var detectionService = new DeckFormatDetectionService(registry);
+        var sut = new DeckImportService(cardSearchService, detectionService, new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z")));
+
+        await sut.ImportAsync(new DeckImportRequestContract
+        {
+            RawDocumentText = "1 Sol Ring\n1 Sol Ring\n1 Arcane Signet",
+        });
+
+        cardSearchService.SearchCalls.Should().Be(2);
+    }
+
     private static DeckImportService CreateSut()
     {
         var registry = new DeckFormatRegistry([new MoxfieldTextFormatProfile(), new ManaBoxTextFormatProfile(), new GenericPlaintextFormatProfile()]);
@@ -121,6 +137,19 @@ public sealed class DeckImportServiceTests
                 SnapshotVersion = "test",
                 Results = results,
             });
+        }
+    }
+
+    private sealed class CountingCardSearchService : ICardSearchService
+    {
+        private readonly StubCardSearchService inner = new();
+
+        public int SearchCalls { get; private set; }
+
+        public Task<CardSearchResponseContract> SearchAsync(CardSearchQueryContract request, CancellationToken cancellationToken = default)
+        {
+            SearchCalls++;
+            return inner.SearchAsync(request, cancellationToken);
         }
     }
 }

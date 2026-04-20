@@ -16,6 +16,9 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
     private readonly ScryfallClient scryfallClient;
     private readonly ScryfallCardMapper scryfallCardMapper;
     private readonly ILogger<CardMetadataQueryService> logger;
+    private readonly object searchIndexLock = new();
+
+    private CachedSearchIndex? cachedSearchIndex;
 
     /// <summary>
     /// Creates a card catalog gateway backed by local metadata and read-only Scryfall fallback.
@@ -100,11 +103,26 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
         ArgumentNullException.ThrowIfNull(request);
 
         var snapshot = await metadataStore.LoadSnapshotAsync(cancellationToken).ConfigureAwait(false);
-        var searchIndex = searchIndexSnapshotBuilder.Build(snapshot);
+        var searchIndex = GetOrCreateCachedSearchIndex(snapshot);
         var normalizedQuery = request.Query.Trim();
         var colorFilters = request.Colors.Where(color => !string.IsNullOrWhiteSpace(color)).Select(static color => color.Trim()).ToArray();
 
-        var results = searchIndex.CardSummaries
+        if (searchIndex.ExactNameLookup.TryGetValue(normalizedQuery, out var exactMatches))
+        {
+            var exactResults = exactMatches
+                .Where(card => colorFilters.Length == 0 || colorFilters.All(filter => card.ColorIdentity.Contains(filter, StringComparer.OrdinalIgnoreCase)))
+                .OrderBy(card => card.Name, StringComparer.OrdinalIgnoreCase)
+                .Take(20)
+                .ToArray();
+
+            if (exactResults.Length > 0)
+            {
+                logger.LogDebug("Resolved {ResultCount} exact-name card search results from snapshot {SnapshotId}", exactResults.Length, snapshot.SnapshotId);
+                return exactResults;
+            }
+        }
+
+        var results = searchIndex.SearchIndex.CardSummaries
             .Where(card => card.Name.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase))
             .Where(card => colorFilters.Length == 0 || colorFilters.All(filter => card.ColorIdentity.Contains(filter, StringComparer.OrdinalIgnoreCase)))
             .OrderBy(card => card.Name, StringComparer.OrdinalIgnoreCase)
@@ -141,6 +159,55 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
     public async Task<string?> GetSnapshotVersionAsync(CancellationToken cancellationToken = default)
     {
         var snapshot = await metadataStore.LoadSnapshotAsync(cancellationToken).ConfigureAwait(false);
-        return searchIndexSnapshotBuilder.Build(snapshot).Version;
+        return GetOrCreateCachedSearchIndex(snapshot).SearchIndex.Version;
+    }
+
+    private CachedSearchIndex GetOrCreateCachedSearchIndex(CardMetadataSnapshot snapshot)
+    {
+        var currentCache = cachedSearchIndex;
+        if (currentCache is not null && currentCache.Matches(snapshot))
+        {
+            return currentCache;
+        }
+
+        lock (searchIndexLock)
+        {
+            currentCache = cachedSearchIndex;
+            if (currentCache is not null && currentCache.Matches(snapshot))
+            {
+                return currentCache;
+            }
+
+            var searchIndex = searchIndexSnapshotBuilder.Build(snapshot);
+            var exactNameLookup = searchIndex.CardSummaries
+                .GroupBy(card => card.Name, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.OrderBy(card => card.Name, StringComparer.OrdinalIgnoreCase).ToArray(),
+                    StringComparer.OrdinalIgnoreCase);
+
+            currentCache = new CachedSearchIndex(
+                snapshot.SourcePath,
+                snapshot.LastUpdatedUtc,
+                snapshot.Cards.Count,
+                searchIndex,
+                exactNameLookup);
+
+            cachedSearchIndex = currentCache;
+            return currentCache;
+        }
+    }
+
+    private sealed record CachedSearchIndex(
+        string SnapshotPath,
+        DateTime SnapshotLastUpdatedUtc,
+        int CardCount,
+        SearchIndexSnapshotContract SearchIndex,
+        IReadOnlyDictionary<string, CardSearchResultContract[]> ExactNameLookup)
+    {
+        public bool Matches(CardMetadataSnapshot snapshot) =>
+            string.Equals(SnapshotPath, snapshot.SourcePath, StringComparison.OrdinalIgnoreCase)
+            && SnapshotLastUpdatedUtc == snapshot.LastUpdatedUtc
+            && CardCount == snapshot.Cards.Count;
     }
 }
