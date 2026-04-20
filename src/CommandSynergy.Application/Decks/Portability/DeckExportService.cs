@@ -25,10 +25,12 @@ public sealed class DeckExportService : IDeckExportService
             ? new[] { "Unresolved lines remain in the imported deck and were omitted from deterministic export rendering." }
             : Array.Empty<string>();
 
+        var externalSnapshot = PortableDeckSectionMapper.ToExternalSnapshot(snapshot);
+
         return Task.FromResult(new DeckExportResultContract
         {
             TargetFormatId = profile.FormatId,
-            DocumentText = profile.Render(snapshot, warnings),
+            DocumentText = profile.Render(externalSnapshot, warnings),
             Warnings = warnings,
         });
     }

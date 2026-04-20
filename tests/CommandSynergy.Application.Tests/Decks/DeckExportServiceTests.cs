@@ -37,6 +37,38 @@ public sealed class DeckExportServiceTests
         result.Warnings.Should().ContainSingle();
     }
 
+    [Fact]
+    public async Task ExportAsync_transforms_internal_pile_ids_back_to_external_section_identifiers()
+    {
+        var sut = new DeckExportService(new DeckFormatRegistry([new MoxfieldTextFormatProfile(), new ManaBoxTextFormatProfile(), new GenericPlaintextFormatProfile()]));
+
+        var result = await sut.ExportAsync(new DeckExportRequestContract
+        {
+            ImportedDeckId = "deck-1",
+            TargetFormatId = "manabox-text",
+        }, new PortableDeckSnapshot(
+            "Isshin Pressure",
+            ["isshin-two-heavens-as-one"],
+            null,
+            [
+                new PortableDeckEntry("isshin-two-heavens-as-one", "1 Isshin, Two Heavens as One", "Isshin, Two Heavens as One", 1, "command-zone", true, false, ParseConfidence.Exact),
+                new PortableDeckEntry("sol-ring", "1 Sol Ring", "Sol Ring", 1, "mainboard", false, false, ParseConfidence.Exact),
+                new PortableDeckEntry("wear-tear", "1 Wear // Tear", "Wear // Tear", 1, "maybeboard", false, false, ParseConfidence.Exact),
+            ],
+            [
+                new DeckSectionState("command-zone", "Command Zone", DeckSectionRole.Commander, 0, 1),
+                new DeckSectionState("mainboard", "Mainboard", DeckSectionRole.Mainboard, 1, 1),
+                new DeckSectionState("maybeboard", "Maybeboard", DeckSectionRole.Maybeboard, 2, 1),
+            ],
+            3,
+            false));
+
+        result.DocumentText.Should().Contain("[Commander]");
+        result.DocumentText.Should().Contain("[Mainboard]");
+        result.DocumentText.Should().Contain("[Maybeboard]");
+        result.DocumentText.Should().NotContain("[Command Zone]");
+    }
+
     private static PortableDeckSnapshot CreateSnapshot(bool hasUnresolvedLines) => new(
         "Atraxa Blink",
         ["atraxa-praetors-voice"],

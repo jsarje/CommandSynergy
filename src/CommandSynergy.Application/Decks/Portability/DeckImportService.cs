@@ -87,14 +87,14 @@ public sealed class DeckImportService : IDeckImportService
                 entries.Where(entry => string.Equals(entry.SectionId, section.SectionId, StringComparison.OrdinalIgnoreCase)).Sum(static entry => entry.Quantity)))
             .ToArray();
 
-        var snapshot = new PortableDeckSnapshot(
+        var snapshot = PortableDeckSectionMapper.NormalizeImportedSnapshot(new PortableDeckSnapshot(
             parsed.DeckName ?? GuessDeckName(entries),
             entries.Where(static entry => entry.IsCommander && !string.IsNullOrWhiteSpace(entry.CardId)).Select(static entry => entry.CardId!).Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
             entries.FirstOrDefault(static entry => entry.IsCompanion)?.CardId,
             entries,
             sections,
             entries.Sum(static entry => entry.Quantity),
-            entries.Any(static entry => entry.ParseConfidence == ParseConfidence.Unresolved));
+            entries.Any(static entry => entry.ParseConfidence == ParseConfidence.Unresolved)));
 
         var importedDeck = new ImportedDeckRecord(
             Guid.NewGuid().ToString("N"),

@@ -9,7 +9,9 @@ public sealed class WorkingCopyProjectionService : IWorkingCopyProjectionService
     {
         ArgumentNullException.ThrowIfNull(snapshot);
 
-        var piles = snapshot.Sections
+        var normalizedSnapshot = PortableDeckSectionMapper.NormalizeImportedSnapshot(snapshot);
+
+        var piles = normalizedSnapshot.Sections
             .OrderBy(static section => section.SortOrder)
             .Select(static section => new PileDefinitionContract
             {
@@ -19,18 +21,18 @@ public sealed class WorkingCopyProjectionService : IWorkingCopyProjectionService
             })
             .ToArray();
 
-        var commanderCardId = snapshot.CommanderCardIds.FirstOrDefault()
-            ?? snapshot.Entries.FirstOrDefault(static entry => entry.IsCommander && !string.IsNullOrWhiteSpace(entry.CardId))?.CardId
+        var commanderCardId = normalizedSnapshot.CommanderCardIds.FirstOrDefault()
+            ?? normalizedSnapshot.Entries.FirstOrDefault(static entry => entry.IsCommander && !string.IsNullOrWhiteSpace(entry.CardId))?.CardId
             ?? throw new InvalidOperationException("A working copy requires a resolved commander card.");
 
         return new DeckSnapshotContract
         {
             DeckId = deckId,
-            Name = deckName ?? snapshot.DeckName,
+            Name = deckName ?? normalizedSnapshot.DeckName,
             CommanderCardId = commanderCardId,
-            CompanionCardId = snapshot.CompanionCardId,
+            CompanionCardId = normalizedSnapshot.CompanionCardId,
             Piles = piles,
-            Entries = snapshot.Entries
+            Entries = normalizedSnapshot.Entries
                 .Where(static entry => !string.IsNullOrWhiteSpace(entry.CardId))
                 .Select(static entry => new DeckEntryContract
                 {

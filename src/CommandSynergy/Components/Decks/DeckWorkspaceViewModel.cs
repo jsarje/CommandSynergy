@@ -554,7 +554,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             .Select(pile => new DeckSectionState(
                 pile.PileId,
                 pile.Name,
-                string.Equals(pile.PileId, CommandZonePileId, StringComparison.OrdinalIgnoreCase) ? DeckSectionRole.Commander : DeckSectionRole.Mainboard,
+                ResolvePileRole(pile.PileId),
                 pile.SortOrder,
                 portableEntries.Where(entry => string.Equals(entry.SectionId, pile.PileId, StringComparison.OrdinalIgnoreCase)).Sum(static entry => entry.Quantity)))
             .ToArray();
@@ -571,6 +571,13 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
     private void LoadSnapshotIntoWorkspace(DeckSnapshotContract snapshot, PortableDeckSnapshot portableSnapshot)
     {
+        if (snapshot.Piles.Count > 0)
+        {
+            piles.Clear();
+            piles.AddRange(snapshot.Piles.OrderBy(static pile => pile.SortOrder));
+            Piles = piles.ToArray();
+        }
+
         entries.Clear();
 
         foreach (var entry in snapshot.Entries)
@@ -602,6 +609,19 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         }
 
         RefreshDerivedCards();
+    }
+
+    private static DeckSectionRole ResolvePileRole(string? pileId)
+    {
+        return pileId?.Trim().ToLowerInvariant() switch
+        {
+            CommandZonePileId => DeckSectionRole.Commander,
+            "companion" => DeckSectionRole.Companion,
+            "sideboard" => DeckSectionRole.Sideboard,
+            "maybeboard" => DeckSectionRole.Maybeboard,
+            MainboardPileId => DeckSectionRole.Mainboard,
+            _ => DeckSectionRole.Custom,
+        };
     }
 
     private string GetFormatDisplayName(string formatId) =>

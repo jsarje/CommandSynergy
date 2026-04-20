@@ -27,6 +27,35 @@ public sealed class WorkingCopyProjectionServiceTests
 
         result.CommanderCardId.Should().Be("atraxa-praetors-voice");
         result.Entries.Should().HaveCount(2);
-        result.Piles.Should().Contain(pile => pile.PileId == "commander");
+        result.Piles.Should().Contain(pile => pile.PileId == "command-zone");
+        result.Entries.Should().Contain(entry => entry.IsCommander && entry.AssignedPileId == "command-zone");
+    }
+
+    [Fact]
+    public void CreateWorkingCopy_normalizes_standard_import_sections_to_internal_piles()
+    {
+        var sut = new WorkingCopyProjectionService();
+
+        var result = sut.CreateWorkingCopy(new PortableDeckSnapshot(
+            "Isshin Pressure",
+            ["isshin-two-heavens-as-one"],
+            null,
+            [
+                new PortableDeckEntry("isshin-two-heavens-as-one", null, "Isshin, Two Heavens as One", 1, "commander", true, false, ParseConfidence.Exact),
+                new PortableDeckEntry("sol-ring", null, "Sol Ring", 1, "mainboard", false, false, ParseConfidence.Exact),
+                new PortableDeckEntry("wear-tear", null, "Wear // Tear", 1, "maybeboard", false, false, ParseConfidence.Exact),
+            ],
+            [
+                new DeckSectionState("commander", "Commander", DeckSectionRole.Commander, 0, 1),
+                new DeckSectionState("mainboard", "Mainboard", DeckSectionRole.Mainboard, 1, 1),
+                new DeckSectionState("maybeboard", "Maybeboard", DeckSectionRole.Maybeboard, 2, 1),
+            ],
+            3,
+            false));
+
+        result.Piles.Should().Contain(pile => pile.PileId == "command-zone" && pile.Name == "Command Zone");
+        result.Piles.Should().Contain(pile => pile.PileId == "mainboard");
+        result.Piles.Should().Contain(pile => pile.PileId == "maybeboard");
+        result.Entries.Should().Contain(entry => entry.IsCommander && entry.AssignedPileId == "command-zone");
     }
 }
