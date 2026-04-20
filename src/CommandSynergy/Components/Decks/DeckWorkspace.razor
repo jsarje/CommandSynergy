@@ -4,25 +4,81 @@
 <div class="workspace-shell">
     <MudContainer MaxWidth="MaxWidth.False" Class="workspace-shell__container">
         <section class="workspace-shell__hero">
-            <p class="workspace-shell__eyebrow">Commander Synergy Sphere</p>
-            <h1>Build with tempo, inspect every face, and keep the rules engine in the loop.</h1>
-            <p class="workspace-shell__lede">
-                Import plaintext decklists locally, switch between saved decks, open an explicit working copy, and export the current workspace without sending raw deck documents to the server.
-            </p>
+            <div class="workspace-hero">
+                <div class="workspace-hero__content">
+                    <p class="workspace-shell__eyebrow">Commander Synergy Sphere</p>
+                    <h1>Build with tempo, inspect every face, and keep the rules engine in the loop.</h1>
+                    <p class="workspace-shell__lede">
+                        Import plaintext decklists locally, switch between saved decks, open an explicit working copy, and export the current workspace without sending raw deck documents to the server.
+                    </p>
+
+                    <div class="workspace-hero__metrics">
+                        <article class="workspace-hero__metric">
+                            <span>Local decks</span>
+                            <strong>@ImportedDecks.Count.ToString("00")</strong>
+                            <p>Browser-resident imports ready for reopening and comparison.</p>
+                        </article>
+                        <article class="workspace-hero__metric">
+                            <span>Deck cards</span>
+                            <strong>@TotalDeckCards.ToString("00")</strong>
+                            <p>Cards currently staged across the command zone and support lanes.</p>
+                        </article>
+                        <article class="workspace-hero__metric">
+                            <span>Search hits</span>
+                            <strong>@SearchResults.Count.ToString("00")</strong>
+                            <p>Fresh matches from the local card index waiting for selection.</p>
+                        </article>
+                    </div>
+                </div>
+
+                <aside class="workspace-hero__rail">
+                    <section class="workspace-hero__status-card">
+                        <p class="workspace-panel__label">Working copy</p>
+                        <h2>@(ActiveCommander?.Name ?? "Commander pending")</h2>
+                        <p>@WorkspaceModeSummary</p>
+
+                        <div class="workspace-hero__status-grid">
+                            <div>
+                                <span>Status</span>
+                                <strong>@State.Status</strong>
+                            </div>
+                            <div>
+                                <span>Legality</span>
+                                <strong>@ValidationStatusLabel</strong>
+                            </div>
+                            <div>
+                                <span>Findings</span>
+                                <strong>@State.Findings.Count</strong>
+                            </div>
+                            <div>
+                                <span>Formats</span>
+                                <strong>@SupportedImportFormats.Count/@SupportedExportFormats.Count</strong>
+                            </div>
+                        </div>
+                    </section>
+                </aside>
+            </div>
         </section>
 
         <section class="workspace-shell__summary-grid">
-            <MudPaper Elevation="0" Class="workspace-panel workspace-panel--search">
+            <MudPaper Elevation="0" Class="workspace-panel workspace-panel--library">
                 <div class="workspace-panel__header">
                     <div>
                         <p class="workspace-panel__label">Import</p>
                         <h2>Local deck library</h2>
                     </div>
-                    @if (IsHydratingLibrary)
-                    {
-                        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-                    }
+                    <div class="workspace-panel__header-side">
+                        <span class="workspace-panel__badge">@ImportedDecks.Count local decks</span>
+                        @if (IsHydratingLibrary)
+                        {
+                            <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                        }
+                    </div>
                 </div>
+
+                <p class="workspace-panel__intro">
+                    Keep raw imports inside this browser, reopen saved lists instantly, and branch them into a working copy when you want to tune the shell.
+                </p>
 
                 <MudSelect T="string" Label="Source format" Value="@SelectedImportFormatId" ValueChanged="ImportFormatChanged">
                     @foreach (var option in SupportedImportFormats)
@@ -120,6 +176,11 @@
                     </MudAlert>
                 }
 
+                <div class="workspace-subheader">
+                    <span class="workspace-subheader__label">Deck library</span>
+                    <span class="workspace-subheader__value">@ImportedDecks.Count.ToString("00")</span>
+                </div>
+
                 <div class="workspace-search-results" data-testid="imported-deck-library">
                     @if (ImportedDecks.Count == 0)
                     {
@@ -131,9 +192,13 @@
                         {
                             var isActiveDeck = string.Equals(importedDeck.ImportedDeckId, ActiveImportedDeckId, StringComparison.OrdinalIgnoreCase);
                             <article class="workspace-search-result">
-                                <div>
-                                    <strong>@importedDeck.Name</strong>
+                                <div class="workspace-search-result__body">
+                                    <div class="workspace-search-result__headline">
+                                        <strong>@importedDeck.Name</strong>
+                                        <span class="workspace-search-result__meta">@(isActiveDeck ? "Active" : importedDeck.SourceFormatId)</span>
+                                    </div>
                                     <p>@importedDeck.SourceFormatId</p>
+                                    <span class="workspace-search-result__timestamp">Imported @importedDeck.ImportedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</span>
                                 </div>
                                 <div class="workspace-search-result__actions">
                                     <button type="button"
@@ -185,11 +250,18 @@
                         <p class="workspace-panel__label">Search</p>
                         <h2>Draft the shell</h2>
                     </div>
-                    @if (IsBusy)
-                    {
-                        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-                    }
+                    <div class="workspace-panel__header-side">
+                        <span class="workspace-panel__badge">@SearchResults.Count results</span>
+                        @if (IsBusy)
+                        {
+                            <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                        }
+                    </div>
                 </div>
+
+                <p class="workspace-panel__intro">
+                    Search for commanders, staples, and glue pieces, then push the strongest candidates directly into the deck or elevate them to the command zone.
+                </p>
 
                 <div class="workspace-search">
                     <input class="workspace-search__input"
@@ -202,6 +274,11 @@
                             disabled="@IsBusy">
                         Search index
                     </button>
+                </div>
+
+                <div class="workspace-subheader">
+                    <span class="workspace-subheader__label">Search results</span>
+                    <span class="workspace-subheader__value">@SearchResults.Count.ToString("00")</span>
                 </div>
 
                 <div class="workspace-search-results" data-testid="search-results">
@@ -242,7 +319,12 @@
                         <p class="workspace-panel__label">Signals</p>
                         <h2>Validation and bracket pulse</h2>
                     </div>
+                    <span class="workspace-panel__badge">@ValidationStatusLabel</span>
                 </div>
+
+                <p class="workspace-panel__intro">
+                    Watch legality, bracket pressure, and synergy drift in one place while the working copy evolves through each lane adjustment.
+                </p>
 
                 @if (State.Status == DeckWorkspaceStatus.Loading)
                 {
@@ -270,6 +352,11 @@
                 else
                 {
                     <div class="workspace-state workspace-state--ready" data-testid="workspace-ready">
+                        <div class="workspace-subheader workspace-subheader--flush">
+                            <span class="workspace-subheader__label">Telemetry snapshot</span>
+                            <span class="workspace-subheader__value">@State.Findings.Count.ToString("00") findings</span>
+                        </div>
+
                         <div class="workspace-metric-strip">
                             <div>
                                 <span>Deck cards</span>
@@ -529,6 +616,16 @@
     private ImportedDeckRecord? pendingDeleteDeck;
 
     private bool isDeletingImportedDeck;
+
+    private WorkspaceCardView? ActiveCommander => Cards.FirstOrDefault(static card => card.IsCommander);
+
+    private int TotalDeckCards => Cards.Sum(static card => card.Quantity);
+
+    private string ValidationStatusLabel => State.Validation?.IsValid == true ? "Ready" : "Needs work";
+
+    private string WorkspaceModeSummary => IsWorkspaceLinkedToSavedDeck
+        ? $"Linked to {(string.IsNullOrWhiteSpace(ActiveWorkspaceDeckName) ? "the selected saved deck" : ActiveWorkspaceDeckName)}. Working-copy edits persist automatically."
+        : "Detached working copy. Save it to the library when you want this draft to become a reusable local deck.";
 
     protected override void OnParametersSet()
     {
