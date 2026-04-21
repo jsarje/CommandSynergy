@@ -6,7 +6,6 @@ using CommandSynergy.Components.Decks;
 using CommandSynergy.Client.Services;
 using CommandSynergy.Endpoints;
 using CommandSynergy.Infrastructure;
-using Microsoft.AspNetCore.Components;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,11 +17,20 @@ builder.Services.AddRazorComponents()
 builder.Services
     .AddCommandSynergyApplication(builder.Configuration)
     .AddCommandSynergyInfrastructure(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddMudServices();
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddScoped(static serviceProvider => new HttpClient
+builder.Services.AddScoped(static serviceProvider =>
 {
-    BaseAddress = new Uri(serviceProvider.GetRequiredService<NavigationManager>().BaseUri),
+    // Use IHttpContextAccessor to derive the base URI so this works for both
+    // Blazor Server components and plain HTTP API requests, where NavigationManager
+    // (RemoteNavigationManager) may not yet be initialized.
+    var httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
+    var request = httpContextAccessor.HttpContext?.Request;
+    var baseUri = request is not null
+        ? $"{request.Scheme}://{request.Host}/"
+        : "http://localhost/";
+    return new HttpClient { BaseAddress = new Uri(baseUri) };
 });
 builder.Services.AddScoped<DeckWorkspaceStateFactory>();
 builder.Services.AddScoped<CardSearchIndexClient>();
@@ -31,7 +39,6 @@ builder.Services.AddScoped<DeckWorkspaceViewModel>();
 builder.Services.AddScoped<ILocalStorageStringStore, StreamingLocalStorageStringStore>();
 builder.Services.AddScoped<ImportedDeckLibrarySerializer>();
 builder.Services.AddScoped<ImportedDeckLibraryStore>();
-builder.Services.AddScoped<ImportedDeckLibraryState>();
 
 var app = builder.Build();
 
