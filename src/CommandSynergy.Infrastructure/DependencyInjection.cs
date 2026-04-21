@@ -4,7 +4,6 @@ using CommandSynergy.Application.Cards;
 using CommandSynergy.Application.Decks;
 using CommandSynergy.Infrastructure.Analysis;
 using CommandSynergy.Infrastructure.CardMetadata;
-using CommandSynergy.Infrastructure.Configuration;
 using CommandSynergy.Infrastructure.Observability;
 using CommandSynergy.Infrastructure.Scryfall;
 using Microsoft.Extensions.Configuration;
@@ -28,8 +27,6 @@ public static class DependencyInjection
         services.AddSingleton<SearchIndexSnapshotBuilder>();
         services.AddSingleton<ScryfallCardMapper>();
         services.AddSingleton<CardMetadataBulkImportService>();
-        services.AddSingleton<BracketCatalogLoader>();
-        services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<BracketCatalogLoader>().Load());
         services.AddSingleton<DeckAnalysisCache>();
         services.AddSingleton<AnalysisTelemetry>();
         services.AddScoped<CardSearchService>();

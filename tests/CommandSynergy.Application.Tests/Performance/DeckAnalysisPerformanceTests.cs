@@ -27,6 +27,7 @@ public sealed class DeckAnalysisPerformanceTests
                     TypeLine = index == 1 ? "Legendary Creature" : "Artifact",
                     OracleText = index % 10 == 0 ? "Add one mana of any color." : "Draw a card.",
                     SaltScore = index % 15 == 0 ? 2.5m : 0.5m,
+                    IsGameChanger = index == 10,
                     PlayRateByCommander = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase)
                     {
                         ["oracle-1"] = 0.35m,
@@ -40,21 +41,12 @@ public sealed class DeckAnalysisPerformanceTests
         var options = Options.Create(new BracketOptions
         {
             LevelThresholds = [0m, 5m, 10m, 15m, 20m],
-            GameChangers =
-            [
-                new BracketGameChangerOption
-                {
-                    CardId = "oracle-10",
-                    Category = "game-changer",
-                    Weight = 6m,
-                    Explanation = "Card 10 is a configured game changer.",
-                },
-            ],
+            GameChangerWeight = 6m,
         });
 
         var sut = new DeckAnalysisService(
             gateway,
-            new BracketCalculationService(GameChangerCatalog.FromOptions(options.Value.GameChangers), new Domain.Analysis.BracketEngine(), new AnalysisExplanationBuilder(), options),
+            new BracketCalculationService(new Domain.Analysis.BracketEngine(), new AnalysisExplanationBuilder(), options),
             new SynergyScoringService(new AnalysisExplanationBuilder()),
             Array.Empty<IDeckAdviceService>());
 

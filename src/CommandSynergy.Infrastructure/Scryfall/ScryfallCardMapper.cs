@@ -51,6 +51,7 @@ public sealed class ScryfallCardMapper
             face.ImageUri,
             index == 0)).DefaultIfEmpty(new CardFaceProfile("0", document.Name, document.ManaCost, document.TypeLine ?? string.Empty, document.OracleText, document.ImageUri, true)).ToArray(),
         ImageUri = document.ImageUri,
+        IsGameChanger = document.IsGameChanger,
         IsLegalInCommander = !string.Equals(document.CommanderLegality, "not_legal", StringComparison.OrdinalIgnoreCase),
         CommanderEligibilityBasis = DetermineEligibilityBasis(document),
         MetadataSource = metadataSource,

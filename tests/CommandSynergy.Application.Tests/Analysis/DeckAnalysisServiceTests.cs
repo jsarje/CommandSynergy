@@ -32,21 +32,12 @@ public sealed class DeckAnalysisServiceTests
         var options = Options.Create(new BracketOptions
         {
             LevelThresholds = [0m, 1m, 2m, 3m, 4m],
-            GameChangers =
-            [
-                new BracketGameChangerOption
-                {
-                    CardId = "mana-rock-oracle",
-                    Category = "game-changer",
-                    Weight = 2.5m,
-                    Explanation = "Mana Rock is a configured game changer.",
-                },
-            ],
+            GameChangerWeight = 2.5m,
         });
 
         var sut = new DeckAnalysisService(
             gateway,
-            new BracketCalculationService(GameChangerCatalog.FromOptions(options.Value.GameChangers), new Domain.Analysis.BracketEngine(), new AnalysisExplanationBuilder(), options),
+            new BracketCalculationService(new Domain.Analysis.BracketEngine(), new AnalysisExplanationBuilder(), options),
             new SynergyScoringService(new AnalysisExplanationBuilder()),
             Array.Empty<IDeckAdviceService>());
 
@@ -82,6 +73,7 @@ public sealed class DeckAnalysisServiceTests
         OracleText = oracleText,
         SaltScore = saltScore,
         GenericColorStapleRate = genericColorStapleRate,
+        IsGameChanger = true,
         PlayRateByCommander = playRateByCommander ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
         FaceProfiles = [ new CardFaceProfile("0", name, null, "Artifact", oracleText, null, true) ],
     };

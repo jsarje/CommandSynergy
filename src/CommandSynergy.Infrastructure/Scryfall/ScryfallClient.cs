@@ -298,6 +298,9 @@ public sealed record ScryfallCardDocument
     [JsonPropertyName("card_faces")]
     public IReadOnlyList<ScryfallCardFaceDocument> CardFaces { get; init; } = Array.Empty<ScryfallCardFaceDocument>();
 
+    [JsonPropertyName("game_changer")]
+    public bool IsGameChanger { get; init; }
+
     [JsonPropertyName("legalities")]
     public ScryfallLegalities? Legalities { get; init; }
 

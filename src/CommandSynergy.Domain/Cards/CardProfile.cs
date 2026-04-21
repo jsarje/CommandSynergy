@@ -31,6 +31,8 @@ public sealed class CardProfile
 
     public decimal? GenericColorStapleRate { get; init; }
 
+    public bool IsGameChanger { get; init; }
+
     public bool IsLegalInCommander { get; init; } = true;
 
     public bool AllowsMultipleCopies { get; init; }
