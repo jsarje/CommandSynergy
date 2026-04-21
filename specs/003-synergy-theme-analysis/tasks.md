@@ -44,7 +44,7 @@
 
 ## Phase 3: User Story 1 - Identify Deck Themes (Priority: P1) 🎯 MVP
 
-**Goal**: Detect and rank the deck's dominant themes, suppress results for undersized decks, and refresh theme analysis as the workspace changes.
+**Goal**: Detect and rank the deck's dominant themes using commander-weighted primary-theme direction, suppress results for undersized decks, and refresh theme analysis as the workspace changes.
 
 **Independent Test**: Submit a known graveyard-focused deck and a no-clear-theme deck, confirm the ranked themes and placeholder states match the spec, and verify the analysis refreshes after deck edits.
 
@@ -52,18 +52,18 @@
 
 - [ ] T012 [P] [US1] Add taxonomy signal coverage for the canonical theme list in tests/CommandSynergy.Domain.Tests/Analysis/ThemeTaxonomyTests.cs
 - [ ] T013 [P] [US1] Add per-card theme signal tests for oracle text, keywords, and type-line matching in tests/CommandSynergy.Application.Tests/Analysis/ThemeMatchingServiceTests.cs
-- [ ] T014 [P] [US1] Add deck-level ranking and insufficient-card analysis tests in tests/CommandSynergy.Application.Tests/Analysis/ThemeAnalysisServiceTests.cs
+- [ ] T014 [P] [US1] Add deck-level ranking, commander-weighted primary-theme, and insufficient-card analysis tests in tests/CommandSynergy.Application.Tests/Analysis/ThemeAnalysisServiceTests.cs
 - [ ] T015 [P] [US1] Add bUnit coverage for loading, error, insufficient, and ready theme states in tests/CommandSynergy.WebUI.Tests/Components/ThemeAnalysisPanelTests.cs
 
 ### Implementation for User Story 1
 
 - [ ] T016 [US1] Implement canonical theme definitions and signal scoring in src/CommandSynergy.Domain/Analysis/ThemeTaxonomy.cs and src/CommandSynergy.Application/Analysis/ThemeMatchingService.cs
-- [ ] T017 [US1] Implement deck theme aggregation, ranking, and insufficient-card handling in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs
+- [ ] T017 [US1] Implement deck theme aggregation, commander-weighted ranking, and insufficient-card handling in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs
 - [ ] T018 [US1] Extend deck analysis orchestration to populate themeAnalysis on every workspace re-analysis in src/CommandSynergy.Application/Analysis/DeckAnalysisService.cs and src/CommandSynergy.Client/Services/DeckWorkspaceClient.cs
 - [ ] T019 [US1] Add the theme analysis panel component and accessible state markup in src/CommandSynergy/Components/Decks/ThemeAnalysisPanel.razor and src/CommandSynergy/Components/Decks/ThemeAnalysisPanel.razor.css
 - [ ] T020 [US1] Render theme analysis alongside the existing deck summary and preserve stale-result messaging during refresh in src/CommandSynergy/Components/Decks/DeckWorkspace.razor and src/CommandSynergy/Components/Decks/DeckWorkspaceViewModel.cs
 
-**Checkpoint**: User Story 1 should now identify dominant themes and show the required loading, empty, error, and ready states independently of later stories
+**Checkpoint**: User Story 1 should now identify dominant themes with commander-weighted ranking and show the required loading, empty, error, and ready states independently of later stories
 
 ---
 
@@ -114,20 +114,20 @@
 
 ## Phase 6: User Story 4 - Commander-Anchored Alignment (Priority: P2)
 
-**Goal**: Weight the commander heavily in the analysis, show how well the 99 support that plan, and optionally blend EDHREC synergy without blocking local analysis.
+**Goal**: Show how well the 99 support the commander's plan and optionally blend EDHREC synergy without blocking local analysis.
 
 **Independent Test**: Analyse a deck whose commander and 99 are aligned, a deck whose 99 fights the commander's plan, and a deck with no commander, then confirm the alignment indicator and graceful EDHREC fallback match the spec.
 
 ### Tests for User Story 4
 
-- [ ] T032 [P] [US4] Add commander-weighting and alignment-level tests for matching, conflicting, and commanderless decks in tests/CommandSynergy.Application.Tests/Analysis/ThemeAnalysisServiceTests.cs
+- [ ] T032 [P] [US4] Add commander-alignment level tests for matching, conflicting, and commanderless decks in tests/CommandSynergy.Application.Tests/Analysis/ThemeAnalysisServiceTests.cs
 - [ ] T033 [P] [US4] Add EDHREC slug validation, response parsing, and fallback tests in tests/CommandSynergy.Infrastructure.Tests/Edhrec/EdhrecClientTests.cs
 - [ ] T034 [P] [US4] Add endpoint regression coverage for commanderAlignment and EDHREC-enhanced final scores in tests/CommandSynergy.WebUI.Tests/Endpoints/DeckAnalysisEndpointTests.cs
 
 ### Implementation for User Story 4
 
 - [ ] T035 [US4] Implement EDHREC commander documents and resilient client access in src/CommandSynergy.Infrastructure/Edhrec/EdhrecCommanderDocument.cs and src/CommandSynergy.Infrastructure/Edhrec/EdhrecClient.cs
-- [ ] T036 [US4] Integrate commander weighting, alignment computation, and optional EDHREC blending in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs and src/CommandSynergy.Application/Analysis/DeckAnalysisService.cs
+- [ ] T036 [US4] Integrate commander alignment computation and optional EDHREC blending in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs and src/CommandSynergy.Application/Analysis/DeckAnalysisService.cs
 - [ ] T037 [US4] Surface commander alignment indicators and EDHREC-degraded messaging in src/CommandSynergy/Components/Decks/ThemeAnalysisPanel.razor and src/CommandSynergy/Components/Decks/DeckWorkspace.razor
 
 **Checkpoint**: User Story 4 should now evaluate whether the 99 support the commander while keeping local theme analysis available when EDHREC data is absent or rejected
@@ -139,11 +139,13 @@
 **Purpose**: Validate documentation, performance, security, and end-to-end quality across all delivered stories.
 
 - [ ] T038 [P] Update README.md and specs/003-synergy-theme-analysis/quickstart.md with ingestion refresh steps, EDHREC fallback behavior, and theme-analysis usage guidance
-- [ ] T039 [P] Add performance regression coverage for full-deck and single-card-update analysis budgets in tests/CommandSynergy.Application.Tests/Performance/ThemeAnalysisPerformanceTests.cs
+- [ ] T039 [P] Add performance regression coverage for full-deck and single-card-update analysis budgets in tests/CommandSynergy.Application.Tests/Performance/ThemeAnalysisPerformanceTests.cs and response-time assertions for representative 100-card analysis requests in tests/CommandSynergy.WebUI.Tests/Endpoints/DeckAnalysisIntegrationTests.cs
 - [ ] T040 [P] Add security and serialization regressions for slug allowlisting and theme payload compatibility in tests/CommandSynergy.Infrastructure.Tests/Edhrec/EdhrecClientTests.cs and tests/CommandSynergy.WebUI.Tests/ContractSerializationTests.cs
-- [ ] T041 Validate telemetry, logging, accessibility states, and quickstart execution across src/CommandSynergy.Application/Analysis/DeckAnalysisService.cs, src/CommandSynergy.Infrastructure/Edhrec/EdhrecClient.cs, src/CommandSynergy/Components/Decks/ThemeAnalysisPanel.razor, and specs/003-synergy-theme-analysis/quickstart.md
-- [ ] T044 [P] Add end-to-end integration coverage for known focused, unfocused, and commander-misaligned deck fixtures against /api/deck/analyse in tests/CommandSynergy.WebUI.Tests/Endpoints/DeckAnalysisIntegrationTests.cs
+- [ ] T041 Validate telemetry and logging coverage for theme-analysis execution and EDHREC fallback paths in src/CommandSynergy.Application/Analysis/DeckAnalysisService.cs and src/CommandSynergy.Infrastructure/Edhrec/EdhrecClient.cs
+- [ ] T044 [P] Add end-to-end integration coverage for known focused, unfocused, and commander-misaligned deck fixtures against /api/deck/analyse, including initial-view-ready payload assertions used by the deck workspace in tests/CommandSynergy.WebUI.Tests/Endpoints/DeckAnalysisIntegrationTests.cs
 - [ ] T045 Document the OWASP threat review, mitigation evidence, and disposition of any high-severity findings in specs/003-synergy-theme-analysis/checklists/security-review.md
+- [ ] T046 [P] Add accessibility regression coverage for ARIA roles, labels, and initial-view visibility of top-theme contributors and off-theme reasons in tests/CommandSynergy.WebUI.Tests/Components/ThemeAnalysisPanelTests.cs
+- [ ] T047 Validate quickstart execution for both local-only analysis and EDHREC-degraded fallback in specs/003-synergy-theme-analysis/quickstart.md
 
 ---
 
@@ -161,10 +163,10 @@
 
 ### User Story Dependencies
 
-- **User Story 1 (P1)**: Can start after Foundational - no dependency on other user stories
+- **User Story 1 (P1)**: Can start after Foundational - no dependency on other user stories and establishes the commander-weighted base ranking required by FR-007
 - **User Story 2 (P1)**: Can start after Foundational, but it benefits from the base theme-analysis pipeline introduced in US1
 - **User Story 3 (P2)**: Depends on US1's ranked-theme outputs and remains independently testable once those outputs exist
-- **User Story 4 (P2)**: Depends on US1's aggregation pipeline and remains independently testable without US3's expanded card-exploration UI
+- **User Story 4 (P2)**: Depends on US1's commander-weighted aggregation pipeline and remains independently testable without US3's expanded card-exploration UI
 
 ### Within Each User Story
 

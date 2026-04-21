@@ -116,8 +116,8 @@ The system weights the commander card when determining primary theme direction a
 
 - **SC-001**: Theme analysis for a complete 100-card Commander deck is visible to the user within 3 seconds of deck submission or update
 - **SC-002**: A known theme-focused deck scores at least 30 points higher than an equal-length random card pile in synergy score, validating discriminatory power
-- **SC-003**: Users can identify their deck's top 3 themes and the cards driving them without any additional navigation or documentation
-- **SC-004**: Users surfaced with an "Off-theme" list can identify at least one card to cut without needing external guidance
+- **SC-003**: In the initial deck workspace view, users can see the deck's top 3 themes and at least one contributing card for each theme without navigating to another page or opening additional documentation
+- **SC-004**: When off-theme cards exist, the analysis view surfaces at least one off-theme card name and its off-theme or unavailable-metadata reason in the same screen as the ranked theme results
 - **SC-005**: No high-severity OWASP-relevant findings remain open for the delivered scope
 
 ## Assumptions

@@ -19,7 +19,7 @@ Adds a ~35-theme taxonomy engine that pre-computes oracle-text-derived theme sig
 **Language/Version**: .NET 10 / C# 14  
 **Primary Dependencies**: ASP.NET Core 10, Blazor Web App (Interactive Auto render mode), MudBlazor, Parquet.Net 5.2.0, `System.Text.RegularExpressions` (NonBacktracking engine), `Microsoft.Extensions.Http.Resilience` (EDHREC HTTP client), xUnit, bUnit, FluentAssertions  
 **Storage**: Local Parquet snapshot (`cards.parquet`) — additive `ThemeSignals` column; in-memory `IMemoryCache` for EDHREC per-commander data (15-min TTL)  
-**Testing**: xUnit (domain, application, infrastructure layers), bUnit (Blazor component tests), FluentAssertions  
+**Testing**: xUnit (domain, application, infrastructure layers), bUnit (Blazor component tests), FluentAssertions, endpoint integration coverage with timing assertions for NFR-001 and initial-view assertions for SC-003/SC-004  
 **Target Platform**: ASP.NET Core 10 Blazor Web App, Interactive Auto render mode  
 **Project Type**: web-app (extension to existing Commander deck workspace)  
 **Performance Goals**: Full 100-card analysis ≤ 3 s (NFR-001); incremental update on single-card change ≤ 1 s; EDHREC fetch non-blocking — local analysis available immediately, EDHREC blend applied when cache resolves  
@@ -32,7 +32,7 @@ Adds a ~35-theme taxonomy engine that pre-computes oracle-text-derived theme sig
 *GATE: Must pass before Phase 0 research. Re-checked post-design. All items pass.*
 
 - **Code quality** ✅ — .NET 10 / C# 14; nullable reference types enabled; all new types are `sealed record` or `sealed class`; analyzers active; no justified deviations required
-- **Tests** ✅ — xUnit unit tests for `ThemeTaxonomy`, `ThemeMatchingService`, `ThemeAnalysisService`; xUnit tests for `EdhrecClient` with mocked `HttpMessageHandler`; bUnit component tests for all four `ThemeAnalysisPanel` states (loading, empty, error, ready); integration test validating end-to-end analysis of a known deck configuration against the `/api/deck/analyse` endpoint (NFR-004)
+- **Tests** ✅ — xUnit unit tests for `ThemeTaxonomy`, `ThemeMatchingService`, `ThemeAnalysisService`; xUnit tests for `EdhrecClient` with mocked `HttpMessageHandler`; bUnit component tests for all four `ThemeAnalysisPanel` states (loading, empty, error, ready) plus initial-view contributor and off-theme visibility; integration test validating end-to-end analysis of a known deck configuration against the `/api/deck/analyse` endpoint with timing assertions for NFR-001 (NFR-004)
 - **UX states** ✅ — Loading (computing), Empty (< 20 cards — "Add more cards" placeholder), Error (analysis failed), Ready (results available); ARIA roles and labels required per NFR-002; `IsLoading → HasError → IsInsufficient → Ready` state evaluation order enforced (matches existing AnalysisPanel convention)
 - **Performance** ✅ — Pre-computed `ThemeSignals` in Parquet eliminate per-card oracle-text scanning at runtime; commander-weighted aggregation is O(n) over deck size; EDHREC blend is async and non-blocking; budgets per NFR-001
 - **Security** ✅ — SSRF: slug allowlist before HTTP; Injection: regex-only oracle text evaluation; Dependencies: resilience handler + timeout; Logging: no PII or full card data at Info+
@@ -81,7 +81,8 @@ src/
 │       └── EdhrecCommanderDocument.cs   (new — deserialization model)
 ├── CommandSynergy/
 │   └── Components/
-│       └── ThemeAnalysisPanel.razor     (new — ranked themes, synergy bar, commander alignment, off-theme list)
+│       └── Decks/
+│           └── ThemeAnalysisPanel.razor     (new — ranked themes, synergy bar, commander alignment, off-theme list)
 └── CommandSynergy.Ingestion/
     └── Program.cs                       (modified — call ThemeMatchingService during bulk import)
 
@@ -101,4 +102,4 @@ tests/
         └── ThemeAnalysisPanelTests.cs      (new — all four UI states via bUnit)
 ```
 
-**Structure Decision**: Existing Clean Architecture layout extended. Domain types added to `CommandSynergy.Domain/Analysis/`; application services to `CommandSynergy.Application/Analysis/`; infrastructure split between `CardMetadata/` (Parquet), `Scryfall/` (keywords field), and new `Edhrec/` (external client). New `ThemeAnalysisPanel.razor` co-located with existing components in `CommandSynergy/Components/`. No new projects required.
+**Structure Decision**: Existing Clean Architecture layout extended. Domain types added to `CommandSynergy.Domain/Analysis/`; application services to `CommandSynergy.Application/Analysis/`; infrastructure split between `CardMetadata/` (Parquet), `Scryfall/` (keywords field), and new `Edhrec/` (external client). New `ThemeAnalysisPanel.razor` lives alongside the existing deck workspace components in `CommandSynergy/Components/Decks/`. No new projects required.
