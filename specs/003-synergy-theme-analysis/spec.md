@@ -100,7 +100,7 @@ The system weights the commander card when determining primary theme direction a
 
 - **NFR-001**: Theme analysis and synergy score computation for a complete 100-card Commander deck MUST complete within 3 seconds; for incremental updates triggered by a single card change, within 1 second
 - **NFR-002**: System MUST display distinct states for: loading (computing), empty (insufficient cards), error (analysis failed), and ready (results available); all states MUST be accessible with appropriate ARIA roles and labels
-- **NFR-003**: Theme matching MUST read card names and oracle text exclusively from the trusted card metadata store — no user-supplied free-text is evaluated as executable logic; no external API calls are triggered at runtime by this feature
+- **NFR-003**: Theme matching MUST read card names and oracle text exclusively from the trusted card metadata store — no user-supplied free-text is evaluated as executable logic. Optional commander-specific EDHREC enrichment MAY be fetched at runtime only after local analysis is available, MUST use validated allowlisted slugs, and MUST degrade gracefully to local-only results when unavailable or rejected
 - **NFR-004**: Automated test evidence MUST include: unit tests for theme-matching logic against known cards, unit tests for synergy score calculation covering focused and unfocused deck configurations, component tests for all display states (loading, empty, error, ready), and at least one integration test validating end-to-end analysis of a known deck configuration
 
 ### Key Entities *(include if feature involves data)*
@@ -131,6 +131,7 @@ The system weights the commander card when determining primary theme direction a
 - Theme taxonomy is static at runtime — user-defined custom themes are out of scope for this version
 - The synergy score algorithm weights thematic concentration: decks with few strong themes score higher than decks with many weak themes
 - Performance targets assume card metadata is loaded in memory at analysis time — no Parquet file reads occur during per-request analysis
+- Optional EDHREC enrichment is non-authoritative and may adjust the final displayed score only after local theme analysis completes; if EDHREC data is unavailable, invalid, or rejected, the feature falls back to local-only analysis without surfacing an error state
 - Mobile responsiveness relies on the existing MudBlazor layout infrastructure; no dedicated mobile-first design work is in scope
 
 ## Clarifications
