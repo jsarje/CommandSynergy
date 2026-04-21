@@ -31,6 +31,10 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
     {
         var cut = RenderWorkspace();
 
+        cut.FindAll("[data-testid='workspace-utility-menu']").Should().BeEmpty();
+
+        OpenUtilityMenu(cut);
+
         cut.Find("[data-testid='imported-deck-library']").TextContent.Should().Contain("browser only");
     }
 
@@ -42,13 +46,30 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
             new ImportDiagnostic("1", DiagnosticSeverity.Warning, "xss", "<script>alert(1)</script>", 1, "line", "fix it"),
         ]);
 
+        OpenUtilityMenu(cut);
+
         cut.Markup.Should().Contain("&lt;script&gt;alert(1)&lt;/script&gt;");
+    }
+
+    [Fact]
+    public void Deck_workspace_closes_utility_drawer_when_backdrop_is_clicked()
+    {
+        var cut = RenderWorkspace();
+
+        OpenUtilityMenu(cut);
+        cut.Find("[data-testid='workspace-utility-menu']");
+
+        cut.Find("[data-testid='workspace-utility-drawer-backdrop']").Click();
+
+        cut.FindAll("[data-testid='workspace-utility-menu']").Should().BeEmpty();
     }
 
     [Fact]
     public void Deck_workspace_renders_duplicate_reimport_actions()
     {
         var cut = RenderWorkspace(hasPendingDuplicateImport: true, pendingDuplicateImportName: "Isshin Pressure", pendingDuplicateImportTargetName: "Isshin Pressure 001");
+
+        OpenUtilityMenu(cut);
 
         cut.Find("[data-testid='duplicate-import-resolution']").TextContent.Should().Contain("Update the existing Isshin Pressure entry");
         cut.Find("[data-testid='duplicate-import-resolution']").TextContent.Should().Contain("Isshin Pressure 001");
@@ -65,6 +86,8 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
             ],
             onDeleteImportedDeck: deckId => deletedDeckIds.Add(deckId));
 
+        OpenUtilityMenu(cut);
+
         cut.Find("[data-testid='delete-imported-deck-deck-1']").Click();
 
         deletedDeckIds.Should().BeEmpty();
@@ -79,6 +102,11 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
         cut.Find("[data-testid='confirm-delete-imported-deck']").Click();
 
         deletedDeckIds.Should().Equal(["deck-1"]);
+    }
+
+    private static void OpenUtilityMenu(IRenderedComponent<DeckWorkspace> cut)
+    {
+        cut.Find("button[aria-label='Open import and export menu']").Click();
     }
 
     private IRenderedComponent<DeckWorkspace> RenderWorkspace(

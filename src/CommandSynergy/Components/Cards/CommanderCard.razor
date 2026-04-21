@@ -71,7 +71,13 @@
             <span class="commander-card__tag">@Card.Quantity x</span>
             @if (Card.ColorIdentity.Count > 0)
             {
-                <span class="commander-card__tag">@string.Join(" ", Card.ColorIdentity)</span>
+                <span class="commander-card__identity" aria-label="Color identity">
+                    @foreach (var color in Card.ColorIdentity)
+                    {
+                        <span class="commander-card__pip commander-card__pip--@ResolveColorClass(color)"
+                              title="@ResolveColorName(color)"></span>
+                    }
+                </span>
             }
         </div>
 
@@ -116,4 +122,24 @@
         imageUri = resolvedImageUri;
         return true;
     }
+
+    private static string ResolveColorClass(string color) => color.Trim().ToUpperInvariant() switch
+    {
+        "W" => "white",
+        "U" => "blue",
+        "B" => "black",
+        "R" => "red",
+        "G" => "green",
+        _ => "colorless",
+    };
+
+    private static string ResolveColorName(string color) => color.Trim().ToUpperInvariant() switch
+    {
+        "W" => "White",
+        "U" => "Blue",
+        "B" => "Black",
+        "R" => "Red",
+        "G" => "Green",
+        _ => "Colorless",
+    };
 }

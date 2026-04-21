@@ -2,7 +2,6 @@ using Bunit;
 using CommandSynergy.Application.Contracts;
 using CommandSynergy.Components.Decks;
 using FluentAssertions;
-using Microsoft.AspNetCore.Components.Web;
 using MudBlazor.Services;
 
 namespace CommandSynergy.WebUI.Tests.Components;
@@ -15,19 +14,16 @@ public sealed class PileBoardTests : BunitContext
     }
 
     [Fact]
-    public void Pile_board_emits_move_request_when_card_is_dropped_on_new_pile()
+    public void Pile_board_renders_only_commander_and_mainboard_lanes()
     {
-        MoveCardRequest? capturedRequest = null;
-
         var cut = Render<PileBoard>(parameters => parameters
             .Add(component => component.Piles, CreatePiles())
-            .Add(component => component.Cards, [CreateCard("sol-ring", DeckWorkspaceViewModel.MainboardPileId)])
-            .Add(component => component.MoveRequested, (MoveCardRequest request) => capturedRequest = request));
+            .Add(component => component.Cards, [CreateCard("sol-ring", DeckWorkspaceViewModel.MainboardPileId)]));
 
-        cut.Find("[data-testid='pile-card-sol-ring']").DragStart(new DragEventArgs());
-        cut.Find("[data-testid='pile-drop-interaction']").Drop(new DragEventArgs());
-
-        capturedRequest.Should().BeEquivalentTo(new MoveCardRequest("sol-ring", "interaction"));
+        cut.FindAll("[data-testid^='pile-lane-']").Should().HaveCount(2);
+        cut.Markup.Should().NotContain("Interaction");
+        cut.FindAll("button[data-testid^='move-']").Should().BeEmpty();
+        cut.Find("[data-testid='pile-card-sol-ring']").HasAttribute("draggable").Should().BeFalse();
     }
 
     [Fact]

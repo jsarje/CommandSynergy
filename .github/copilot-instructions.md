@@ -52,4 +52,24 @@ dotnet test src/CommandSynergy.slnx
 - **Bulk snapshot refresh**: Use `CommandSynergy.Ingestion` to download Scryfall `oracle_cards` and replace `cards.parquet` atomically; runtime fallback in `CardMetadataQueryService` is read-only and must not mutate Parquet during user requests.
 
 <!-- MANUAL ADDITIONS START -->
+## Design Context
+
+### Users
+- Magic: The Gathering players crafting their perfect Commander deck during focused deckbuilding sessions.
+- The core job is to build a decklist and evaluate its bracket and power level with confidence.
+
+### Brand Personality
+- Warm, mechanical, and opinionated.
+- The UI should feel like a crafted deckbuilding instrument rather than a generic admin dashboard.
+
+### Aesthetic Direction
+- Light-first, tactile, and archival rather than glossy or futuristic.
+- Pair tabletop warmth with analytical precision.
+- Avoid generic SaaS patterns and neutral dashboard styling.
+
+### Design Principles
+- Make deckbuilding feel deliberate and consequential.
+- Use strong hierarchy to surface bracket signals, deck-state changes, and key decisions quickly.
+- Favor confident presentation over filler and generic chrome.
+- Maintain WCAG AA accessibility; motion can be expressive, but clarity and control come first.
 <!-- MANUAL ADDITIONS END -->

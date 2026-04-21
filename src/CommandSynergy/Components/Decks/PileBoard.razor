@@ -4,42 +4,40 @@
     <div class="pile-board__header">
         <div>
             <p class="workspace-panel__label">Workspace</p>
-            <h2>Sort by role and pressure-test reshuffles</h2>
+            <h2>Two lanes, one clear deckbench</h2>
         </div>
-        <p class="pile-board__hint">Drag a card between piles or use the touch-safe quick-move buttons under each card.</p>
+        <p class="pile-board__hint">The command zone stays compact while the mainboard gets the space needed for the other 98-plus cards.</p>
     </div>
 
-    <div class="pile-board__grid">
-        @foreach (var pile in Piles.OrderBy(static pile => pile.SortOrder))
+    <div class="pile-board__lanes">
+        @foreach (var lane in VisibleLanes)
         {
-            var cardsInPile = Cards.Where(card => string.Equals(ResolvePileId(card), pile.PileId, StringComparison.OrdinalIgnoreCase)).ToArray();
+            var cardsInPile = GetCardsForPile(lane.PileId);
+            var laneClass = GetLaneClass(lane.PileId);
 
-            <section class="pile-board__pile"
-                     data-testid="pile-drop-@pile.PileId"
-                     @ondragover:preventDefault="true"
-                     @ondrop="() => HandleDropAsync(pile.PileId)">
+            <section class="pile-board__pile @laneClass"
+                     data-testid="pile-lane-@lane.PileId">
                 <header class="pile-board__pile-header">
                     <div>
-                        <h3>@pile.Name</h3>
+                        <h3>@lane.Name</h3>
                         <p>@cardsInPile.Sum(static card => card.Quantity) cards</p>
                     </div>
-                    <span class="commander-card__tag">Lane @pile.SortOrder</span>
+                    <span class="pile-board__lane-badge">@GetLaneBadge(lane.PileId)</span>
                 </header>
 
-                <div class="pile-board__cards">
+                <p class="pile-board__pile-note">@GetLaneDescription(lane.PileId)</p>
+
+                <div class="pile-board__cards @(IsCommandZone(lane.PileId) ? "pile-board__cards--command" : "pile-board__cards--mainboard")">
                     @if (cardsInPile.Length == 0)
                     {
-                        <p class="pile-board__empty">Drop cards here to shape the list.</p>
+                        <p class="pile-board__empty">@GetEmptyMessage(lane.PileId)</p>
                     }
                     else
                     {
                         @foreach (var card in cardsInPile)
                         {
                             <article class="pile-board__card"
-                                     data-testid="pile-card-@card.CardId"
-                                     draggable="true"
-                                     @ondragstart="() => HandleDragStart(card.CardId)"
-                                     @ondragend="HandleDragEnd">
+                                     data-testid="pile-card-@card.CardId">
                                 <CommanderCard Card="card" />
 
                                 <div class="pile-board__actions">
@@ -52,16 +50,6 @@
                                                 title="@(card.IsCommanderEligible ? "Set this card as your commander" : "Only legal commanders can be selected.")"
                                                 @onclick="() => SetCommanderRequested.InvokeAsync(card.CardId)">
                                             Set as commander
-                                        </button>
-                                    }
-
-                                    @foreach (var targetPile in Piles.Where(targetPile => !string.Equals(targetPile.PileId, ResolvePileId(card), StringComparison.OrdinalIgnoreCase)))
-                                    {
-                                        <button type="button"
-                                                class="pile-board__move-button"
-                                                data-testid="move-@card.CardId-to-@targetPile.PileId"
-                                                @onclick="() => MoveRequested.InvokeAsync(new MoveCardRequest(card.CardId, targetPile.PileId))">
-                                            Move to @targetPile.Name
                                         </button>
                                     }
 
@@ -95,34 +83,35 @@
     public EventCallback<string> SetCommanderRequested { get; set; }
 
     [Parameter]
-    public EventCallback<MoveCardRequest> MoveRequested { get; set; }
-
-    [Parameter]
     public EventCallback<string> RemoveRequested { get; set; }
 
-    private string? draggingCardId;
+    private IReadOnlyList<PileDefinitionContract> VisibleLanes => Piles
+        .Where(static pile => string.Equals(pile.PileId, DeckWorkspaceViewModel.CommandZonePileId, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(pile.PileId, DeckWorkspaceViewModel.MainboardPileId, StringComparison.OrdinalIgnoreCase))
+        .OrderBy(static pile => pile.SortOrder)
+        .ToArray();
 
-    private void HandleDragStart(string cardId)
-    {
-        draggingCardId = cardId;
-    }
+    private WorkspaceCardView[] GetCardsForPile(string pileId) => Cards
+        .Where(card => string.Equals(ResolvePileId(card), pileId, StringComparison.OrdinalIgnoreCase))
+        .ToArray();
 
-    private void HandleDragEnd()
-    {
-        draggingCardId = null;
-    }
+    private static bool IsCommandZone(string pileId) => string.Equals(pileId, DeckWorkspaceViewModel.CommandZonePileId, StringComparison.OrdinalIgnoreCase);
 
-    private async Task HandleDropAsync(string pileId)
-    {
-        if (string.IsNullOrWhiteSpace(draggingCardId))
-        {
-            return;
-        }
+    private static string GetLaneClass(string pileId) => IsCommandZone(pileId)
+        ? "pile-board__pile--command"
+        : "pile-board__pile--mainboard";
 
-        var request = new MoveCardRequest(draggingCardId, pileId);
-        draggingCardId = null;
-        await MoveRequested.InvokeAsync(request).ConfigureAwait(false);
-    }
+    private static string GetLaneBadge(string pileId) => IsCommandZone(pileId)
+        ? "Commander lane"
+        : "Mainboard lane";
+
+    private static string GetLaneDescription(string pileId) => IsCommandZone(pileId)
+        ? "Reserved for the commander and any paired face or partner card."
+        : "The full deck shell lives here so cuts, ratios, and role balance stay easy to scan.";
+
+    private static string GetEmptyMessage(string pileId) => IsCommandZone(pileId)
+        ? "Choose a legal commander to activate the command zone."
+        : "Search results and imports add cards straight into the mainboard.";
 
     private static string ResolvePileId(WorkspaceCardView card) => card.IsCommander
         ? DeckWorkspaceViewModel.CommandZonePileId
