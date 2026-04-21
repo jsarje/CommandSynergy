@@ -1,0 +1,341 @@
+openapi: "3.1.0"
+info:
+  title: CommandSynergy Theme Analysis API
+  version: "1.0"
+  description: >
+    Describes the theme analysis extension to the existing deck analysis endpoint.
+    These contracts are additions to the existing DeckAnalysisResponseContract
+    and SynergyAssessmentContract defined in DeckWorkspaceContracts.cs.
+
+paths:
+  /api/deck/analyse:
+    post:
+      summary: Analyse deck for bracket, synergy, and theme coherence
+      description: >
+        Existing endpoint extended to include ThemeAnalysis in the response.
+        Request shape is unchanged (DeckSnapshotContract).
+        The response now includes a `themeAnalysis` object alongside the existing
+        `bracket` and `synergy` objects.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeckSnapshotContract"
+      responses:
+        "200":
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeckAnalysisResponseContract"
+        "400":
+          description: Invalid deck snapshot (e.g. null entries)
+
+components:
+  schemas:
+
+    # ─────────────────────────────────────────────────────────────
+    # Existing (unchanged) — included for context
+    # ─────────────────────────────────────────────────────────────
+
+    DeckSnapshotContract:
+      type: object
+      description: Deck snapshot submitted for analysis. Unchanged from feature 001.
+      properties:
+        deckId:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        commanderCardId:
+          type: string
+          nullable: true
+        companionCardId:
+          type: string
+          nullable: true
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeckEntryContract"
+        piles:
+          type: array
+          items:
+            $ref: "#/components/schemas/PileDefinitionContract"
+      required:
+        - entries
+
+    DeckEntryContract:
+      type: object
+      properties:
+        cardId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        assignedPileId:
+          type: string
+          nullable: true
+        isCommander:
+          type: boolean
+          default: false
+        isCompanion:
+          type: boolean
+          default: false
+      required:
+        - cardId
+        - quantity
+
+    PileDefinitionContract:
+      type: object
+      properties:
+        pileId:
+          type: string
+        name:
+          type: string
+        sortOrder:
+          type: integer
+      required:
+        - pileId
+        - name
+
+    # ─────────────────────────────────────────────────────────────
+    # Modified — DeckAnalysisResponseContract
+    # Adds themeAnalysis property
+    # ─────────────────────────────────────────────────────────────
+
+    DeckAnalysisResponseContract:
+      type: object
+      description: Combined analysis response. themeAnalysis is new in feature 003.
+      properties:
+        bracket:
+          $ref: "#/components/schemas/BracketAssessmentContract"
+        synergy:
+          $ref: "#/components/schemas/SynergyAssessmentContract"
+        themeAnalysis:
+          $ref: "#/components/schemas/ThemeAnalysisContract"
+          nullable: true
+          description: >
+            Null only when the deck has fewer than 20 cards (IsInsufficient state).
+            Present but with empty rankedThemes when analysis runs but finds no themes.
+      required:
+        - bracket
+        - synergy
+
+    # ─────────────────────────────────────────────────────────────
+    # Modified — SynergyAssessmentContract
+    # Adds themeScore, finalScore, qualitativeLabel
+    # ─────────────────────────────────────────────────────────────
+
+    SynergyAssessmentContract:
+      type: object
+      description: >
+        Synergy assessment extended with theme-derived scoring.
+        Existing score field is retained for backward compatibility.
+      properties:
+        score:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 100
+          description: Original play-rate delta score (retained for BC).
+        themeScore:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 100
+          description: Theme coherence score before EDHREC blend.
+        finalScore:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 100
+          description: >
+            Final score after optional EDHREC blend (0.7 x themeScore + 0.3 x edhrecAvg).
+            Equals themeScore when EDHREC data is unavailable.
+        qualitativeLabel:
+          type: string
+          enum: [Pile, Unfocused, Developing, Focused, Tuned]
+          description: Human-readable label derived from finalScore.
+        edhrecEnhanced:
+          type: boolean
+          default: false
+          description: True when finalScore incorporates EDHREC synergy data.
+        summary:
+          type: string
+          description: Human-readable summary sentence.
+        commanderSpecificHits:
+          type: array
+          items:
+            type: string
+          description: Card names with high commander-specific play rates (existing field).
+        stapleOverloadIndicators:
+          type: array
+          items:
+            type: string
+          description: Generic staple cards over-represented relative to commander context (existing field).
+      required:
+        - score
+        - themeScore
+        - finalScore
+        - qualitativeLabel
+        - edhrecEnhanced
+        - summary
+
+    # ─────────────────────────────────────────────────────────────
+    # New — ThemeAnalysisContract
+    # ─────────────────────────────────────────────────────────────
+
+    ThemeAnalysisContract:
+      type: object
+      description: Full theme analysis result for the submitted deck.
+      properties:
+        rankedThemes:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeckThemeContract"
+          description: All themes with strength > 0, ranked descending.
+        primaryThemes:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeckThemeContract"
+          description: Themes with strength >= 0.15 (the dominant ones).
+        offThemeCardIds:
+          type: array
+          items:
+            type: string
+          description: CardIds of cards contributing to no theme above 0.10 signal strength.
+        commanderAlignment:
+          $ref: "#/components/schemas/CommanderAlignmentContract"
+        analysedCardCount:
+          type: integer
+          minimum: 0
+        isInsufficient:
+          type: boolean
+          description: True when fewer than 20 cards were analysed; other fields are empty.
+        analysedAtUtc:
+          type: string
+          format: date-time
+      required:
+        - rankedThemes
+        - primaryThemes
+        - offThemeCardIds
+        - commanderAlignment
+        - analysedCardCount
+        - isInsufficient
+        - analysedAtUtc
+
+    DeckThemeContract:
+      type: object
+      description: A strategic theme identified in the deck.
+      properties:
+        name:
+          type: string
+          description: Theme name from the taxonomy (e.g., "Graveyard Recursion").
+          example: "Graveyard Recursion"
+        description:
+          type: string
+          description: Human-readable description of the theme.
+        strength:
+          type: number
+          format: decimal
+          minimum: 0.0
+          maximum: 1.0
+          description: Normalised aggregate signal strength [0, 1].
+        strengthLabel:
+          type: string
+          enum: [Strong, Moderate, Supporting]
+          description: >
+            Strong (>= 0.50), Moderate (>= 0.25), Supporting (< 0.25).
+        contributingCardIds:
+          type: array
+          items:
+            type: string
+          description: CardIds of cards with a non-zero signal for this theme.
+        contributingCardCount:
+          type: integer
+          minimum: 0
+      required:
+        - name
+        - description
+        - strength
+        - strengthLabel
+        - contributingCardIds
+        - contributingCardCount
+
+    CommanderAlignmentContract:
+      type: object
+      description: >
+        Indicates how well the 99-card portion supports the commander's strategic identity.
+        When no commander is present, level is "None".
+      properties:
+        level:
+          type: string
+          enum: [None, Low, Moderate, Strong]
+          description: >
+            Strong (deck strength >= 0.50 for commander's top theme),
+            Moderate (>= 0.25), Low (< 0.25), None (no commander).
+        commanderTopTheme:
+          type: string
+          nullable: true
+          description: The theme name that best describes the commander's identity.
+        deckStrengthForCommanderTheme:
+          type: number
+          format: decimal
+          minimum: 0.0
+          maximum: 1.0
+          description: Deck's aggregate strength in the commander's top theme.
+        evidenceCardIds:
+          type: array
+          items:
+            type: string
+          description: CardIds of top contributors to the commander's theme in the 99.
+      required:
+        - level
+        - deckStrengthForCommanderTheme
+        - evidenceCardIds
+
+    # ─────────────────────────────────────────────────────────────
+    # Existing (unchanged) — BracketAssessmentContract
+    # ─────────────────────────────────────────────────────────────
+
+    BracketAssessmentContract:
+      type: object
+      description: Bracket assessment. Unchanged from feature 001.
+      properties:
+        level:
+          type: integer
+          minimum: 1
+          maximum: 5
+        totalWeight:
+          type: number
+          format: decimal
+        summary:
+          type: string
+        factors:
+          type: array
+          items:
+            $ref: "#/components/schemas/BracketFactorContract"
+      required:
+        - level
+        - totalWeight
+        - summary
+
+    BracketFactorContract:
+      type: object
+      properties:
+        sourceCardId:
+          type: string
+          nullable: true
+        category:
+          type: string
+        weight:
+          type: number
+          format: decimal
+        explanation:
+          type: string
+      required:
+        - category
+        - weight
+        - explanation

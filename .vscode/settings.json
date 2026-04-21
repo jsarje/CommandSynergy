@@ -24,7 +24,8 @@
         "git checkout": true,
         "New-Item": true,
         "Out-Null": true,
-        "ConvertFrom-Json": true
+        "ConvertFrom-Json": true,
+        "Set-Content": true
     }
 }
 
