@@ -30,15 +30,22 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(BracketOptions.SectionName))
             .ValidateDataAnnotations();
 
+        services
+            .AddOptions<EdhrecOptions>()
+            .Bind(configuration.GetSection(EdhrecOptions.SectionName))
+            .ValidateDataAnnotations();
+
         services.AddSingleton<CommanderRules>();
         services.AddSingleton<BracketEngine>();
         services.AddSingleton<AnalysisExplanationBuilder>();
+        services.AddSingleton<ThemeMatchingService>();
         services.AddSingleton<TimeProvider>(TimeProvider.System);
         services.AddScoped<DeckFormatDetectionService>();
         services.AddScoped<IDeckFormatRegistry, DeckFormatRegistry>();
         services.AddScoped<IDeckImportService, DeckImportService>();
         services.AddScoped<IDeckExportService, DeckExportService>();
         services.AddScoped<IWorkingCopyProjectionService, WorkingCopyProjectionService>();
+        services.AddScoped<ThemeAnalysisService>();
         services.AddScoped<DeckFormatProfileBase, MoxfieldTextFormatProfile>();
         services.AddScoped<DeckFormatProfileBase, ManaBoxTextFormatProfile>();
         services.AddScoped<DeckFormatProfileBase, GenericPlaintextFormatProfile>();

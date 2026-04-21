@@ -17,7 +17,7 @@
 
 **Purpose**: Align configuration, fixtures, and test support for theme-analysis implementation.
 
-- [ ] T001 Add EDHREC configuration defaults and user-agent settings in src/CommandSynergy/appsettings.json and src/CommandSynergy/appsettings.Development.json
+- [X] T001 Add EDHREC configuration defaults and user-agent settings in src/CommandSynergy/appsettings.json and src/CommandSynergy/appsettings.Development.json
 - [ ] T002 [P] Add representative focused, unfocused, and commander-misaligned deck fixtures under tests/CommandSynergy.Application.Tests/Analysis/Fixtures/
 - [ ] T003 [P] Add shared theme-analysis test data builders in tests/CommandSynergy.Application.Tests/Analysis/ThemeAnalysisTestData.cs and tests/CommandSynergy.WebUI.Tests/Components/ThemeAnalysisTestData.cs
 - [ ] T004 [P] Align infrastructure and web UI test projects for theme-analysis HTTP mocking and component coverage in tests/CommandSynergy.Infrastructure.Tests/CommandSynergy.Infrastructure.Tests.csproj and tests/CommandSynergy.WebUI.Tests/CommandSynergy.WebUI.Tests.csproj
@@ -30,11 +30,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Create foundational theme-analysis domain types in src/CommandSynergy.Domain/Analysis/ThemeDefinition.cs, src/CommandSynergy.Domain/Analysis/ThemeTaxonomy.cs, src/CommandSynergy.Domain/Analysis/DeckTheme.cs, src/CommandSynergy.Domain/Analysis/CommanderAlignment.cs, and src/CommandSynergy.Domain/Analysis/ThemeAnalysis.cs
-- [ ] T006 [P] Extend card metadata and synergy models with theme-signal and score fields in src/CommandSynergy.Domain/Cards/CardProfile.cs and src/CommandSynergy.Domain/Analysis/SynergyAssessment.cs
-- [ ] T007 [P] Extend deck analysis contracts for theme analysis and enhanced synergy fields in src/CommandSynergy.Application/Contracts/DeckWorkspaceContracts.cs
-- [ ] T008 [P] Add theme-matching service scaffolding and application registration in src/CommandSynergy.Application/Analysis/ThemeMatchingService.cs and src/CommandSynergy.Application/DependencyInjection.cs
-- [ ] T009 [P] Add backward-compatible ThemeSignals parquet mapping in src/CommandSynergy.Infrastructure/CardMetadata/ParquetCardMetadataStore.cs
+- [X] T005 Create foundational theme-analysis domain types in src/CommandSynergy.Domain/Analysis/ThemeDefinition.cs, src/CommandSynergy.Domain/Analysis/ThemeTaxonomy.cs, src/CommandSynergy.Domain/Analysis/DeckTheme.cs, src/CommandSynergy.Domain/Analysis/CommanderAlignment.cs, and src/CommandSynergy.Domain/Analysis/ThemeAnalysis.cs
+- [X] T006 [P] Extend card metadata and synergy models with theme-signal and score fields in src/CommandSynergy.Domain/Cards/CardProfile.cs and src/CommandSynergy.Domain/Analysis/SynergyAssessment.cs
+- [X] T007 [P] Extend deck analysis contracts for theme analysis and enhanced synergy fields in src/CommandSynergy.Application/Contracts/DeckWorkspaceContracts.cs
+- [X] T008 [P] Add theme-matching service scaffolding and application registration in src/CommandSynergy.Application/Analysis/ThemeMatchingService.cs and src/CommandSynergy.Application/DependencyInjection.cs
+- [X] T009 [P] Add backward-compatible ThemeSignals parquet mapping in src/CommandSynergy.Infrastructure/CardMetadata/ParquetCardMetadataStore.cs
 - [ ] T010 [P] Add Scryfall keyword ingestion and bulk-import theme-signal population hooks in src/CommandSynergy.Infrastructure/Scryfall/ScryfallClient.cs and src/CommandSynergy.Ingestion/Program.cs
 - [ ] T011 Implement EDHREC options, safe HTTP registration, and dependency wiring in src/CommandSynergy.Infrastructure/DependencyInjection.cs and src/CommandSynergy/Program.cs
 
@@ -50,15 +50,15 @@
 
 ### Tests for User Story 1
 
-- [ ] T012 [P] [US1] Add taxonomy signal coverage for the canonical theme list in tests/CommandSynergy.Domain.Tests/Analysis/ThemeTaxonomyTests.cs
-- [ ] T013 [P] [US1] Add per-card theme signal tests for oracle text, keywords, and type-line matching in tests/CommandSynergy.Application.Tests/Analysis/ThemeMatchingServiceTests.cs
-- [ ] T014 [P] [US1] Add deck-level ranking, commander-weighted primary-theme, and insufficient-card analysis tests in tests/CommandSynergy.Application.Tests/Analysis/ThemeAnalysisServiceTests.cs
-- [ ] T015 [P] [US1] Add bUnit coverage for loading, error, insufficient, and ready theme states in tests/CommandSynergy.WebUI.Tests/Components/ThemeAnalysisPanelTests.cs
+- [X] T012 [P] [US1] Add taxonomy signal coverage for the canonical theme list in tests/CommandSynergy.Domain.Tests/Analysis/ThemeTaxonomyTests.cs
+- [X] T013 [P] [US1] Add per-card theme signal tests for oracle text, keywords, and type-line matching in tests/CommandSynergy.Application.Tests/Analysis/ThemeMatchingServiceTests.cs
+- [X] T014 [P] [US1] Add deck-level ranking, commander-weighted primary-theme, and insufficient-card analysis tests in tests/CommandSynergy.Application.Tests/Analysis/ThemeAnalysisServiceTests.cs
+- [X] T015 [P] [US1] Add bUnit coverage for loading, error, insufficient, and ready theme states in tests/CommandSynergy.WebUI.Tests/Components/ThemeAnalysisPanelTests.cs
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Implement canonical theme definitions and signal scoring in src/CommandSynergy.Domain/Analysis/ThemeTaxonomy.cs and src/CommandSynergy.Application/Analysis/ThemeMatchingService.cs
-- [ ] T017 [US1] Implement deck theme aggregation, commander-weighted ranking, and insufficient-card handling in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs
+- [X] T016 [US1] Implement canonical theme definitions and signal scoring in src/CommandSynergy.Domain/Analysis/ThemeTaxonomy.cs and src/CommandSynergy.Application/Analysis/ThemeMatchingService.cs
+- [X] T017 [US1] Implement deck theme aggregation, commander-weighted ranking, and insufficient-card handling in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs
 - [ ] T018 [US1] Extend deck analysis orchestration to populate themeAnalysis on every workspace re-analysis in src/CommandSynergy.Application/Analysis/DeckAnalysisService.cs and src/CommandSynergy.Client/Services/DeckWorkspaceClient.cs
 - [ ] T019 [US1] Add the theme analysis panel component and accessible state markup in src/CommandSynergy/Components/Decks/ThemeAnalysisPanel.razor and src/CommandSynergy/Components/Decks/ThemeAnalysisPanel.razor.css
 - [ ] T020 [US1] Render theme analysis alongside the existing deck summary and preserve stale-result messaging during refresh in src/CommandSynergy/Components/Decks/DeckWorkspace.razor and src/CommandSynergy/Components/Decks/DeckWorkspaceViewModel.cs
@@ -77,13 +77,13 @@
 
 - [ ] T021 [P] [US2] Add score calibration tests for focused, unfocused, and undersized deck configurations in tests/CommandSynergy.Application.Tests/Analysis/ThemeAnalysisServiceTests.cs
 - [ ] T022 [P] [US2] Add endpoint regression tests for themeScore, finalScore, qualitativeLabel, and insufficient-deck responses in tests/CommandSynergy.WebUI.Tests/Endpoints/DeckAnalysisEndpointTests.cs
-- [ ] T023 [P] [US2] Add contract serialization coverage for enhanced synergy payloads in tests/CommandSynergy.WebUI.Tests/ContractSerializationTests.cs
+- [X] T023 [P] [US2] Add contract serialization coverage for enhanced synergy payloads in tests/CommandSynergy.WebUI.Tests/ContractSerializationTests.cs
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Implement theme coherence scoring, qualitative labels, and summary generation in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs and src/CommandSynergy.Domain/Analysis/SynergyAssessment.cs
+- [X] T024 [US2] Implement theme coherence scoring, qualitative labels, and summary generation in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs and src/CommandSynergy.Domain/Analysis/SynergyAssessment.cs
 - [ ] T025 [US2] Extend deck analysis response mapping and cache-safe score propagation in src/CommandSynergy.Application/Analysis/DeckAnalysisService.cs and src/CommandSynergy.Infrastructure/Analysis/DeckAnalysisCache.cs
-- [ ] T026 [US2] Update analysis summary UI to surface final score, label, and insufficient-card suppression in src/CommandSynergy/Components/Decks/AnalysisPanel.razor and src/CommandSynergy/Components/Decks/DeckWorkspace.razor
+- [X] T026 [US2] Update analysis summary UI to surface final score, label, and insufficient-card suppression in src/CommandSynergy/Components/Decks/AnalysisPanel.razor and src/CommandSynergy/Components/Decks/DeckWorkspace.razor
 
 **Checkpoint**: User Story 2 should now expose a coherent synergy score and qualitative verdict without depending on the later card-exploration or commander-alignment work
 
@@ -103,10 +103,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T029 [US3] Extend deck-theme and theme-analysis contracts to carry contributor reasons and off-theme identities in src/CommandSynergy.Domain/Analysis/DeckTheme.cs, src/CommandSynergy.Domain/Analysis/ThemeAnalysis.cs, and src/CommandSynergy.Application/Contracts/DeckWorkspaceContracts.cs
-- [ ] T030 [US3] Build per-theme contributor explanations and off-theme card collection in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs
+- [X] T029 [US3] Extend deck-theme and theme-analysis contracts to carry contributor reasons and off-theme identities in src/CommandSynergy.Domain/Analysis/DeckTheme.cs, src/CommandSynergy.Domain/Analysis/ThemeAnalysis.cs, and src/CommandSynergy.Application/Contracts/DeckWorkspaceContracts.cs
+- [X] T030 [US3] Build per-theme contributor explanations and off-theme card collection in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs
 - [ ] T031 [US3] Add expandable theme details, contribution explanations, and off-theme sections in src/CommandSynergy/Components/Decks/ThemeAnalysisPanel.razor and src/CommandSynergy/Components/Decks/ThemeAnalysisPanel.razor.css
-- [ ] T043 [US3] Carry unavailable-metadata reasons through theme-analysis results and render a dedicated unavailable-data indicator in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs, src/CommandSynergy.Domain/Analysis/ThemeAnalysis.cs, src/CommandSynergy.Application/Contracts/DeckWorkspaceContracts.cs, and src/CommandSynergy/Components/Decks/ThemeAnalysisPanel.razor
+- [X] T043 [US3] Carry unavailable-metadata reasons through theme-analysis results and render a dedicated unavailable-data indicator in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs, src/CommandSynergy.Domain/Analysis/ThemeAnalysis.cs, src/CommandSynergy.Application/Contracts/DeckWorkspaceContracts.cs, and src/CommandSynergy/Components/Decks/ThemeAnalysisPanel.razor
 
 **Checkpoint**: User Story 3 should now turn abstract themes into actionable keep-or-cut guidance without requiring commander-specific enhancements
 
@@ -121,14 +121,14 @@
 ### Tests for User Story 4
 
 - [ ] T032 [P] [US4] Add commander-alignment level tests for matching, conflicting, and commanderless decks in tests/CommandSynergy.Application.Tests/Analysis/ThemeAnalysisServiceTests.cs
-- [ ] T033 [P] [US4] Add EDHREC slug validation, response parsing, and fallback tests in tests/CommandSynergy.Infrastructure.Tests/Edhrec/EdhrecClientTests.cs
+- [X] T033 [P] [US4] Add EDHREC slug validation, response parsing, and fallback tests in tests/CommandSynergy.Infrastructure.Tests/Edhrec/EdhrecClientTests.cs
 - [ ] T034 [P] [US4] Add endpoint regression coverage for commanderAlignment and EDHREC-enhanced final scores in tests/CommandSynergy.WebUI.Tests/Endpoints/DeckAnalysisEndpointTests.cs
 
 ### Implementation for User Story 4
 
-- [ ] T035 [US4] Implement EDHREC commander documents and resilient client access in src/CommandSynergy.Infrastructure/Edhrec/EdhrecCommanderDocument.cs and src/CommandSynergy.Infrastructure/Edhrec/EdhrecClient.cs
-- [ ] T036 [US4] Integrate commander alignment computation and optional EDHREC blending in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs and src/CommandSynergy.Application/Analysis/DeckAnalysisService.cs
-- [ ] T037 [US4] Surface commander alignment indicators and EDHREC-degraded messaging in src/CommandSynergy/Components/Decks/ThemeAnalysisPanel.razor and src/CommandSynergy/Components/Decks/DeckWorkspace.razor
+- [X] T035 [US4] Implement EDHREC commander documents and resilient client access in src/CommandSynergy.Infrastructure/Edhrec/EdhrecCommanderDocument.cs and src/CommandSynergy.Infrastructure/Edhrec/EdhrecClient.cs
+- [X] T036 [US4] Integrate commander alignment computation and optional EDHREC blending in src/CommandSynergy.Application/Analysis/ThemeAnalysisService.cs and src/CommandSynergy.Application/Analysis/DeckAnalysisService.cs
+- [X] T037 [US4] Surface commander alignment indicators and EDHREC-degraded messaging in src/CommandSynergy/Components/Decks/ThemeAnalysisPanel.razor and src/CommandSynergy/Components/Decks/DeckWorkspace.razor
 
 **Checkpoint**: User Story 4 should now evaluate whether the 99 support the commander while keeping local theme analysis available when EDHREC data is absent or rejected
 

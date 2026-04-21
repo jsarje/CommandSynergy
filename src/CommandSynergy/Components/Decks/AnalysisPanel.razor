@@ -49,9 +49,21 @@ else
         <div class="analysis-synergy" data-testid="analysis-synergy">
             <div class="analysis-synergy__header">
                 <h4 class="analysis-synergy__label">Synergy</h4>
-                <span class="analysis-synergy__score"
-                      title="Synergy score (0–100)">@Analysis.Synergy.Score.ToString("0.#")</span>
+                @if (Analysis.ThemeAnalysis?.IsInsufficient == true)
+                {
+                    <span class="analysis-synergy__score analysis-synergy__score--muted"
+                          title="Synergy score is hidden for undersized decks">Need 20 cards</span>
+                }
+                else
+                {
+                    <span class="analysis-synergy__score"
+                          title="Synergy score (0–100)">@((Analysis.Synergy.FinalScore == 0m ? Analysis.Synergy.Score : Analysis.Synergy.FinalScore).ToString("0.#"))</span>
+                }
             </div>
+            @if (Analysis.ThemeAnalysis?.IsInsufficient != true && !string.IsNullOrWhiteSpace(Analysis.Synergy.QualitativeLabel))
+            {
+                <p class="analysis-synergy__label-pill">@Analysis.Synergy.QualitativeLabel</p>
+            }
             <p class="analysis-synergy__summary">@Analysis.Synergy.Summary</p>
 
             @if (Analysis.Synergy.CommanderSpecificHits.Count > 0)

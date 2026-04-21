@@ -1,0 +1,140 @@
+@using CommandSynergy.Application.Contracts
+
+@if (IsLoading)
+{
+    <div class="theme-analysis theme-analysis--loading" data-testid="theme-analysis-loading">
+        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+        <p class="theme-analysis__message">Recomputing deck themes…</p>
+    </div>
+}
+else if (HasError)
+{
+    <div class="theme-analysis theme-analysis--error" data-testid="theme-analysis-error">
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+            Theme analysis is temporarily unavailable. Retry sync to refresh the deck's current direction.
+        </MudAlert>
+    </div>
+}
+else if (Analysis?.ThemeAnalysis is null)
+{
+    <div class="theme-analysis theme-analysis--empty" data-testid="theme-analysis-empty">
+        <p class="theme-analysis__message">Theme analysis appears after the first successful sync with enough cards to evaluate a strategy.</p>
+    </div>
+}
+else if (Analysis.ThemeAnalysis.IsInsufficient)
+{
+    <div class="theme-analysis theme-analysis--insufficient" data-testid="theme-analysis-insufficient">
+        <p class="theme-analysis__eyebrow">Sample too small</p>
+        <p class="theme-analysis__message">Add more cards to reveal the deck's dominant themes and thematic score.</p>
+    </div>
+}
+else
+{
+    <div class="theme-analysis theme-analysis--ready" data-testid="theme-analysis-ready">
+        <div class="theme-analysis__header">
+            <div>
+                <h4>Deck Themes</h4>
+                @if (!string.IsNullOrWhiteSpace(Analysis.ThemeAnalysis.RefreshSummary))
+                {
+                    <p class="theme-analysis__message">@Analysis.ThemeAnalysis.RefreshSummary</p>
+                }
+            </div>
+            <span class="theme-analysis__alignment theme-analysis__alignment--@Analysis.ThemeAnalysis.CommanderAlignment.Level.ToLowerInvariant()">
+                @Analysis.ThemeAnalysis.CommanderAlignment.Level alignment
+            </span>
+        </div>
+
+        @if (Analysis.ThemeAnalysis.PrimaryThemes.Count == 0)
+        {
+            <p class="theme-analysis__message">No dominant themes surfaced yet. Keep tuning the 99 to sharpen the plan.</p>
+        }
+        else
+        {
+            <div class="theme-analysis__chips" aria-label="Detected themes">
+                @foreach (var theme in Analysis.ThemeAnalysis.PrimaryThemes)
+                {
+                    <span class="theme-analysis__chip">
+                        @theme.Name
+                        <strong>@theme.Strength.ToString("0.00")</strong>
+                    </span>
+                }
+            </div>
+        }
+
+        <section class="theme-analysis__section" aria-labelledby="theme-alignment-title">
+            <div class="theme-analysis__section-header">
+                <h5 id="theme-alignment-title">Commander alignment</h5>
+                <span class="theme-analysis__subtle">@Analysis.ThemeAnalysis.CommanderAlignment.CommanderTopTheme</span>
+            </div>
+            <p class="theme-analysis__message">@Analysis.ThemeAnalysis.CommanderAlignment.Summary</p>
+        </section>
+
+        @foreach (var theme in Analysis.ThemeAnalysis.RankedThemes.Take(3))
+        {
+            var contributorTestId = $"theme-contributors-{theme.Name.ToLowerInvariant().Replace(" ", "-").Replace("/", "-")}";
+
+            <section class="theme-analysis__section" aria-labelledby="@($"theme-{theme.Name}")">
+                <div class="theme-analysis__section-header">
+                    <h5 id="@($"theme-{theme.Name}")">@theme.Name</h5>
+                    <span class="theme-analysis__subtle">@theme.StrengthLabel</span>
+                </div>
+                <p class="theme-analysis__message">@theme.Description</p>
+                @if (theme.Contributors.Count > 0)
+                {
+                    <ul class="theme-analysis__contributors" data-testid="@contributorTestId">
+                        @foreach (var contributor in theme.Contributors.Take(5))
+                        {
+                            <li class="theme-analysis__contributor">
+                                <div>
+                                    <strong>@contributor.CardName</strong>
+                                    <p>@contributor.Reason</p>
+                                </div>
+                                <span>@contributor.Signal.ToString("0.00")</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+        }
+
+        <section class="theme-analysis__section" aria-labelledby="off-theme-title">
+            <div class="theme-analysis__section-header">
+                <h5 id="off-theme-title">Off-theme cards</h5>
+                <span class="theme-analysis__subtle">@Analysis.ThemeAnalysis.OffThemeCards.Count</span>
+            </div>
+            @if (Analysis.ThemeAnalysis.OffThemeCards.Count == 0)
+            {
+                <p class="theme-analysis__message">Every analysed card is currently reinforcing at least one detected theme.</p>
+            }
+            else
+            {
+                <ul class="theme-analysis__off-theme" data-testid="off-theme-cards">
+                    @foreach (var card in Analysis.ThemeAnalysis.OffThemeCards.Take(8))
+                    {
+                        <li class="theme-analysis__off-theme-card">
+                            <div>
+                                <strong>@card.CardName</strong>
+                                <p>@card.Reason</p>
+                            </div>
+                            @if (card.MetadataUnavailable)
+                            {
+                                <span class="theme-analysis__metadata-pill">Metadata unavailable</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public DeckAnalysisResponseContract? Analysis { get; set; }
+
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    [Parameter]
+    public bool HasError { get; set; }
+}

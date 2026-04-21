@@ -41,6 +41,7 @@ public sealed class DeckAnalysisEndpointTests : IClassFixture<TestApplicationFac
         payload.Should().NotBeNull();
         payload!.Bracket.Level.Should().Be(4);
         payload.Synergy.Score.Should().Be(67.5m);
+        payload.ThemeAnalysis.Should().NotBeNull();
     }
 
     private sealed class StubDeckAnalysisService : IDeckAnalysisService
@@ -67,9 +68,27 @@ public sealed class DeckAnalysisEndpointTests : IClassFixture<TestApplicationFac
                 Synergy = new SynergyAssessmentContract
                 {
                     Score = 67.5m,
+                    ThemeScore = 65m,
+                    FinalScore = 67.5m,
+                    QualitativeLabel = "Focused",
                     Summary = "Synergy summary",
                     CommanderSpecificHits = ["Engine Card"],
                     StapleOverloadIndicators = ["Staple Card"],
+                },
+                ThemeAnalysis = new ThemeAnalysisContract
+                {
+                    RankedThemes = Array.Empty<DeckThemeContract>(),
+                    PrimaryThemes = Array.Empty<DeckThemeContract>(),
+                    OffThemeCards = Array.Empty<OffThemeCardContract>(),
+                    CommanderAlignment = new CommanderAlignmentContract
+                    {
+                        Level = "Moderate",
+                        DeckStrengthForCommanderTheme = 0.42m,
+                        EvidenceCardIds = Array.Empty<string>(),
+                        Summary = "Commander alignment summary.",
+                    },
+                    AnalysedCardCount = 99,
+                    AnalysedAtUtc = DateTimeOffset.UtcNow,
                 },
             });
     }

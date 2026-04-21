@@ -12,8 +12,10 @@ namespace CommandSynergy.Application.Analysis;
 public sealed class DeckAnalysisService
 {
     private readonly ICardCatalogGateway cardCatalogGateway;
+    private readonly IEdhrecClient edhrecClient;
     private readonly BracketCalculationService bracketCalculationService;
     private readonly SynergyScoringService synergyScoringService;
+    private readonly ThemeAnalysisService themeAnalysisService;
     private readonly IReadOnlyList<IDeckAdviceService> deckAdviceServices;
 
     /// <summary>
@@ -21,13 +23,17 @@ public sealed class DeckAnalysisService
     /// </summary>
     public DeckAnalysisService(
         ICardCatalogGateway cardCatalogGateway,
+        IEdhrecClient edhrecClient,
         BracketCalculationService bracketCalculationService,
         SynergyScoringService synergyScoringService,
+        ThemeAnalysisService themeAnalysisService,
         IEnumerable<IDeckAdviceService> deckAdviceServices)
     {
         this.cardCatalogGateway = cardCatalogGateway;
+        this.edhrecClient = edhrecClient;
         this.bracketCalculationService = bracketCalculationService;
         this.synergyScoringService = synergyScoringService;
+        this.themeAnalysisService = themeAnalysisService;
         this.deckAdviceServices = deckAdviceServices.ToArray();
     }
 
@@ -43,12 +49,22 @@ public sealed class DeckAnalysisService
         var profiles = await cardCatalogGateway.GetCardProfilesAsync(cardIds, cancellationToken).ConfigureAwait(false);
 
         var bracketAssessment = bracketCalculationService.Calculate(deck, profiles);
-        var synergyAssessment = synergyScoringService.Calculate(deck, profiles);
+        var baseSynergyAssessment = synergyScoringService.Calculate(deck, profiles);
+        var commanderEntry = deck.Entries.SingleOrDefault(static entry => entry.IsCommander);
+        var commanderProfile = commanderEntry is not null && profiles.TryGetValue(commanderEntry.CardId, out var profile)
+            ? profile
+            : null;
+        var edhrecInsights = commanderProfile is null
+            ? CommanderThemeInsights.Empty()
+            : await edhrecClient.GetCommanderThemeInsightsAsync(commanderProfile, cancellationToken).ConfigureAwait(false);
+        var (themeAnalysis, themeSynergy) = await themeAnalysisService.AnalyseAsync(deck, profiles, edhrecInsights, cancellationToken).ConfigureAwait(false);
+        var synergyAssessment = MergeSynergyAssessments(baseSynergyAssessment, themeSynergy);
 
         var response = new DeckAnalysisResponseContract
         {
             Bracket = MapBracket(bracketAssessment),
             Synergy = MapSynergy(synergyAssessment),
+            ThemeAnalysis = MapThemeAnalysis(themeAnalysis),
         };
 
         foreach (var deckAdviceService in deckAdviceServices)
@@ -104,8 +120,67 @@ public sealed class DeckAnalysisService
     private static SynergyAssessmentContract MapSynergy(SynergyAssessment assessment) => new()
     {
         Score = assessment.SynergyScore,
+        ThemeScore = assessment.ThemeScore,
+        FinalScore = assessment.FinalScore == 0m ? assessment.SynergyScore : assessment.FinalScore,
+        QualitativeLabel = assessment.QualitativeLabel,
+        EdhrecEnhanced = assessment.EdhrecEnhanced,
         Summary = assessment.Summary,
         CommanderSpecificHits = assessment.CommanderSpecificHits,
         StapleOverloadIndicators = assessment.StapleOverloadIndicators,
+    };
+
+    private static SynergyAssessment MergeSynergyAssessments(SynergyAssessment baseAssessment, SynergyAssessment themeAssessment) => new(
+        themeAssessment.FinalScore == 0m ? baseAssessment.SynergyScore : themeAssessment.FinalScore,
+        baseAssessment.CommanderSpecificHits,
+        baseAssessment.StapleOverloadIndicators,
+        themeAssessment.Summary,
+        themeAssessment.CalculatedUtc,
+        themeAssessment.ThemeScore,
+        themeAssessment.FinalScore == 0m ? baseAssessment.SynergyScore : themeAssessment.FinalScore,
+        themeAssessment.QualitativeLabel,
+        themeAssessment.EdhrecEnhanced);
+
+    private static ThemeAnalysisContract MapThemeAnalysis(ThemeAnalysis analysis) => new()
+    {
+        RankedThemes = analysis.RankedThemes.Select(MapDeckTheme).ToArray(),
+        PrimaryThemes = analysis.PrimaryThemes.Select(MapDeckTheme).ToArray(),
+        OffThemeCards = analysis.OffThemeCards.Select(card => new OffThemeCardContract
+        {
+            CardId = card.CardId,
+            CardName = card.CardName,
+            Reason = card.Reason,
+            MetadataUnavailable = card.MetadataUnavailable,
+        }).ToArray(),
+        CommanderAlignment = new CommanderAlignmentContract
+        {
+            Level = analysis.CommanderAlignment.Level.ToString(),
+            CommanderTopTheme = analysis.CommanderAlignment.CommanderTopTheme,
+            DeckStrengthForCommanderTheme = analysis.CommanderAlignment.DeckStrengthForCommanderTheme,
+            EvidenceCardIds = analysis.CommanderAlignment.EvidenceCardIds,
+            Summary = analysis.CommanderAlignment.Summary,
+        },
+        AnalysedCardCount = analysis.AnalysedCardCount,
+        IsInsufficient = analysis.IsInsufficient,
+        AnalysedAtUtc = analysis.AnalysedAtUtc,
+        UsedEdhrecFallback = analysis.UsedEdhrecFallback,
+        RefreshSummary = analysis.RefreshSummary,
+    };
+
+    private static DeckThemeContract MapDeckTheme(DeckTheme theme) => new()
+    {
+        Name = theme.Name,
+        Description = theme.Description,
+        Strength = theme.Strength,
+        StrengthLabel = theme.StrengthLabel,
+        ContributingCardIds = theme.ContributingCardIds,
+        ContributingCardCount = theme.ContributingCardCount,
+        Contributors = theme.Contributors.Select(contributor => new ThemeContributorContract
+        {
+            CardId = contributor.CardId,
+            CardName = contributor.CardName,
+            Signal = contributor.Signal,
+            Reason = contributor.Reason,
+        }).ToArray(),
+        SignalConfidence = theme.SignalConfidence,
     };
 }

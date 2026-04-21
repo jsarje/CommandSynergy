@@ -19,6 +19,8 @@ public sealed class CardProfile
 
     public string? OracleText { get; init; }
 
+    public IReadOnlyList<string> Keywords { get; init; } = Array.Empty<string>();
+
     public IReadOnlyList<string> ColorIdentity { get; init; } = Array.Empty<string>();
 
     public IReadOnlyList<CardFaceProfile> FaceProfiles { get; init; } = Array.Empty<CardFaceProfile>();
@@ -28,6 +30,8 @@ public sealed class CardProfile
     public decimal? SaltScore { get; init; }
 
     public IReadOnlyDictionary<string, decimal> PlayRateByCommander { get; init; } = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+
+    public IReadOnlyDictionary<string, decimal> ThemeSignals { get; init; } = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
 
     public decimal? GenericColorStapleRate { get; init; }
 

@@ -163,6 +163,9 @@ public sealed record DeckAnalysisResponseContract
 
     [JsonPropertyName("synergy")]
     public required SynergyAssessmentContract Synergy { get; init; }
+
+    [JsonPropertyName("themeAnalysis")]
+    public ThemeAnalysisContract? ThemeAnalysis { get; init; }
 }
 
 /// <summary>
@@ -209,6 +212,18 @@ public sealed record SynergyAssessmentContract
     [JsonPropertyName("score")]
     public required decimal Score { get; init; }
 
+    [JsonPropertyName("themeScore")]
+    public decimal ThemeScore { get; init; }
+
+    [JsonPropertyName("finalScore")]
+    public decimal FinalScore { get; init; }
+
+    [JsonPropertyName("qualitativeLabel")]
+    public string QualitativeLabel { get; init; } = "Pile";
+
+    [JsonPropertyName("edhrecEnhanced")]
+    public bool EdhrecEnhanced { get; init; }
+
     [JsonPropertyName("summary")]
     public required string Summary { get; init; }
 
@@ -217,6 +232,126 @@ public sealed record SynergyAssessmentContract
 
     [JsonPropertyName("stapleOverloadIndicators")]
     public IReadOnlyList<string> StapleOverloadIndicators { get; init; } = Array.Empty<string>();
+}
+
+/// <summary>
+/// Represents the theme-analysis response payload.
+/// </summary>
+public sealed record ThemeAnalysisContract
+{
+    [JsonPropertyName("rankedThemes")]
+    public IReadOnlyList<DeckThemeContract> RankedThemes { get; init; } = Array.Empty<DeckThemeContract>();
+
+    [JsonPropertyName("primaryThemes")]
+    public IReadOnlyList<DeckThemeContract> PrimaryThemes { get; init; } = Array.Empty<DeckThemeContract>();
+
+    [JsonPropertyName("offThemeCards")]
+    public IReadOnlyList<OffThemeCardContract> OffThemeCards { get; init; } = Array.Empty<OffThemeCardContract>();
+
+    [JsonPropertyName("commanderAlignment")]
+    public required CommanderAlignmentContract CommanderAlignment { get; init; }
+
+    [JsonPropertyName("analysedCardCount")]
+    public int AnalysedCardCount { get; init; }
+
+    [JsonPropertyName("isInsufficient")]
+    public bool IsInsufficient { get; init; }
+
+    [JsonPropertyName("analysedAtUtc")]
+    public DateTimeOffset AnalysedAtUtc { get; init; }
+
+    [JsonPropertyName("usedEdhrecFallback")]
+    public bool UsedEdhrecFallback { get; init; }
+
+    [JsonPropertyName("refreshSummary")]
+    public string? RefreshSummary { get; init; }
+}
+
+/// <summary>
+/// Represents a detected theme in the analysis response.
+/// </summary>
+public sealed record DeckThemeContract
+{
+    [JsonPropertyName("name")]
+    public required string Name { get; init; }
+
+    [JsonPropertyName("description")]
+    public required string Description { get; init; }
+
+    [JsonPropertyName("strength")]
+    public decimal Strength { get; init; }
+
+    [JsonPropertyName("strengthLabel")]
+    public required string StrengthLabel { get; init; }
+
+    [JsonPropertyName("contributingCardIds")]
+    public IReadOnlyList<string> ContributingCardIds { get; init; } = Array.Empty<string>();
+
+    [JsonPropertyName("contributingCardCount")]
+    public int ContributingCardCount { get; init; }
+
+    [JsonPropertyName("contributors")]
+    public IReadOnlyList<ThemeContributorContract> Contributors { get; init; } = Array.Empty<ThemeContributorContract>();
+
+    [JsonPropertyName("signalConfidence")]
+    public string SignalConfidence { get; init; } = "High";
+}
+
+/// <summary>
+/// Represents a contributing card explanation for a detected theme.
+/// </summary>
+public sealed record ThemeContributorContract
+{
+    [JsonPropertyName("cardId")]
+    public required string CardId { get; init; }
+
+    [JsonPropertyName("cardName")]
+    public required string CardName { get; init; }
+
+    [JsonPropertyName("signal")]
+    public decimal Signal { get; init; }
+
+    [JsonPropertyName("reason")]
+    public required string Reason { get; init; }
+}
+
+/// <summary>
+/// Represents a card currently classified as off-theme.
+/// </summary>
+public sealed record OffThemeCardContract
+{
+    [JsonPropertyName("cardId")]
+    public required string CardId { get; init; }
+
+    [JsonPropertyName("cardName")]
+    public required string CardName { get; init; }
+
+    [JsonPropertyName("reason")]
+    public required string Reason { get; init; }
+
+    [JsonPropertyName("metadataUnavailable")]
+    public bool MetadataUnavailable { get; init; }
+}
+
+/// <summary>
+/// Represents commander alignment details in the analysis response.
+/// </summary>
+public sealed record CommanderAlignmentContract
+{
+    [JsonPropertyName("level")]
+    public required string Level { get; init; }
+
+    [JsonPropertyName("commanderTopTheme")]
+    public string? CommanderTopTheme { get; init; }
+
+    [JsonPropertyName("deckStrengthForCommanderTheme")]
+    public decimal DeckStrengthForCommanderTheme { get; init; }
+
+    [JsonPropertyName("evidenceCardIds")]
+    public IReadOnlyList<string> EvidenceCardIds { get; init; } = Array.Empty<string>();
+
+    [JsonPropertyName("summary")]
+    public required string Summary { get; init; }
 }
 
 /// <summary>

@@ -1,4 +1,5 @@
 using CommandSynergy.Application.Contracts;
+using CommandSynergy.Application.Analysis;
 using CommandSynergy.Domain.Cards;
 
 namespace CommandSynergy.Infrastructure.Scryfall;
@@ -8,6 +9,8 @@ namespace CommandSynergy.Infrastructure.Scryfall;
 /// </summary>
 public sealed class ScryfallCardMapper
 {
+    private readonly ThemeMatchingService themeMatchingService = new();
+
     /// <summary>
     /// Maps a Scryfall document to a compact search result.
     /// </summary>
@@ -38,32 +41,63 @@ public sealed class ScryfallCardMapper
     /// <summary>
     /// Maps a Scryfall document to an authoritative card profile with explicit metadata provenance and external oracle-tag matches.
     /// </summary>
-    public CardProfile MapCardProfile(ScryfallCardDocument document, CardMetadataSource metadataSource, DateTimeOffset? lastSyncedUtc, IReadOnlySet<string> massLandDenialIds) => new()
+    public CardProfile MapCardProfile(ScryfallCardDocument document, CardMetadataSource metadataSource, DateTimeOffset? lastSyncedUtc, IReadOnlySet<string> massLandDenialIds)
     {
-        CardId = document.Id,
-        OracleId = document.OracleId,
-        Name = document.Name,
-        ManaCost = document.ManaCost,
-        ManaValue = document.ManaValue,
-        TypeLine = document.TypeLine ?? string.Empty,
-        OracleText = document.OracleText,
-        ColorIdentity = document.ColorIdentity,
-        FaceProfiles = document.CardFaces.Select((face, index) => new CardFaceProfile(
-            face.FaceId ?? index.ToString(),
-            face.Name ?? document.Name,
-            face.ManaCost,
-            face.TypeLine ?? document.TypeLine ?? string.Empty,
-            face.OracleText,
-            face.ImageUri,
-            index == 0)).DefaultIfEmpty(new CardFaceProfile("0", document.Name, document.ManaCost, document.TypeLine ?? string.Empty, document.OracleText, document.ImageUri, true)).ToArray(),
-        ImageUri = document.ImageUri,
-        IsGameChanger = document.IsGameChanger,
-        IsMassLandDenial = massLandDenialIds.Contains(document.Id),
-        IsLegalInCommander = !string.Equals(document.CommanderLegality, "not_legal", StringComparison.OrdinalIgnoreCase),
-        CommanderEligibilityBasis = DetermineEligibilityBasis(document),
-        MetadataSource = metadataSource,
-        LastSyncedUtc = lastSyncedUtc,
-    };
+        var provisionalProfile = new CardProfile
+        {
+            CardId = document.Id,
+            OracleId = document.OracleId,
+            Name = document.Name,
+            ManaCost = document.ManaCost,
+            ManaValue = document.ManaValue,
+            TypeLine = document.TypeLine ?? string.Empty,
+            OracleText = document.OracleText,
+            Keywords = document.Keywords,
+            ColorIdentity = document.ColorIdentity,
+            FaceProfiles = document.CardFaces.Select((face, index) => new CardFaceProfile(
+                face.FaceId ?? index.ToString(),
+                face.Name ?? document.Name,
+                face.ManaCost,
+                face.TypeLine ?? document.TypeLine ?? string.Empty,
+                face.OracleText,
+                face.ImageUri,
+                index == 0)).DefaultIfEmpty(new CardFaceProfile("0", document.Name, document.ManaCost, document.TypeLine ?? string.Empty, document.OracleText, document.ImageUri, true)).ToArray(),
+            ImageUri = document.ImageUri,
+            IsGameChanger = document.IsGameChanger,
+            IsMassLandDenial = massLandDenialIds.Contains(document.Id),
+            IsLegalInCommander = !string.Equals(document.CommanderLegality, "not_legal", StringComparison.OrdinalIgnoreCase),
+            CommanderEligibilityBasis = DetermineEligibilityBasis(document),
+            MetadataSource = metadataSource,
+            LastSyncedUtc = lastSyncedUtc,
+        };
+
+        return new CardProfile
+        {
+            CardId = provisionalProfile.CardId,
+            OracleId = provisionalProfile.OracleId,
+            Name = provisionalProfile.Name,
+            ManaCost = provisionalProfile.ManaCost,
+            ManaValue = provisionalProfile.ManaValue,
+            TypeLine = provisionalProfile.TypeLine,
+            OracleText = provisionalProfile.OracleText,
+            Keywords = provisionalProfile.Keywords,
+            ColorIdentity = provisionalProfile.ColorIdentity,
+            FaceProfiles = provisionalProfile.FaceProfiles,
+            ImageUri = provisionalProfile.ImageUri,
+            PlayRateByCommander = provisionalProfile.PlayRateByCommander,
+            ThemeSignals = themeMatchingService.ComputeThemeSignals(provisionalProfile),
+            GenericColorStapleRate = provisionalProfile.GenericColorStapleRate,
+            SaltScore = provisionalProfile.SaltScore,
+            IsGameChanger = provisionalProfile.IsGameChanger,
+            IsMassLandDenial = provisionalProfile.IsMassLandDenial,
+            IsLegalInCommander = provisionalProfile.IsLegalInCommander,
+            AllowsMultipleCopies = provisionalProfile.AllowsMultipleCopies,
+            CompanionRequirementCode = provisionalProfile.CompanionRequirementCode,
+            CommanderEligibilityBasis = provisionalProfile.CommanderEligibilityBasis,
+            MetadataSource = provisionalProfile.MetadataSource,
+            LastSyncedUtc = provisionalProfile.LastSyncedUtc,
+        };
+    }
 
     /// <summary>
     /// Determines the commander eligibility basis for a Scryfall document.

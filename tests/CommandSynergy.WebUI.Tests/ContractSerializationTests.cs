@@ -62,9 +62,58 @@ public sealed class ContractSerializationTests
             Synergy = new SynergyAssessmentContract
             {
                 Score = 74.2m,
+                ThemeScore = 72.5m,
+                FinalScore = 74.2m,
+                QualitativeLabel = "Focused",
+                EdhrecEnhanced = true,
                 Summary = "The deck is strongly aligned with the commander plan.",
                 CommanderSpecificHits = ["graveyard enabler"],
                 StapleOverloadIndicators = ["rhystic study"],
+            },
+            ThemeAnalysis = new ThemeAnalysisContract
+            {
+                RankedThemes =
+                [
+                    new DeckThemeContract
+                    {
+                        Name = "Tokens",
+                        Description = "Creates a wide board.",
+                        Strength = 0.70m,
+                        StrengthLabel = "Strong",
+                        ContributingCardIds = ["secure-the-wastes"],
+                        ContributingCardCount = 1,
+                        Contributors =
+                        [
+                            new ThemeContributorContract
+                            {
+                                CardId = "secure-the-wastes",
+                                CardName = "Secure the Wastes",
+                                Signal = 0.70m,
+                                Reason = "Matched the card's oracle text.",
+                            },
+                        ],
+                    },
+                ],
+                PrimaryThemes = Array.Empty<DeckThemeContract>(),
+                OffThemeCards =
+                [
+                    new OffThemeCardContract
+                    {
+                        CardId = "rhystic-study",
+                        CardName = "Rhystic Study",
+                        Reason = "No strong theme signal was detected for this card.",
+                    },
+                ],
+                CommanderAlignment = new CommanderAlignmentContract
+                {
+                    Level = "Strong",
+                    CommanderTopTheme = "Tokens",
+                    DeckStrengthForCommanderTheme = 0.70m,
+                    EvidenceCardIds = ["secure-the-wastes"],
+                    Summary = "The 99 strongly reinforce the commander's plan.",
+                },
+                AnalysedCardCount = 100,
+                AnalysedAtUtc = DateTimeOffset.Parse("2026-04-21T00:00:00Z"),
             },
         };
 
@@ -73,9 +122,11 @@ public sealed class ContractSerializationTests
 
         json.Should().Contain("\"level\":3");
         json.Should().Contain("\"commanderSpecificHits\"");
+        json.Should().Contain("\"themeAnalysis\"");
         roundTrip.Should().NotBeNull();
         roundTrip!.Bracket.Level.Should().Be(3);
         roundTrip.Synergy.StapleOverloadIndicators.Should().ContainSingle("rhystic study");
+        roundTrip.ThemeAnalysis!.CommanderAlignment.Level.Should().Be("Strong");
     }
 
     [Fact]
