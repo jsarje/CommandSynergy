@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Reflection;
 using CommandSynergy.Application.Configuration;
 using CommandSynergy.Domain.Cards;
 using CommandSynergy.Infrastructure.Edhrec;
@@ -7,6 +8,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using RichardSzalay.MockHttp;
 
 namespace CommandSynergy.Infrastructure.Tests.Edhrec;
 
@@ -15,7 +17,35 @@ public sealed class EdhrecClientTests
     [Fact]
     public async Task GetCommanderThemeInsightsAsync_returns_synergy_payload_for_valid_commander()
     {
-        var sut = CreateClient(new StubHttpMessageHandler());
+        var mockHttp = new MockHttpMessageHandler();
+        mockHttp.When("https://json.edhrec.com/pages/commanders/krenko-mob-boss.json")
+            .Respond("application/json", """
+                {
+                  "container": {
+                    "json_dict": {
+                      "cardlists": [
+                        {
+                          "header": "High Synergy Cards",
+                          "tag": "highsynergycards",
+                          "cardviews": [
+                            {
+                              "id": "card-a",
+                              "name": "Card A",
+                              "sanitized": "card-a",
+                              "synergy": 0.72,
+                              "inclusion": 100,
+                              "num_decks": 100,
+                              "potential_decks": 120,
+                              "trend_zscore": 0.1
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+                """);
+        var sut = CreateClient(mockHttp);
 
         var result = await sut.GetCommanderThemeInsightsAsync(CreateCommander("Krenko, Mob Boss"));
 
@@ -34,6 +64,70 @@ public sealed class EdhrecClientTests
 
         result.IsAvailable.Should().BeFalse();
         handler.CallCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetCommanderThemeInsightsAsync_uses_cache_for_repeated_commander_requests()
+    {
+        var mockHttp = new MockHttpMessageHandler();
+        var request = mockHttp.When("https://json.edhrec.com/pages/commanders/krenko-mob-boss.json");
+        request.Respond("application/json", """
+                {
+                  "container": {
+                    "json_dict": {
+                      "cardlists": [
+                        {
+                          "header": "High Synergy Cards",
+                          "tag": "highsynergycards",
+                          "cardviews": [
+                            {
+                              "id": "card-a",
+                              "name": "Card A",
+                              "sanitized": "card-a",
+                              "synergy": 0.72,
+                              "inclusion": 100,
+                              "num_decks": 100,
+                              "potential_decks": 120,
+                              "trend_zscore": 0.1
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+                """);
+        var sut = CreateClient(mockHttp);
+
+        _ = await sut.GetCommanderThemeInsightsAsync(CreateCommander("Krenko, Mob Boss"));
+        _ = await sut.GetCommanderThemeInsightsAsync(CreateCommander("Krenko, Mob Boss"));
+
+        mockHttp.GetMatchCount(request).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetCommanderThemeInsightsAsync_returns_empty_result_for_invalid_json()
+    {
+        var mockHttp = new MockHttpMessageHandler();
+        mockHttp.When("https://json.edhrec.com/pages/commanders/krenko-mob-boss.json")
+            .Respond("application/json", "not-json");
+        var sut = CreateClient(mockHttp);
+
+        var result = await sut.GetCommanderThemeInsightsAsync(CreateCommander("Krenko, Mob Boss"));
+
+        result.IsAvailable.Should().BeFalse();
+        result.SynergyByCardId.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("Atraxa, Praetors' Voice", "atraxa-praetors-voice")]
+    [InlineData("The Ur-Dragon", "the-ur-dragon")]
+    public void BuildCommanderSlug_normalizes_names(string name, string expectedSlug)
+    {
+      var slugBuilder = typeof(EdhrecClient).GetMethod("BuildCommanderSlug", BindingFlags.Static | BindingFlags.NonPublic)
+        ?? throw new InvalidOperationException("BuildCommanderSlug was not found.");
+
+      slugBuilder.Invoke(null, [name]).Should().Be(expectedSlug);
     }
 
     private static EdhrecClient CreateClient(HttpMessageHandler handler) =>
@@ -55,40 +149,6 @@ public sealed class EdhrecClientTests
         TypeLine = "Legendary Creature",
         FaceProfiles = [ new CardFaceProfile("0", name, null, "Legendary Creature", null, null, true) ],
     };
-
-    private sealed class StubHttpMessageHandler : HttpMessageHandler
-    {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
-            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent("""
-                    {
-                      "container": {
-                        "json_dict": {
-                          "cardlists": [
-                            {
-                              "header": "High Synergy Cards",
-                              "tag": "highsynergycards",
-                              "cardviews": [
-                                {
-                                  "id": "card-a",
-                                  "name": "Card A",
-                                  "sanitized": "card-a",
-                                  "synergy": 0.72,
-                                  "inclusion": 100,
-                                  "num_decks": 100,
-                                  "potential_decks": 120,
-                                  "trend_zscore": 0.1
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      }
-                    }
-                    """, Encoding.UTF8, "application/json"),
-            });
-    }
 
     private sealed class CountingHttpMessageHandler : HttpMessageHandler
     {

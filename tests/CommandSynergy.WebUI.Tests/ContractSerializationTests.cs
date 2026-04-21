@@ -102,6 +102,7 @@ public sealed class ContractSerializationTests
                         CardId = "rhystic-study",
                         CardName = "Rhystic Study",
                         Reason = "No strong theme signal was detected for this card.",
+                        MetadataUnavailable = true,
                     },
                 ],
                 CommanderAlignment = new CommanderAlignmentContract
@@ -114,6 +115,7 @@ public sealed class ContractSerializationTests
                 },
                 AnalysedCardCount = 100,
                 AnalysedAtUtc = DateTimeOffset.Parse("2026-04-21T00:00:00Z"),
+                UsedEdhrecFallback = true,
             },
         };
 
@@ -123,10 +125,13 @@ public sealed class ContractSerializationTests
         json.Should().Contain("\"level\":3");
         json.Should().Contain("\"commanderSpecificHits\"");
         json.Should().Contain("\"themeAnalysis\"");
+        json.Should().Contain("\"usedEdhrecFallback\":true");
+        json.Should().Contain("\"metadataUnavailable\":true");
         roundTrip.Should().NotBeNull();
         roundTrip!.Bracket.Level.Should().Be(3);
         roundTrip.Synergy.StapleOverloadIndicators.Should().ContainSingle("rhystic study");
         roundTrip.ThemeAnalysis!.CommanderAlignment.Level.Should().Be("Strong");
+        roundTrip.ThemeAnalysis.OffThemeCards[0].MetadataUnavailable.Should().BeTrue();
     }
 
     [Fact]

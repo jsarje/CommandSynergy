@@ -420,8 +420,8 @@
 
                             <div class="workspace-analysis" data-testid="analysis-panel">
                                 <h3>Analysis summary</h3>
-                                <AnalysisPanel Analysis="Analysis" IsLoading="IsBusy" HasError="@(State.Status == DeckWorkspaceStatus.Recovery)" />
-                                <ThemeAnalysisPanel Analysis="Analysis" IsLoading="IsBusy" HasError="@(State.Status == DeckWorkspaceStatus.Recovery)" />
+                                <AnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="@(State.Status == DeckWorkspaceStatus.Recovery)" />
+                                <ThemeAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="@(State.Status == DeckWorkspaceStatus.Recovery)" />
                             </div>
                         </div>
                     </div>
@@ -489,6 +489,9 @@
 
     [Parameter]
     public bool IsBusy { get; set; }
+
+    [Parameter]
+    public bool IsRefreshingInsights { get; set; }
 
     [Parameter]
     public bool IsHydratingLibrary { get; set; }

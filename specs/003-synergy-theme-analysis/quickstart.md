@@ -93,8 +93,15 @@ All tests must pass. New test files:
 - `tests/CommandSynergy.Domain.Tests/Analysis/ThemeTaxonomyTests.cs`
 - `tests/CommandSynergy.Application.Tests/Analysis/ThemeMatchingServiceTests.cs`
 - `tests/CommandSynergy.Application.Tests/Analysis/ThemeAnalysisServiceTests.cs`
+- `tests/CommandSynergy.Application.Tests/Performance/ThemeAnalysisPerformanceTests.cs`
 - `tests/CommandSynergy.Infrastructure.Tests/Edhrec/EdhrecClientTests.cs`
 - `tests/CommandSynergy.WebUI.Tests/Components/ThemeAnalysisPanelTests.cs`
+- `tests/CommandSynergy.WebUI.Tests/Endpoints/DeckAnalysisIntegrationTests.cs`
+
+Validated locally for this feature increment:
+- `dotnet test tests/CommandSynergy.Application.Tests/CommandSynergy.Application.Tests.csproj --filter ThemeAnalysis`
+- `dotnet test tests/CommandSynergy.WebUI.Tests/CommandSynergy.WebUI.Tests.csproj --filter ThemeAnalysis|DeckAnalysis`
+- `dotnet test tests/CommandSynergy.Infrastructure.Tests/CommandSynergy.Infrastructure.Tests.csproj --filter Edhrec`
 
 ---
 
@@ -144,3 +151,5 @@ All tests must pass. New test files:
 - **Inspecting Parquet**: After ingestion, use the `ParquetCardMetadataStore` in a test or console app to read back cards and check their `ThemeSignals` dictionaries.
 - **EDHREC mock**: In tests, inject a mock `EdhrecClient` returning `EdhrecCommanderData.Empty` (graceful fallback) or a hand-crafted synergy dictionary to test blending logic in isolation.
 - **Regex debugging**: All compiled patterns are in `ThemeTaxonomy.Default`; you can iterate them in a test to validate pattern matching against known card oracle text.
+- **Refresh behavior**: During deck edits, the workspace keeps the last successful theme result visible and marks it as refreshing until the new analysis completes.
+- **EDHREC degradation**: When EDHREC data is unavailable or rejected, the payload sets `usedEdhrecFallback` and the final score remains local-only.

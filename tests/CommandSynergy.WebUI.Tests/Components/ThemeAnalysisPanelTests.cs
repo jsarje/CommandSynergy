@@ -1,5 +1,4 @@
 using Bunit;
-using CommandSynergy.Application.Contracts;
 using CommandSynergy.Components.Decks;
 using FluentAssertions;
 using MudBlazor.Services;
@@ -30,7 +29,7 @@ public sealed class ThemeAnalysisPanelTests : BunitContext
         var cut = Render<ThemeAnalysisPanel>(parameters => parameters
             .Add(component => component.IsLoading, false)
             .Add(component => component.HasError, false)
-            .Add(component => component.Analysis, CreateAnalysis(isInsufficient: true)));
+            .Add(component => component.Analysis, ThemeAnalysisTestData.CreateReadyAnalysis(isInsufficient: true)));
 
         cut.Find("[data-testid='theme-analysis-insufficient']").TextContent.Should().Contain("Add more cards");
     }
@@ -41,89 +40,55 @@ public sealed class ThemeAnalysisPanelTests : BunitContext
         var cut = Render<ThemeAnalysisPanel>(parameters => parameters
             .Add(component => component.IsLoading, false)
             .Add(component => component.HasError, false)
-            .Add(component => component.Analysis, CreateAnalysis(isInsufficient: false)));
+            .Add(component => component.Analysis, ThemeAnalysisTestData.CreateReadyAnalysis()));
 
         cut.Find("[data-testid='theme-analysis-ready']").Should().NotBeNull();
         cut.Find("[data-testid='off-theme-cards']").TextContent.Should().Contain("Staple Card");
+        cut.Find("[data-testid='theme-preview-tokens']").TextContent.Should().Contain("Token Card");
+        cut.Find("[data-testid='off-theme-cards']").TextContent.Should().Contain("No strong theme signal was detected for this card.");
     }
 
-    private static DeckAnalysisResponseContract CreateAnalysis(bool isInsufficient) => new()
+    [Fact]
+    public void Theme_analysis_panel_preserves_stale_results_while_refreshing()
     {
-        Bracket = new BracketAssessmentContract
-        {
-            Level = 3,
-            TotalWeight = 10m,
-            Summary = "Bracket summary.",
-            Factors = Array.Empty<BracketFactorContract>(),
-        },
-        Synergy = new SynergyAssessmentContract
-        {
-            Score = 70m,
-            ThemeScore = 68m,
-            FinalScore = 70m,
-            QualitativeLabel = "Focused",
-            Summary = "Strong focus.",
-            CommanderSpecificHits = Array.Empty<string>(),
-            StapleOverloadIndicators = Array.Empty<string>(),
-        },
-        ThemeAnalysis = new ThemeAnalysisContract
-        {
-            RankedThemes =
-            [
-                new DeckThemeContract
-                {
-                    Name = "Tokens",
-                    Description = "Creates a wide board.",
-                    Strength = 0.72m,
-                    StrengthLabel = "Strong",
-                    ContributingCardIds = ["card-a"],
-                    ContributingCardCount = 1,
-                    Contributors =
-                    [
-                        new ThemeContributorContract
-                        {
-                            CardId = "card-a",
-                            CardName = "Token Card",
-                            Signal = 0.72m,
-                            Reason = "Matched the card's oracle text.",
-                        },
-                    ],
-                },
-            ],
-            PrimaryThemes =
-            [
-                new DeckThemeContract
-                {
-                    Name = "Tokens",
-                    Description = "Creates a wide board.",
-                    Strength = 0.72m,
-                    StrengthLabel = "Strong",
-                    ContributingCardIds = ["card-a"],
-                    ContributingCardCount = 1,
-                    Contributors = Array.Empty<ThemeContributorContract>(),
-                },
-            ],
-            OffThemeCards =
-            [
-                new OffThemeCardContract
-                {
-                    CardId = "staple-card",
-                    CardName = "Staple Card",
-                    Reason = "No strong theme signal was detected for this card.",
-                },
-            ],
-            CommanderAlignment = new CommanderAlignmentContract
-            {
-                Level = "Strong",
-                CommanderTopTheme = "Tokens",
-                DeckStrengthForCommanderTheme = 0.72m,
-                EvidenceCardIds = ["card-a"],
-                Summary = "The 99 strongly reinforce the commander's plan.",
-            },
-            AnalysedCardCount = 25,
-            IsInsufficient = isInsufficient,
-            AnalysedAtUtc = DateTimeOffset.UtcNow,
-            RefreshSummary = "Primary themes: Tokens.",
-        },
-    };
+        var cut = Render<ThemeAnalysisPanel>(parameters => parameters
+            .Add(component => component.IsLoading, true)
+            .Add(component => component.HasError, false)
+            .Add(component => component.Analysis, ThemeAnalysisTestData.CreateReadyAnalysis()));
+
+        cut.Find("[data-testid='theme-analysis-ready']").HasAttribute("aria-busy").Should().BeTrue();
+        cut.Find("[data-testid='theme-analysis-refreshing']").TextContent.Should().Contain("Showing the previous result");
+    }
+
+    [Fact]
+    public void Theme_analysis_panel_expands_each_theme_to_show_all_contributors()
+    {
+        var cut = Render<ThemeAnalysisPanel>(parameters => parameters
+            .Add(component => component.IsLoading, false)
+            .Add(component => component.HasError, false)
+            .Add(component => component.Analysis, ThemeAnalysisTestData.CreateReadyAnalysis()));
+
+        var tokenToggle = cut.Find("[data-testid='theme-toggle-tokens']");
+        tokenToggle.Click();
+        tokenToggle.HasAttribute("aria-expanded").Should().BeTrue();
+        cut.Find("[data-testid='theme-details-tokens']").HasAttribute("hidden").Should().BeFalse();
+        cut.Find("[data-testid='theme-contributors-tokens']").TextContent.Should().Contain("Dual Theme Card");
+
+        var aristocratsToggle = cut.Find("[data-testid='theme-toggle-aristocrats']");
+        aristocratsToggle.Click();
+        cut.Find("[data-testid='theme-contributors-aristocrats']").TextContent.Should().Contain("Dual Theme Card");
+    }
+
+    [Fact]
+    public void Theme_analysis_panel_exposes_accessible_roles_and_metadata_indicators()
+    {
+        var cut = Render<ThemeAnalysisPanel>(parameters => parameters
+            .Add(component => component.IsLoading, false)
+            .Add(component => component.HasError, false)
+            .Add(component => component.Analysis, ThemeAnalysisTestData.CreateReadyAnalysis()));
+
+        cut.Find("[data-testid='theme-analysis-ready']").GetAttribute("role").Should().Be("region");
+        cut.Find("[data-testid='off-theme-cards']").GetAttribute("aria-label").Should().Be("Off-theme cards");
+        cut.Markup.Should().Contain("Metadata unavailable");
+    }
 }

@@ -85,6 +85,64 @@ public sealed class ThemeAnalysisServiceTests
         analysis.OffThemeCards.Should().Contain(card => card.CardId == "card-20" && card.MetadataUnavailable);
     }
 
+    [Fact]
+    public async Task AnalyseAsync_scores_focused_deck_at_least_thirty_points_higher_than_unfocused_deck()
+    {
+        var focused = ThemeAnalysisTestData.LoadFocusedFixture();
+        var unfocused = ThemeAnalysisTestData.LoadUnfocusedFixture();
+
+        var (_, focusedSynergy) = await sut.AnalyseAsync(focused.Deck, focused.Profiles, focused.EdhrecInsights);
+        var (_, unfocusedSynergy) = await sut.AnalyseAsync(unfocused.Deck, unfocused.Profiles, unfocused.EdhrecInsights);
+
+        focusedSynergy.FinalScore.Should().BeGreaterThanOrEqualTo(60m);
+        unfocusedSynergy.FinalScore.Should().BeLessThan(40m);
+        focusedSynergy.FinalScore.Should().BeGreaterThan(unfocusedSynergy.FinalScore + 30m);
+    }
+
+    [Fact]
+    public async Task AnalyseAsync_lists_multi_theme_cards_under_each_matching_theme()
+    {
+        var fixture = ThemeAnalysisTestData.LoadFocusedFixture();
+
+        var (analysis, _) = await sut.AnalyseAsync(fixture.Deck, fixture.Profiles, fixture.EdhrecInsights);
+
+        analysis.RankedThemes.Should().Contain(theme =>
+            theme.Name == "Tokens"
+            && theme.Contributors.Any(contributor => contributor.CardId == "anthem-engine"));
+        analysis.RankedThemes.Should().Contain(theme =>
+            theme.Name == "+1/+1 Counters"
+            && theme.Contributors.Any(contributor => contributor.CardId == "anthem-engine"));
+    }
+
+    [Fact]
+    public async Task AnalyseAsync_returns_low_alignment_for_commander_misaligned_deck()
+    {
+        var fixture = ThemeAnalysisTestData.LoadCommanderMisalignedFixture();
+
+        var (analysis, synergy) = await sut.AnalyseAsync(fixture.Deck, fixture.Profiles, fixture.EdhrecInsights);
+
+        analysis.CommanderAlignment.Level.Should().Be(AlignmentLevel.Low);
+        analysis.CommanderAlignment.CommanderTopTheme.Should().Be("Tokens");
+        synergy.QualitativeLabel.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task AnalyseAsync_skips_alignment_for_commanderless_deck()
+    {
+        var fixture = ThemeAnalysisTestData.LoadFocusedFixture();
+        var deck = new Deck();
+
+        foreach (var entry in fixture.Deck.Entries)
+        {
+            deck.UpsertEntry(entry.CardId, entry.Quantity);
+        }
+
+        var (analysis, _) = await sut.AnalyseAsync(deck, fixture.Profiles, CommanderThemeInsights.Empty());
+
+        analysis.CommanderAlignment.Level.Should().Be(AlignmentLevel.None);
+        analysis.CommanderAlignment.CommanderTopTheme.Should().BeNull();
+    }
+
     private static CardProfile CreateCard(string cardId, string name, IReadOnlyDictionary<string, decimal> themeSignals) => new()
     {
         CardId = cardId,
