@@ -56,6 +56,15 @@ public sealed class BracketCalculationService
                     entry.CardId));
             }
 
+            if (profile.IsMassLandDenial)
+            {
+                factors.Add(new BracketFactor(
+                    "mass-land-denial",
+                    options.MassLandDenialWeight,
+                    $"{profile.Name} is a mass land denial card.",
+                    entry.CardId));
+            }
+
             if (!profile.IsLand
                 && profile.ManaValue <= 2m
                 && !string.IsNullOrWhiteSpace(profile.OracleText)

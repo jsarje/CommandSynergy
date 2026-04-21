@@ -33,6 +33,8 @@ public sealed class CardProfile
 
     public bool IsGameChanger { get; init; }
 
+    public bool IsMassLandDenial { get; init; }
+
     public bool IsLegalInCommander { get; init; } = true;
 
     public bool AllowsMultipleCopies { get; init; }

@@ -40,18 +40,21 @@ public sealed class CardMetadataBulkImportService
             throw new InvalidOperationException("Scryfall oracle_cards bulk data could not be downloaded.");
         }
 
+        var massLandDenialIds = await scryfallClient.FetchAllByOracleTagAsync("mass-land-denial", cancellationToken).ConfigureAwait(false);
+
         var syncedUtc = bulkDownload.UpdatedAt ?? DateTimeOffset.UtcNow;
         var cards = bulkDownload.Cards
-            .Select(document => scryfallCardMapper.MapCardProfile(document, CardMetadataSource.BulkSnapshotImport, syncedUtc))
+            .Select(document => scryfallCardMapper.MapCardProfile(document, CardMetadataSource.BulkSnapshotImport, syncedUtc, massLandDenialIds))
             .ToArray();
 
         await metadataStore.ReplaceSnapshotAsync(cards, cancellationToken).ConfigureAwait(false);
 
         logger.LogInformation(
-            "Imported {CardCount} oracle_cards records from {DownloadUri} updated at {UpdatedAtUtc}",
+            "Imported {CardCount} oracle_cards records from {DownloadUri} updated at {UpdatedAtUtc}; tagged {MassLandDenialCount} cards as mass land denial",
             cards.Length,
             bulkDownload.DownloadUri,
-            syncedUtc);
+            syncedUtc,
+            massLandDenialIds.Count);
 
         return new CardMetadataBulkImportResult(cards.Length, syncedUtc, bulkDownload.DownloadUri);
     }

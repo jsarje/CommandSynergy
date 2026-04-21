@@ -275,6 +275,7 @@ public sealed class ParquetCardMetadataStore
         row.PlayRateByCommander,
         row.GenericColorStapleRate,
         row.IsGameChanger,
+        row.IsMassLandDenial,
         row.IsLegalInCommander,
         row.AllowsMultipleCopies,
         row.CompanionRequirementCode,
@@ -300,6 +301,7 @@ public sealed class ParquetCardMetadataStore
             : null,
         GenericColorStapleRate = card.GenericColorStapleRate,
         IsGameChanger = card.IsGameChanger,
+        IsMassLandDenial = card.IsMassLandDenial,
         IsLegalInCommander = card.IsLegalInCommander,
         AllowsMultipleCopies = card.AllowsMultipleCopies,
         CompanionRequirementCode = card.CompanionRequirementCode,
@@ -338,6 +340,8 @@ public sealed class ParquetCardMetadataStore
         public decimal? GenericColorStapleRate { get; init; }
 
         public bool IsGameChanger { get; init; }
+
+        public bool IsMassLandDenial { get; init; }
 
         public bool IsLegalInCommander { get; init; } = true;
 
@@ -385,6 +389,7 @@ public sealed record CardMetadataRecord(
     IReadOnlyDictionary<string, decimal>? PlayRateByCommander = null,
     decimal? GenericColorStapleRate = null,
     bool IsGameChanger = false,
+    bool IsMassLandDenial = false,
     bool IsLegalInCommander = true,
     bool AllowsMultipleCopies = false,
     string? CompanionRequirementCode = null,

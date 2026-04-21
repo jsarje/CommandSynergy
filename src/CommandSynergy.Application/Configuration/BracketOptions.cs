@@ -28,4 +28,7 @@ public sealed class BracketOptions
 
     [Range(0, 10)]
     public decimal GameChangerWeight { get; set; } = 5.0m;
+
+    [Range(0, 10)]
+    public decimal MassLandDenialWeight { get; set; } = 3.0m;
 }

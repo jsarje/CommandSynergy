@@ -63,6 +63,8 @@ public sealed class CardMetadataBulkImportServiceTests
             snapshot.Cards.Should().NotContain(card => card.CardId == "stale-card-id");
             snapshot.Cards.Should().OnlyContain(card => card.MetadataSource == CardMetadataSource.BulkSnapshotImport);
             snapshot.Cards.Should().Contain(card => card.CardId == "alpha-card-id" && card.CommanderEligibilityBasis == CommanderEligibilityBasis.LegendaryCreature);
+            snapshot.Cards.Should().Contain(card => card.CardId == "alpha-card-id" && card.IsMassLandDenial);
+            snapshot.Cards.Should().Contain(card => card.CardId == "beta-card-id" && !card.IsMassLandDenial);
         }
         finally
         {
@@ -122,6 +124,24 @@ public sealed class CardMetadataBulkImportServiceTests
                         "legalities": { "commander": "legal" }
                       }
                     ]
+                    """));
+            }
+
+            if (uri.Contains("cards/search?q=oracletag%3Amass-land-denial", StringComparison.OrdinalIgnoreCase))
+            {
+                return Task.FromResult(CreateJsonResponse("""
+                    {
+                      "data": [
+                        {
+                          "id": "alpha-card-id",
+                          "name": "Alpha Commander",
+                          "color_identity": ["U", "W"],
+                          "card_faces": []
+                        }
+                      ],
+                      "has_more": false,
+                      "next_page": null
+                    }
                     """));
             }
 
