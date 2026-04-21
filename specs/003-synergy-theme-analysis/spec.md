@@ -85,7 +85,7 @@ The system weights the commander card when determining primary theme direction a
 
 ### Functional Requirements
 
-- **FR-001**: System MUST identify and rank the primary strategic themes present in a deck list, drawn from a defined theme taxonomy, based on card keywords, types, and oracle text
+- **FR-001**: System MUST identify and rank the primary strategic themes present in a deck list, drawn from a defined theme taxonomy of approximately 35 themes (oracle/keyword-detectable only), based on card keywords, types, and oracle text
 - **FR-002**: System MUST compute a synergy score from 0 to 100 representing the deck's thematic coherence, where higher scores indicate a more focused, internally consistent deck
 - **FR-003**: System MUST present a qualitative label alongside the synergy score (e.g., "Pile", "Unfocused", "Developing", "Focused", "Tuned") to provide immediate human-readable context
 - **FR-004**: System MUST display the top identified themes ranked by strength, each with a relative strength indicator showing how dominant that theme is in the deck
@@ -124,8 +124,21 @@ The system weights the commander card when determining primary theme direction a
 
 - Card metadata (keywords, oracle text, types, subtypes) is available in the system via the Parquet-backed card store established in feature 001
 - This feature builds on the existing deck analysis infrastructure (AnalysisPanel, analysis result types) introduced in feature 001
-- A theme taxonomy of approximately 15–25 named Commander themes (e.g., "Graveyard Recursion", "+1/+1 Counters", "Token Generation", "Ramp", "Draw/Wheel", "Sacrifice", "Tribal", "Voltron", "Control", "Combo") will be defined as part of this feature's implementation
+- A theme taxonomy of approximately 35 named Commander themes will be defined as part of this feature's implementation; only themes detectable from individual card oracle text, keywords, and type lines are included — meta-labels (Budget, Casual, cEDH, Vorthos) and 1v1-format-specific archetypes (Tron, Delver, Stoneblade) are excluded. Canonical theme list (subject to final implementation review): Ramp, Card Draw / Wheels, Spellslinger, Combo, Control / Stax, Pillowfort, Tribal, Tokens, Voltron, Aggro, Enchantments, Artifacts, Equipment, Auras, +1/+1 Counters, Counters Matter, Reanimator, Aristocrats, Self-Mill / Dredge, Blink / Flicker, Life Gain, Mill, Lands Matter, Land Destruction, Extra Turns, Extra Combats, Infect / Poison, Group Hug / Group Slug, Superfriends, Sacrifice, Discard, Burn, Hatebears, Goodstuff; niche mechanics (Cycling, Cascade, Energy, Morph, Mutate) deferred to a future iteration
+- Graveyard strategies are represented as three separate themes: "Reanimator" (returning creatures from graveyard to battlefield), "Aristocrats" (sacrifice-loop life drain), and "Self-Mill / Dredge" (deliberately filling own graveyard as a resource); these have distinct signal patterns and are not merged
+- "Combo" is included in the taxonomy using proxy signals (tutor / search-library density, Storm keyword, untap-engine patterns); signal confidence for this theme is lower than purely mechanical themes and is documented in ThemeDefinition
+- The theme taxonomy uses "Tribal" as the canonical display name (matching EDHREC slugs and player vocabulary); detection patterns internally cover both "tribal" and "kindred" oracle text to handle pre- and post-2023 card printings
 - Theme taxonomy is static at runtime — user-defined custom themes are out of scope for this version
 - The synergy score algorithm weights thematic concentration: decks with few strong themes score higher than decks with many weak themes
 - Performance targets assume card metadata is loaded in memory at analysis time — no Parquet file reads occur during per-request analysis
 - Mobile responsiveness relies on the existing MudBlazor layout infrastructure; no dedicated mobile-first design work is in scope
+
+## Clarifications
+
+### Session 2026-04-21
+
+- Q: Which themes should we include in the taxonomy — oracle/keyword-detectable only, all Moxfield themes, or ~20–25? → A: Oracle/keyword-detectable themes only (~30–40 themes); exclude meta-labels (Budget, Casual, cEDH, Vorthos, Webcam Friendly) and 1v1-format-specific archetypes (Tron, Delver, Stoneblade) that cannot be signalled from individual card text
+- Q: How should graveyard-related themes be modelled — single broad theme, two combined themes, or three separate themes? → A: Three separate themes — "Reanimator", "Aristocrats", and "Self-Mill / Dredge" — each with distinct oracle text and keyword signal patterns
+- Q: How should "Combo" be handled — excluded entirely, included with proxy signals, or replaced by a narrow "Storm" theme? → A: Include "Combo" as a detectable theme using proxy signals: high tutor / "search your library" density, the Storm keyword, untap-engine patterns ("untap target permanent", "take an extra turn"), and "exile target player's library" win conditions; signal confidence is lower than mechanical themes and this is documented as such in ThemeDefinition
+- Q: Should the theme display as "Kindred" (WotC official 2023), "Tribal" (EDHREC/player vocabulary), or "Tribal / Kindred" combined? → A: Display name "Tribal" — matches EDHREC URL slugs and overwhelming player vocabulary; detection patterns cover both "tribal" and "kindred" oracle text internally to handle both card eras
+- Q: Which additional themes should be prioritised to reach the ~30–40 target beyond the original 20? → A: Add 12 core high-frequency themes — Tokens, Voltron, Enchantments, Equipment, Spellslinger, Wheels, Lands Matter, Life Gain, Mill, Blink / Flicker, Counters Matter, Pillowfort — combined with the 3 graveyard themes (Reanimator, Aristocrats, Self-Mill / Dredge) and Combo (proxy signals), replacing any overlapping entries from the original 20, reaching ~35 total; niche mechanics (Cycling, Cascade, Energy, Morph, Mutate) deferred
