@@ -93,18 +93,80 @@ The transformation is: lowercase → strip `[^a-z0-9 -]` → trim → spaces to 
 
 ---
 
-## 5. Theme Taxonomy — 20 Commander Themes
+## 5. Theme Taxonomy — ~35 Commander Themes
 
-**Decision**: 20 themes defined statically in `ThemeTaxonomy`; not user-configurable at runtime.
+**Decision**: 34 themes defined statically in `ThemeTaxonomy` (~35 per spec); not user-configurable at runtime. Expanded from an initial 20-theme baseline following spec clarification (session 2026-04-21).
 
-**Rationale**: The spec explicitly states "theme taxonomy is static at runtime — user-defined custom themes are out of scope." The 20 themes below were derived from:
+**Rationale**: The spec explicitly states "theme taxonomy is static at runtime — user-defined custom themes are out of scope." Themes were derived from:
 1. EDHREC `taglinks` vocabulary (top tags across hundreds of commander pages)
 2. MTG Comprehensive Rules keyword action list
 3. Commander-specific community taxonomy (EDHREC theme pages, community guides)
+4. Spec clarification — oracle/keyword-detectable themes only; meta-labels (Budget, Casual, cEDH, Vorthos) and 1v1-format archetypes (Tron, Delver, Stoneblade) excluded
 
-The taxonomy covers the most common Commander archetypes and aligns with EDHREC's own tag vocabulary, which aids consistency when blending EDHREC synergy signals.
+The taxonomy covers the most common Commander archetypes and aligns with EDHREC's own tag vocabulary, which aids consistency when blending EDHREC synergy signals. Niche mechanics (Cycling, Cascade, Energy, Morph, Mutate) are deferred to a future iteration.
 
-**Taxonomy coverage gaps**: "Stax," "Hatebears," "Wheels" are EDHREC tags not included in the 20. They are adjacent to existing themes (Control, Draw/Wheel) and can be added in a future iteration without schema changes.
+**Canonical theme list** (34 themes):
+
+| # | Theme Name | Detection Approach | Notes |
+|---|-----------|-------------------|-------|
+| 1 | Ramp | Keywords: Landfall, oracle: "search your library for a land", "add {", "additional land" | High recall via oracle patterns |
+| 2 | Card Draw / Wheels | Keywords: Draw, oracle: "draw a card", "draw cards", "each player draws", "wheel" | "Wheels" was a prior coverage gap; now included |
+| 3 | Spellslinger | Oracle: "instant or sorcery", "cast an instant", "copy target instant", type: Instant/Sorcery density | |
+| 4 | Combo | Oracle: tutor density ("search your library"), Storm keyword, "untap target permanent", "take an extra turn", "exile target player's library" — **lower-confidence proxy signals; documented in `ThemeDefinition`** | See Section 5a below |
+| 5 | Control / Stax | Keywords: Flash, oracle: "counter target spell", "destroy target", "exile target", "tap all" | Stax was a prior coverage gap; now included |
+| 6 | Pillowfort | Oracle: "can't attack you", "must attack", "you don't lose the game", "prevent all combat damage" | New addition |
+| 7 | Tribal | Oracle/type: "tribal" OR "kindred" (dual detection — see Section 5b); type: creature subtype synergy | |
+| 8 | Tokens | Oracle: "create a", "token", "populate" | New addition |
+| 9 | Voltron | Keywords: Equip, oracle: "attach to", "equip", "commander deals combat damage" | New addition |
+| 10 | Aggro | Keywords: Haste, First Strike, oracle: "deal combat damage", "attack each combat" | |
+| 11 | Enchantments | Keywords: Enchant, oracle: "enchantment you control", type: Enchantment | New addition |
+| 12 | Artifacts | Oracle: "artifact you control", "artifact enters", type: Artifact density | New addition |
+| 13 | Equipment | Keywords: Equip, oracle: "equipment you control", type: Equipment | New addition |
+| 14 | Auras | Keywords: Enchant creature, oracle: "aura", "enchanted creature" | New addition |
+| 15 | +1/+1 Counters | Keywords: Proliferate, Bolster, oracle: "+1/+1 counter" | |
+| 16 | Counters Matter | Oracle: "counter on it", "remove a counter", "counter of any kind" | New addition — broader than +1/+1 |
+| 17 | Reanimator | Oracle: "return target creature card from your graveyard", "put onto the battlefield from a graveyard" | Graveyard split — see Section 5c |
+| 18 | Aristocrats | Keywords: Sacrifice, oracle: "sacrifice a creature", "whenever a creature dies", "loses life" | Graveyard split — see Section 5c |
+| 19 | Self-Mill / Dredge | Keywords: Dredge, oracle: "mill", "put the top … into your graveyard", "fills graveyard" | Graveyard split — see Section 5c |
+| 20 | Blink / Flicker | Oracle: "exile … return it", "flicker", "leaves the battlefield and returns" | New addition |
+| 21 | Life Gain | Oracle: "you gain life", "gain life equal", keywords: Lifelink density | New addition |
+| 22 | Mill | Oracle: "mill", "put … into target player's graveyard from top of library" | New addition |
+| 23 | Lands Matter | Keywords: Landfall, oracle: "land enters", "land you control", "basic land" effects | New addition |
+| 24 | Land Destruction | Oracle: "destroy target land", "return target land", "sacrifice a land" | |
+| 25 | Extra Turns | Oracle: "take an extra turn", "additional turn" | |
+| 26 | Extra Combats | Oracle: "additional combat phase", "untap all creatures", "attacks again" | |
+| 27 | Infect / Poison | Keywords: Infect, Poisonous, Toxic, oracle: "poison counter" | |
+| 28 | Group Hug / Group Slug | Oracle: "each player draws", "each player gains", "each opponent loses" | |
+| 29 | Superfriends | Type: Planeswalker density, oracle: "loyalty counter", "planeswalker you control" | |
+| 30 | Sacrifice | Oracle: "sacrifice a permanent", "whenever you sacrifice" | |
+| 31 | Discard | Oracle: "discard a card", "discard your hand", "each player discards" | |
+| 32 | Burn | Oracle: "deals damage to any target", "deals … damage to each opponent", type: Instant/Sorcery + damage | |
+| 33 | Hatebears | Oracle: "can't be countered", "players can't", "opponents can't", type: Creature with static denial | New addition; Hatebears was a prior coverage gap |
+| 34 | Goodstuff | **No oracle signals** — computed as residual: cards with no other theme signal ≥ 0.10 and converted set-legal rarity (Rare/Mythic) / high power proxy | Lowest confidence; last-resort label |
+
+**Section 5a — Combo proxy signals (lower confidence)**  
+"Combo" cannot be reliably detected from individual card text alone. The following proxy signals are used and documented in `ThemeDefinition.SignalConfidence = Low`:
+- Tutor / "search your library" density ≥ 4 cards in deck
+- Storm keyword present
+- Untap-engine patterns: "untap target permanent", "untap all creatures"
+- Win-condition patterns: "exile target player's library", "player loses the game"
+
+Signal confidence is documented as `Low` in `ThemeDefinition` and surfaced in the UI alongside the theme name.
+
+**Section 5b — Tribal / Kindred dual detection**  
+Display name: **"Tribal"** — matches EDHREC URL slugs and overwhelming player vocabulary.  
+Detection covers both oracle text eras:
+- Pre-2023 cards: `\btribal\b` in oracle text and type line
+- Post-2023 cards (rules update): `\bkindred\b` in oracle text and type line  
+Both patterns are combined with `|` in the compiled Regex.
+
+**Section 5c — Graveyard strategy split (three themes)**  
+Per spec clarification, graveyard strategies are three separate themes with distinct signal patterns:
+- **Reanimator**: Returns permanents from graveyard to battlefield. Key oracle patterns: "return … from your graveyard … to the battlefield", "put onto the battlefield from a graveyard"
+- **Aristocrats**: Sacrifice-loop life drain. Key oracle patterns: "sacrifice a creature", "whenever a creature dies", "loses life"; keyword: Sacrifice
+- **Self-Mill / Dredge**: Fills own graveyard as resource. Key patterns: "mill N", "put top N … into graveyard"; keyword: Dredge
+
+These three themes may overlap on individual cards (e.g., a Dredge creature that also sacrifices) — cards contribute to all matching themes simultaneously.
 
 ---
 

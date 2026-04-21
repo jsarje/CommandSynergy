@@ -8,7 +8,7 @@
 
 ## What This Feature Adds
 
-1. **Theme signals pre-computed at ingestion** — `ThemeMatchingService` analyses oracle text, keywords, and type lines against a 20-theme taxonomy and stores results in the Parquet `cards.parquet` snapshot.
+1. **Theme signals pre-computed at ingestion** — `ThemeMatchingService` analyses oracle text, keywords, and type lines against a ~35-theme taxonomy (34 canonical themes) and stores results in the Parquet `cards.parquet` snapshot.
 2. **ThemeAnalysis at deck analysis time** — `ThemeAnalysisService` aggregates pre-computed signals, weights the commander at 3×, and produces ranked `DeckTheme` entries, a `CommanderAlignment`, off-theme card IDs, and a thematic synergy score (0–100).
 3. **Optional EDHREC blend** — after a commander is selected, `EdhrecClient` fetches `https://json.edhrec.com/pages/commanders/{slug}.json` and blends EDHREC per-card synergy values at 30% weight. This is cached 15 min and always optional (graceful degradation).
 4. **`ThemeAnalysisPanel` Blazor component** — displays ranked theme chips, synergy score bar, commander alignment indicator, and off-theme card list.

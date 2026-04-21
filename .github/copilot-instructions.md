@@ -9,6 +9,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-21
 - Browser localStorage for persisted imported decks, active deck selection, and import (002-deck-import-export)
 - .NET 10 / C# 14 + ASP.NET Core 10, Blazor Web App (Interactive Auto render mode), MudBlazor, Parquet.Net 5.2.0, xUnit, bUnit, FluentAssertions, `System.Text.RegularExpressions` (slug generation), `Microsoft.Extensions.Http.Resilience` (EDHREC client) (003-synergy-theme-analysis)
 - Local Parquet snapshot (`cards.parquet`); in-memory caches (snapshot search index + EDHREC per-commander cache, 15-minute TTL) (003-synergy-theme-analysis)
+- .NET 10 / C# 14 + ASP.NET Core 10, Blazor Web App (Interactive Auto render mode), MudBlazor, Parquet.Net 5.2.0, `System.Text.RegularExpressions` (NonBacktracking engine), `Microsoft.Extensions.Http.Resilience` (EDHREC HTTP client), xUnit, bUnit, FluentAssertions (003-synergy-theme-analysis)
+- Local Parquet snapshot (`cards.parquet`) — additive `ThemeSignals` column; in-memory `IMemoryCache` for EDHREC per-commander data (15-min TTL) (003-synergy-theme-analysis)
 
 - .NET 10 / C# 14 + ASP.NET Core Blazor Web App, Interactive Auto render mode, MudBlazor, Parquet.Net, xUnit, bUnit (001-build-commander-architect)
 
@@ -42,9 +44,9 @@ dotnet test src/CommandSynergy.slnx
 .NET 10 / C# 14: Follow standard conventions and Clean Architecture dependency direction
 
 ## Recent Changes
+- 003-synergy-theme-analysis: Added .NET 10 / C# 14 + ASP.NET Core 10, Blazor Web App (Interactive Auto render mode), MudBlazor, Parquet.Net 5.2.0, `System.Text.RegularExpressions` (NonBacktracking engine), `Microsoft.Extensions.Http.Resilience` (EDHREC HTTP client), xUnit, bUnit, FluentAssertions
 - 003-synergy-theme-analysis: Added .NET 10 / C# 14 + ASP.NET Core 10, Blazor Web App (Interactive Auto render mode), MudBlazor, Parquet.Net 5.2.0, xUnit, bUnit, FluentAssertions, `System.Text.RegularExpressions` (slug generation), `Microsoft.Extensions.Http.Resilience` (EDHREC client)
 - 002-deck-import-export: Added .NET 10 / C# 14 + ASP.NET Core Blazor Web App with Interactive Auto render mode,
-- 001-commander-deck-architect: Added .NET 10 / C# 14 + ASP.NET Core Blazor Web App, Interactive Auto render mode, MudBlazor, Parquet.Net, typed HttpClient for Scryfall, xUnit, bUnit, FluentAssertions
 
 
 ## Implementation Notes

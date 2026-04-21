@@ -76,11 +76,19 @@ Signal scoring per card: `score = Clamp(sum_of_matched_weights, 0.0, 1.0)`
 
 ```
 static class ThemeTaxonomy
-  Default: IReadOnlyList<ThemeDefinition>   // 20 pre-defined themes, initialised at static ctor
+  Default: IReadOnlyList<ThemeDefinition>   // ~35 pre-defined themes (34 canonical), initialised at static ctor
   GetByName(name): ThemeDefinition?        // Lookup by theme name
 ```
 
-All 20 `ThemeDefinition` instances are constructed with `RegexOptions.Compiled | RegexOptions.NonBacktracking | RegexOptions.IgnoreCase` and stored as static fields. Thread-safe after static initialisation.
+All ~35 `ThemeDefinition` instances are constructed with `RegexOptions.Compiled | RegexOptions.NonBacktracking | RegexOptions.IgnoreCase` and stored as static fields. Thread-safe after static initialisation.
+
+**Theme count notes (from spec clarification 2026-04-21)**:
+- Graveyard strategies split into three separate themes: "Reanimator", "Aristocrats", "Self-Mill / Dredge"
+- "Combo" included with proxy signals (`SignalConfidence = Low`); documented in `ThemeDefinition`
+- "Tribal" display name used; detection covers both `\btribal\b` and `\bkindred\b` oracle text
+- "Hatebears", "Wheels" (part of Card Draw / Wheels), and "Stax" (part of Control / Stax) now included
+- Niche mechanics (Cycling, Cascade, Energy, Morph, Mutate) deferred to future iteration
+- See `research.md` Section 5 for the full canonical theme list with detection patterns
 
 ---
 

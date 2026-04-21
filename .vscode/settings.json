@@ -25,7 +25,8 @@
         "New-Item": true,
         "Out-Null": true,
         "ConvertFrom-Json": true,
-        "Set-Content": true
+        "Set-Content": true,
+        "git -C C:\\GiT\\CommandSynergy": true
     }
 }
 
