@@ -20,7 +20,11 @@
         "ConvertTo-Json": true,
         "Push-Location": true,
         "Pop-Location": true,
-        "dotnet list": true
+        "dotnet list": true,
+        "git checkout": true,
+        "New-Item": true,
+        "Out-Null": true,
+        "ConvertFrom-Json": true
     }
 }
 
