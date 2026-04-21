@@ -274,6 +274,8 @@ public sealed class ParquetCardMetadataStore
         row.OracleText,
         row.PlayRateByCommander,
         row.GenericColorStapleRate,
+        row.IsGameChanger,
+        row.IsMassLandDenial,
         row.IsLegalInCommander,
         row.AllowsMultipleCopies,
         row.CompanionRequirementCode,
@@ -298,6 +300,8 @@ public sealed class ParquetCardMetadataStore
             ? new Dictionary<string, decimal>(card.PlayRateByCommander, StringComparer.OrdinalIgnoreCase)
             : null,
         GenericColorStapleRate = card.GenericColorStapleRate,
+        IsGameChanger = card.IsGameChanger,
+        IsMassLandDenial = card.IsMassLandDenial,
         IsLegalInCommander = card.IsLegalInCommander,
         AllowsMultipleCopies = card.AllowsMultipleCopies,
         CompanionRequirementCode = card.CompanionRequirementCode,
@@ -334,6 +338,10 @@ public sealed class ParquetCardMetadataStore
         public Dictionary<string, decimal>? PlayRateByCommander { get; init; }
 
         public decimal? GenericColorStapleRate { get; init; }
+
+        public bool IsGameChanger { get; init; }
+
+        public bool IsMassLandDenial { get; init; }
 
         public bool IsLegalInCommander { get; init; } = true;
 
@@ -380,6 +388,8 @@ public sealed record CardMetadataRecord(
     string? OracleText = null,
     IReadOnlyDictionary<string, decimal>? PlayRateByCommander = null,
     decimal? GenericColorStapleRate = null,
+    bool IsGameChanger = false,
+    bool IsMassLandDenial = false,
     bool IsLegalInCommander = true,
     bool AllowsMultipleCopies = false,
     string? CompanionRequirementCode = null,

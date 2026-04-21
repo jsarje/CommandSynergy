@@ -59,6 +59,57 @@ public sealed class ScryfallClient
     }
 
     /// <summary>
+    /// Fetches all card ids matching a Scryfall oracle tag, following pagination until exhausted.
+    /// </summary>
+    public async Task<IReadOnlySet<string>> FetchAllByOracleTagAsync(string tag, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tag);
+
+        logger.LogDebug("Fetching all Scryfall cards for oracle tag {Tag}", tag);
+
+        var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var nextPage = $"cards/search?q={Uri.EscapeDataString($"oracletag:{tag}")}";
+
+        while (!string.IsNullOrWhiteSpace(nextPage))
+        {
+            try
+            {
+                var response = await httpClient.GetFromJsonAsync<ScryfallSearchResponse>(nextPage, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (response is null)
+                {
+                    break;
+                }
+
+                foreach (var document in response.Data)
+                {
+                    ids.Add(document.Id);
+                }
+
+                nextPage = response.HasMore ? response.NextPage : null;
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                logger.LogWarning("Timed out while fetching Scryfall oracle tag {Tag}", tag);
+                break;
+            }
+            catch (HttpRequestException exception)
+            {
+                logger.LogWarning(exception, "Failed to fetch Scryfall oracle tag {Tag}", tag);
+                break;
+            }
+            catch (JsonException exception)
+            {
+                logger.LogWarning(exception, "Received invalid JSON while fetching Scryfall oracle tag {Tag}", tag);
+                break;
+            }
+        }
+
+        return ids;
+    }
+
+    /// <summary>
     /// Loads card-name suggestions for a partial search term.
     /// </summary>
     public async Task<IReadOnlyList<string>> AutocompleteCardNamesAsync(string query, CancellationToken cancellationToken = default)
@@ -297,6 +348,9 @@ public sealed record ScryfallCardDocument
 
     [JsonPropertyName("card_faces")]
     public IReadOnlyList<ScryfallCardFaceDocument> CardFaces { get; init; } = Array.Empty<ScryfallCardFaceDocument>();
+
+    [JsonPropertyName("game_changer")]
+    public bool IsGameChanger { get; init; }
 
     [JsonPropertyName("legalities")]
     public ScryfallLegalities? Legalities { get; init; }

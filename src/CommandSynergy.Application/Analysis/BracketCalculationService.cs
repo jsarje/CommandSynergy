@@ -11,7 +11,6 @@ namespace CommandSynergy.Application.Analysis;
 /// </summary>
 public sealed class BracketCalculationService
 {
-    private readonly GameChangerCatalog gameChangerCatalog;
     private readonly BracketEngine bracketEngine;
     private readonly AnalysisExplanationBuilder explanationBuilder;
     private readonly BracketOptions options;
@@ -20,12 +19,10 @@ public sealed class BracketCalculationService
     /// Creates a bracket-calculation service.
     /// </summary>
     public BracketCalculationService(
-        GameChangerCatalog gameChangerCatalog,
         BracketEngine bracketEngine,
         AnalysisExplanationBuilder explanationBuilder,
         IOptions<BracketOptions> options)
     {
-        this.gameChangerCatalog = gameChangerCatalog;
         this.bracketEngine = bracketEngine;
         this.explanationBuilder = explanationBuilder;
         this.options = options.Value;
@@ -50,9 +47,22 @@ public sealed class BracketCalculationService
                 continue;
             }
 
-            if (gameChangerCatalog.TryGetDefinition(entry.CardId, profile.OracleId, out var definition) && definition is not null)
+            if (profile.IsGameChanger)
             {
-                factors.Add(new BracketFactor(definition.Category, definition.Weight, definition.Explanation, entry.CardId));
+                factors.Add(new BracketFactor(
+                    "game-changer",
+                    options.GameChangerWeight,
+                    $"{profile.Name} is flagged by Scryfall as a game changer.",
+                    entry.CardId));
+            }
+
+            if (profile.IsMassLandDenial)
+            {
+                factors.Add(new BracketFactor(
+                    "mass-land-denial",
+                    options.MassLandDenialWeight,
+                    $"{profile.Name} is a mass land denial card.",
+                    entry.CardId));
             }
 
             if (!profile.IsLand

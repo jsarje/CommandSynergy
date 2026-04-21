@@ -1,8 +1,6 @@
 name: CI
 
-on:
-  push:
-    branches: [ main ]
+on:  
   pull_request:
     branches: [ main ]
 
@@ -21,10 +19,7 @@ env:
 jobs:
   build:
     name: Build, Test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -36,12 +31,7 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Configure NUGET packages folder
-        if: runner.os == 'Windows'
-        run: |
-          echo "##vso[task.setvariable variable=NUGET_PACKAGES]$env:USERPROFILE\.nuget\packages"
-      - name: Configure NUGET packages folder (non-Windows)
-        if: runner.os != 'Windows'
+      - name: Configure NUGET packages folder        
         run: |
           echo "NUGET_PACKAGES=$HOME/.nuget/packages" >> $GITHUB_ENV
 
@@ -66,5 +56,5 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: test-results-${{ matrix.os }}
+          name: test-results-ubuntu-latest
           path: '**/TestResults/*.trx'  

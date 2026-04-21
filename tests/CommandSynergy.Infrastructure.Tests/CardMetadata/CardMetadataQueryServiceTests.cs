@@ -42,6 +42,7 @@ public sealed class CardMetadataQueryServiceTests
                         ["persistent-petitioners-oracle"] = 0.72m,
                     },
                     GenericColorStapleRate = 0.18m,
+                    IsMassLandDenial = true,
                     IsLegalInCommander = true,
                     AllowsMultipleCopies = true,
                     CompanionRequirementCode = "even-mana-value",
@@ -85,6 +86,7 @@ public sealed class CardMetadataQueryServiceTests
             response["persistent-petitioners-id"].CompanionRequirementCode.Should().Be("even-mana-value");
             response["persistent-petitioners-id"].PlayRateByCommander.Should().ContainKey("persistent-petitioners-oracle");
             response["persistent-petitioners-id"].GenericColorStapleRate.Should().Be(0.18m);
+            response["persistent-petitioners-id"].IsMassLandDenial.Should().BeTrue();
         }
         finally
         {
@@ -293,6 +295,8 @@ public sealed class CardMetadataQueryServiceTests
         public Dictionary<string, decimal>? PlayRateByCommander { get; init; }
 
         public decimal? GenericColorStapleRate { get; init; }
+
+        public bool IsMassLandDenial { get; init; }
 
         public bool IsLegalInCommander { get; init; } = true;
 

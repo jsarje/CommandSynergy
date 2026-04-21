@@ -64,6 +64,8 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
                     SaltScore = card.SaltScore,
                     PlayRateByCommander = card.PlayRateByCommander ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
                     GenericColorStapleRate = card.GenericColorStapleRate,
+                    IsGameChanger = card.IsGameChanger,
+                    IsMassLandDenial = card.IsMassLandDenial,
                     IsLegalInCommander = card.IsLegalInCommander,
                     AllowsMultipleCopies = card.AllowsMultipleCopies,
                     CompanionRequirementCode = card.CompanionRequirementCode,
