@@ -39,6 +39,7 @@ builder.Services.AddScoped<DeckWorkspaceViewModel>();
 builder.Services.AddScoped<ILocalStorageStringStore, StreamingLocalStorageStringStore>();
 builder.Services.AddScoped<ImportedDeckLibrarySerializer>();
 builder.Services.AddScoped<ImportedDeckLibraryStore>();
+builder.Services.AddScoped<ImportedDeckLibraryState>();
 
 var app = builder.Build();
 
