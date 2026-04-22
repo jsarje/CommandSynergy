@@ -4,6 +4,7 @@ using CommandSynergy.Application.Cards;
 using CommandSynergy.Application.Decks;
 using CommandSynergy.Infrastructure.Analysis;
 using CommandSynergy.Infrastructure.CardMetadata;
+using CommandSynergy.Infrastructure.CommanderSpellbook;
 using CommandSynergy.Infrastructure.Edhrec;
 using CommandSynergy.Infrastructure.Observability;
 using CommandSynergy.Infrastructure.Scryfall;
@@ -25,6 +26,7 @@ public static class DependencyInjection
         services.AddMemoryCache();
         services.AddScryfallClient(configuration);
         services.AddEdhrecClient(configuration);
+        services.AddCommanderSpellbookClient(configuration);
         services.AddSingleton<ParquetCardMetadataStore>();
         services.AddSingleton<SearchIndexSnapshotBuilder>();
         services.AddSingleton<ScryfallCardMapper>();
@@ -36,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<BracketCalculationService>();
         services.AddScoped<SynergyScoringService>();
         services.AddScoped<DeckAnalysisService>();
+        services.AddScoped<ICommanderSpellbookClient, CommanderSpellbookClient>();
         services.AddScoped<IEdhrecClient, EdhrecClient>();
         services.AddScoped<ICardCatalogGateway, CardMetadataQueryService>();
         services.AddScoped<ICardSearchService>(serviceProvider => new CardSearchLoggingDecorator(

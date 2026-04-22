@@ -46,6 +46,7 @@ public sealed class DeckAnalysisPerformanceTests
 
         var sut = new DeckAnalysisService(
             gateway,
+            new StubCommanderSpellbookClient(),
             new StubEdhrecClient(),
             new BracketCalculationService(new Domain.Analysis.BracketEngine(), new AnalysisExplanationBuilder(), options),
             new SynergyScoringService(new AnalysisExplanationBuilder()),
@@ -95,5 +96,11 @@ public sealed class DeckAnalysisPerformanceTests
     {
         public Task<CommanderThemeInsights> GetCommanderThemeInsightsAsync(CardProfile commanderProfile, CancellationToken cancellationToken = default) =>
             Task.FromResult(CommanderThemeInsights.Empty());
+    }
+
+    private sealed class StubCommanderSpellbookClient : ICommanderSpellbookClient
+    {
+        public Task<Domain.Analysis.ComboAnalysis> FindCombosAsync(IEnumerable<string> commanderNames, IEnumerable<string> mainDeckNames, CancellationToken cancellationToken = default) =>
+            Task.FromResult(Domain.Analysis.ComboAnalysis.Empty());
     }
 }

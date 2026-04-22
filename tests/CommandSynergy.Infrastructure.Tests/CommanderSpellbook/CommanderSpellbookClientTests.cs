@@ -1,0 +1,172 @@
+using System.Net;
+using System.Text;
+using CommandSynergy.Application.Configuration;
+using CommandSynergy.Infrastructure.CommanderSpellbook;
+using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using RichardSzalay.MockHttp;
+
+namespace CommandSynergy.Infrastructure.Tests.CommanderSpellbook;
+
+public sealed class CommanderSpellbookClientTests
+{
+    [Fact]
+    public async Task FindCombosAsync_returns_included_combos_for_valid_payload()
+    {
+        var mockHttp = new MockHttpMessageHandler();
+        mockHttp.When(HttpMethod.Post, "https://backend.commanderspellbook.com/find-my-combos")
+            .Respond("application/json", """
+                {
+                  "results": {
+                    "included": [
+                      {
+                        "uses": [
+                          { "card": { "name": "Sol Ring" }, "quantity": 1 },
+                          { "card": { "name": "Basalt Monolith" }, "quantity": 1 }
+                        ],
+                        "produces": [
+                          { "feature": { "name": "Infinite Colorless Mana" } }
+                        ],
+                        "prerequisites": "Basalt Monolith can tap.",
+                        "easyPrerequisites": "Basalt Monolith is untapped.",
+                        "steps": "Tap and untap repeatedly."
+                      }
+                    ],
+                    "almostIncluded": []
+                  }
+                }
+                """);
+        var sut = CreateClient(mockHttp);
+
+        var result = await sut.FindCombosAsync(["Kinnan, Bonder Prodigy"], ["Sol Ring", "Basalt Monolith"]);
+
+        result.IncludedCombos.Should().ContainSingle();
+        result.IncludedCombos[0].CardNames.Should().Equal("Sol Ring", "Basalt Monolith");
+        result.IncludedCombos[0].Produces.Should().Equal("Infinite Colorless Mana");
+        result.IncludedCombos[0].Prerequisites.Should().Be("Basalt Monolith is untapped.");
+        result.IncludedCombos[0].Steps.Should().Be("Tap and untap repeatedly.");
+    }
+
+    [Fact]
+    public async Task FindCombosAsync_returns_almost_included_combos_and_missing_one_count()
+    {
+        var mockHttp = new MockHttpMessageHandler();
+        mockHttp.When(HttpMethod.Post, "https://backend.commanderspellbook.com/find-my-combos")
+            .Respond("application/json", """
+                {
+                  "results": {
+                    "included": [],
+                    "almostIncluded": [
+                      {
+                        "uses": [
+                          { "card": { "name": "Dramatic Reversal" }, "quantity": 1 },
+                          { "card": { "name": "Isochron Scepter" }, "quantity": 1 }
+                        ],
+                        "produces": [
+                          { "feature": { "name": "Infinite Mana" } }
+                        ],
+                        "missingCards": [
+                          { "card": { "name": "Sol Ring" }, "quantity": 1 }
+                        ],
+                        "prerequisites": "Nonland mana rocks on battlefield.",
+                        "steps": "Imprint and loop."
+                      }
+                    ]
+                  }
+                }
+                """);
+        var sut = CreateClient(mockHttp);
+
+        var result = await sut.FindCombosAsync(["Urza, Lord High Artificer"], ["Isochron Scepter", "Dramatic Reversal"]);
+
+        result.AlmostIncludedCombos.Should().ContainSingle();
+        result.AlmostIncludedCombos[0].CardNames.Should().Equal("Dramatic Reversal", "Isochron Scepter");
+        result.AlmostIncludedCombos[0].Produces.Should().Equal("Infinite Mana");
+        result.MissingOneCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task FindCombosAsync_returns_empty_result_for_empty_payload()
+    {
+        var mockHttp = new MockHttpMessageHandler();
+        mockHttp.When(HttpMethod.Post, "https://backend.commanderspellbook.com/find-my-combos")
+            .Respond("application/json", """
+                {
+                  "results": {
+                    "included": [],
+                    "almostIncluded": []
+                  }
+                }
+                """);
+        var sut = CreateClient(mockHttp);
+
+        var result = await sut.FindCombosAsync(["Kinnan, Bonder Prodigy"], ["Sol Ring"]);
+
+        result.IncludedCombos.Should().BeEmpty();
+        result.AlmostIncludedCombos.Should().BeEmpty();
+        result.MissingOneCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task FindCombosAsync_returns_empty_result_for_invalid_json()
+    {
+        var mockHttp = new MockHttpMessageHandler();
+        mockHttp.When(HttpMethod.Post, "https://backend.commanderspellbook.com/find-my-combos")
+            .Respond("application/json", "not-json");
+        var sut = CreateClient(mockHttp);
+
+        var result = await sut.FindCombosAsync(["Kinnan, Bonder Prodigy"], ["Sol Ring"]);
+
+        result.IncludedCombos.Should().BeEmpty();
+        result.AlmostIncludedCombos.Should().BeEmpty();
+        result.MissingOneCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task FindCombosAsync_returns_empty_result_for_unsuccessful_http_status()
+    {
+        var handler = new StatusCodeHttpMessageHandler(HttpStatusCode.BadGateway);
+        var sut = CreateClient(handler);
+
+        var result = await sut.FindCombosAsync(["Kinnan, Bonder Prodigy"], ["Sol Ring"]);
+
+        result.IncludedCombos.Should().BeEmpty();
+        result.AlmostIncludedCombos.Should().BeEmpty();
+        result.MissingOneCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task FindCombosAsync_returns_empty_result_for_timeout()
+    {
+        var handler = new TimeoutHttpMessageHandler();
+        var sut = CreateClient(handler);
+
+        var result = await sut.FindCombosAsync(["Kinnan, Bonder Prodigy"], ["Sol Ring"]);
+
+        result.IncludedCombos.Should().BeEmpty();
+        result.AlmostIncludedCombos.Should().BeEmpty();
+        result.MissingOneCount.Should().Be(0);
+    }
+
+    private static CommanderSpellbookClient CreateClient(HttpMessageHandler handler) =>
+        new(
+            new HttpClient(handler)
+            {
+                BaseAddress = new Uri("https://backend.commanderspellbook.com/", UriKind.Absolute),
+            },
+            Options.Create(new CommanderSpellbookOptions()),
+            NullLogger<CommanderSpellbookClient>.Instance);
+
+    private sealed class StatusCodeHttpMessageHandler(HttpStatusCode statusCode) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+            Task.FromResult(new HttpResponseMessage(statusCode));
+    }
+
+    private sealed class TimeoutHttpMessageHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+            Task.FromException<HttpResponseMessage>(new OperationCanceledException("timeout"));
+    }
+}
