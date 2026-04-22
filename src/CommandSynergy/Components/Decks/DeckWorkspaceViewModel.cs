@@ -27,6 +27,20 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
     private const string DefaultUnsavedDeckName = "Untitled Deck";
 
+    private static readonly HashSet<string> MultipleCopyCardNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Dragon's Approach",
+        "Hare Apparent",
+        "Nazgûl",
+        "Persistent Petitioners",
+        "Rat Colony",
+        "Relentless Rats",
+        "Seven Dwarves",
+        "Shadowborn Apostle",
+        "Slime Against Humanity",
+        "Templar Knight",
+    };
+
     private readonly DeckWorkspaceStateFactory stateFactory;
     private readonly CardSearchIndexClient cardSearchIndexClient;
     private readonly DeckWorkspaceClient deckWorkspaceClient;
@@ -716,6 +730,69 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     }
 
     /// <summary>
+    /// Increases the quantity of an existing mainboard card when Commander rules allow duplicates.
+    /// </summary>
+    public async Task IncrementCardQuantityAsync(string cardId)
+    {
+        var entry = entries.SingleOrDefault(existing => string.Equals(existing.CardId, cardId, StringComparison.OrdinalIgnoreCase));
+        if (entry is null || entry.IsCommander)
+        {
+            return;
+        }
+
+        var card = GetKnownCard(cardId);
+        if (!card.AllowsMultipleCopies)
+        {
+            return;
+        }
+
+        entry.Quantity += 1;
+        entry.AssignedPileId ??= MainboardPileId;
+        RefreshDerivedCards();
+
+        if (string.IsNullOrWhiteSpace(GetCommanderCardId()))
+        {
+            Analysis = null;
+            State = stateFactory.CreateEmpty("Choose a legal commander to activate validation and synergy analysis.");
+            return;
+        }
+
+        await PersistActiveImportedDeckAsync().ConfigureAwait(false);
+        await ScheduleRefreshAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Decreases the quantity of an existing mainboard card without removing the final legal copy.
+    /// </summary>
+    public async Task DecrementCardQuantityAsync(string cardId)
+    {
+        var entry = entries.SingleOrDefault(existing => string.Equals(existing.CardId, cardId, StringComparison.OrdinalIgnoreCase));
+        if (entry is null || entry.IsCommander || entry.Quantity <= 1)
+        {
+            return;
+        }
+
+        var card = GetKnownCard(cardId);
+        if (!card.AllowsMultipleCopies)
+        {
+            return;
+        }
+
+        entry.Quantity -= 1;
+        RefreshDerivedCards();
+
+        if (string.IsNullOrWhiteSpace(GetCommanderCardId()))
+        {
+            Analysis = null;
+            State = stateFactory.CreateEmpty("Choose a legal commander to activate validation and synergy analysis.");
+            return;
+        }
+
+        await PersistActiveImportedDeckAsync().ConfigureAwait(false);
+        await ScheduleRefreshAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Moves a card to a new pile while preserving immediate local feedback.
     /// </summary>
     public async Task MoveCardAsync(MoveCardRequest request)
@@ -960,7 +1037,10 @@ public sealed class DeckWorkspaceViewModel : IDisposable
                     entry.IsCommander ? CommandZonePileId : entry.AssignedPileId ?? MainboardPileId,
                     entry.IsCommander,
                     entry.IsCompanion,
-                    ParseConfidence.Exact);
+                    ParseConfidence.Exact,
+                    card.SourceSetCode,
+                    card.SourceCollectorNumber,
+                    card.SourceTag);
             })
             .ToArray();
 
@@ -1052,6 +1132,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
                 CardId = portableEntry.CardId!,
                 Name = portableEntry.DisplayName,
                 ManaCost = portableEntry.ManaCost,
+                ManaValue = ParseManaValue(portableEntry.ManaCost),
                 TypeLine = portableEntry.TypeLine ?? (portableEntry.IsCommander ? "Commander" : "Imported Card"),
                 ColorIdentity = portableEntry.ColorIdentity,
                 SaltScore = portableEntry.SaltScore,
@@ -1062,7 +1143,11 @@ public sealed class DeckWorkspaceViewModel : IDisposable
                 AssignedPileId = portableEntry.SectionId,
                 IsCommander = portableEntry.IsCommander,
                 IsCompanion = portableEntry.IsCompanion,
+                AllowsMultipleCopies = AllowsMultipleCopies(portableEntry.DisplayName, portableEntry.TypeLine, false),
                 CommanderEligibilityBasis = portableEntry.CommanderEligibilityBasis,
+                SourceSetCode = portableEntry.SourceSetCode,
+                SourceCollectorNumber = portableEntry.SourceCollectorNumber,
+                SourceTag = portableEntry.SourceTag,
             };
         }
 
@@ -1176,6 +1261,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             CardId = result.CardId,
             Name = result.Name,
             ManaCost = result.ManaCost,
+            ManaValue = result.ManaValue > 0m ? result.ManaValue : ParseManaValue(result.ManaCost),
             TypeLine = result.TypeLine,
             ColorIdentity = result.ColorIdentity,
             SaltScore = result.SaltScore,
@@ -1184,6 +1270,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             Faces = faces,
             AssignedPileId = MainboardPileId,
             Quantity = 1,
+            AllowsMultipleCopies = AllowsMultipleCopies(result.Name, result.TypeLine, result.AllowsMultipleCopies),
             CommanderEligibilityBasis = result.CommanderEligibilityBasis,
         };
     }
@@ -1219,6 +1306,8 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             Faces = [new WorkspaceCardFaceView(cardId, null, "Unknown Card", null, true)],
             AssignedPileId = MainboardPileId,
             Quantity = 1,
+            ManaValue = 0m,
+            AllowsMultipleCopies = AllowsMultipleCopies(cardId, "Unknown Card", false),
             CommanderEligibilityBasis = CommanderEligibilityBasis.Unknown,
         };
 
@@ -1227,6 +1316,62 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     }
 
     private string? GetCommanderCardId() => entries.SingleOrDefault(static entry => entry.IsCommander)?.CardId;
+
+    private static bool AllowsMultipleCopies(string name, string? typeLine, bool allowsMultipleCopiesFromMetadata)
+    {
+        if (allowsMultipleCopiesFromMetadata)
+        {
+            return true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(typeLine)
+            && typeLine.Contains("Basic", StringComparison.OrdinalIgnoreCase)
+            && typeLine.Contains("Land", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return MultipleCopyCardNames.Contains(name.Trim());
+    }
+
+    private static decimal ParseManaValue(string? manaCost)
+    {
+        if (string.IsNullOrWhiteSpace(manaCost))
+        {
+            return 0m;
+        }
+
+        var total = 0m;
+        var symbolStartIndex = 0;
+        while (symbolStartIndex < manaCost.Length)
+        {
+            var openBracketIndex = manaCost.IndexOf('{', symbolStartIndex);
+            if (openBracketIndex < 0)
+            {
+                break;
+            }
+
+            var closeBracketIndex = manaCost.IndexOf('}', openBracketIndex + 1);
+            if (closeBracketIndex < 0)
+            {
+                break;
+            }
+
+            var symbol = manaCost[(openBracketIndex + 1)..closeBracketIndex];
+            if (decimal.TryParse(symbol, NumberStyles.Number, CultureInfo.InvariantCulture, out var numericValue))
+            {
+                total += numericValue;
+            }
+            else if (!symbol.Contains('/', StringComparison.Ordinal))
+            {
+                total += 1m;
+            }
+
+            symbolStartIndex = closeBracketIndex + 1;
+        }
+
+        return total;
+    }
 
     private IReadOnlyList<string> GetCommanderColors()
     {
@@ -1268,6 +1413,8 @@ public sealed record WorkspaceCardView
 
     public string? ManaCost { get; init; }
 
+    public decimal ManaValue { get; init; }
+
     public required string TypeLine { get; init; }
 
     public required IReadOnlyList<string> ColorIdentity { get; init; }
@@ -1278,9 +1425,17 @@ public sealed record WorkspaceCardView
 
     public bool HasMultipleFaces { get; init; }
 
+    public bool AllowsMultipleCopies { get; init; }
+
     public CommanderEligibilityBasis CommanderEligibilityBasis { get; init; } = CommanderEligibilityBasis.Unknown;
 
     public required IReadOnlyList<WorkspaceCardFaceView> Faces { get; init; }
+
+    public string? SourceSetCode { get; init; }
+
+    public string? SourceCollectorNumber { get; init; }
+
+    public string? SourceTag { get; init; }
 
     public string AssignedPileId { get; init; } = DeckWorkspaceViewModel.MainboardPileId;
 

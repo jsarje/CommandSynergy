@@ -174,6 +174,57 @@ public sealed class DeckWorkspaceViewModelTests
     }
 
     [Fact]
+    public async Task IncrementCardQuantityAsync_allows_commander_legal_duplicate_cards_to_grow_and_shrink()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = CreateLibraryState(timeProvider);
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new StubDeckWorkspaceClient(),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.StartNewDeckAsync();
+        await sut.UpdateSearchQueryAsync("Shadowborn Apostle");
+        await sut.SearchAsync();
+        await sut.AddCardAsync("shadowborn-apostle");
+        await sut.IncrementCardQuantityAsync("shadowborn-apostle");
+        await sut.IncrementCardQuantityAsync("shadowborn-apostle");
+        await sut.DecrementCardQuantityAsync("shadowborn-apostle");
+        await sut.DecrementCardQuantityAsync("shadowborn-apostle");
+        await sut.DecrementCardQuantityAsync("shadowborn-apostle");
+
+        var apostle = sut.Cards.Should().ContainSingle(card => card.CardId == "shadowborn-apostle").Subject;
+        apostle.Quantity.Should().Be(1);
+        apostle.AllowsMultipleCopies.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IncrementCardQuantityAsync_ignores_singleton_cards()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = CreateLibraryState(timeProvider);
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new StubDeckWorkspaceClient(),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.StartNewDeckAsync();
+        await sut.UpdateSearchQueryAsync("Sol Ring");
+        await sut.SearchAsync();
+        await sut.AddCardAsync("sol-ring");
+        await sut.IncrementCardQuantityAsync("sol-ring");
+        await sut.DecrementCardQuantityAsync("sol-ring");
+
+        sut.Cards.Should().ContainSingle(card => card.CardId == "sol-ring" && card.Quantity == 1);
+    }
+
+    [Fact]
     public async Task StartNewDeckAsync_clears_workspace_and_detaches_active_imported_deck()
     {
         var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
@@ -523,6 +574,7 @@ public sealed class DeckWorkspaceViewModelTests
                         CardId = "sol-ring",
                         Name = "Sol Ring",
                         ManaCost = "{1}",
+                        ManaValue = 1m,
                         TypeLine = "Artifact",
                         ColorIdentity = Array.Empty<string>(),
                         SaltScore = 0.5m,
@@ -535,12 +587,27 @@ public sealed class DeckWorkspaceViewModelTests
                         CardId = "isshin-two-heavens-as-one",
                         Name = "Isshin, Two Heavens as One",
                         ManaCost = "{R}{W}{B}",
+                        ManaValue = 3m,
                         TypeLine = "Legendary Creature",
                         ColorIdentity = ["R", "W", "B"],
                         SaltScore = 0.7m,
                         ImageUri = "https://cards.example/isshin.jpg",
                         HasMultipleFaces = false,
                         CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.LegendaryCreature,
+                    },
+                    new CardSearchResultContract
+                    {
+                        CardId = "shadowborn-apostle",
+                        Name = "Shadowborn Apostle",
+                        ManaCost = "{B}",
+                        ManaValue = 1m,
+                        TypeLine = "Creature — Human Cleric",
+                        ColorIdentity = ["B"],
+                        SaltScore = 0.2m,
+                        ImageUri = "https://cards.example/shadowborn-apostle.jpg",
+                        HasMultipleFaces = false,
+                        AllowsMultipleCopies = true,
+                        CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown,
                     },
                 ],
             });

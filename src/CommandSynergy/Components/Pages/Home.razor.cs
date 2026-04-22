@@ -71,6 +71,10 @@ public partial class Home : ComponentBase
 
     private Task AddCardAsync(string cardId) => ViewModel.AddCardAsync(cardId);
 
+    private Task IncrementCardQuantityAsync(string cardId) => ViewModel.IncrementCardQuantityAsync(cardId);
+
+    private Task DecrementCardQuantityAsync(string cardId) => ViewModel.DecrementCardQuantityAsync(cardId);
+
     private Task MoveCardAsync(MoveCardRequest request) => ViewModel.MoveCardAsync(request);
 
     private Task RemoveCardAsync(string cardId) => ViewModel.RemoveCardAsync(cardId);

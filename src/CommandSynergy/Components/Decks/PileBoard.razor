@@ -1,4 +1,5 @@
 @using CommandSynergy.Application.Contracts
+@using CommandSynergy.Components.Cards
 
 <section class="pile-board">
     <div class="pile-board__header">
@@ -6,7 +7,40 @@
             <p class="workspace-panel__label">Workspace</p>
             <h2>Two lanes, one clear deckbench</h2>
         </div>
-        <p class="pile-board__hint">The command zone stays compact while the mainboard gets the space needed for the other 98-plus cards.</p>
+        <div class="pile-board__header-side">
+            <p class="pile-board__hint">The command zone stays compact while the mainboard gets the space needed for the other 98-plus cards.</p>
+            <div class="pile-board__controls" data-testid="mainboard-controls">
+                <label class="pile-board__control">
+                    <span>Group mainboard</span>
+                    <select @bind="selectedGrouping" data-testid="mainboard-grouping">
+                        <option value="@MainboardGrouping.Type">Type</option>
+                        <option value="@MainboardGrouping.ManaCost">Mana cost</option>
+                        <option value="@MainboardGrouping.Color">Color</option>
+                        <option value="@MainboardGrouping.Rarity">Rarity</option>
+                        <option value="@MainboardGrouping.Set">Set</option>
+                        <option value="@MainboardGrouping.None">No grouping</option>
+                    </select>
+                </label>
+
+                <label class="pile-board__control">
+                    <span>Sort cards</span>
+                    <select @bind="selectedSorting" data-testid="mainboard-sorting">
+                        <option value="@MainboardSorting.Name">Name</option>
+                        <option value="@MainboardSorting.ManaCost">Mana cost</option>
+                        <option value="@MainboardSorting.Type">Type</option>
+                        <option value="@MainboardSorting.Color">Color</option>
+                    </select>
+                </label>
+
+                <button type="button"
+                        class="pile-board__compact-toggle"
+                        aria-pressed="@isCompactMode"
+                        data-testid="compact-mode-toggle"
+                        @onclick="ToggleCompactMode">
+                    @(isCompactMode ? "Compact mode on" : "Compact mode off")
+                </button>
+            </div>
+        </div>
     </div>
 
     <div class="pile-board__lanes">
@@ -32,35 +66,33 @@
                     {
                         <p class="pile-board__empty">@GetEmptyMessage(lane.PileId)</p>
                     }
+                    else if (IsCommandZone(lane.PileId))
+                    {
+                        @foreach (var card in cardsInPile.OrderBy(static card => card.Name, StringComparer.OrdinalIgnoreCase))
+                        {
+                            @RenderCard(card, isMainboard: false)
+                        }
+                    }
                     else
                     {
-                        @foreach (var card in cardsInPile)
+                        @foreach (var group in GetMainboardGroups(cardsInPile))
                         {
-                            <article class="pile-board__card"
-                                     data-testid="pile-card-@card.CardId">
-                                <CommanderCard Card="card" />
+                            <section class="pile-board__group" data-testid="mainboard-group-@group.TestId">
+                                @if (selectedGrouping is not MainboardGrouping.None)
+                                {
+                                    <header class="pile-board__group-header">
+                                        <h4>@group.Label</h4>
+                                        <span>@group.TotalQuantity cards</span>
+                                    </header>
+                                }
 
-                                <div class="pile-board__actions">
-                                    @if (CommanderSelectionEnabled && !card.IsCommander)
+                                <div class="pile-board__group-cards">
+                                    @foreach (var card in group.Cards)
                                     {
-                                        <button type="button"
-                                                class="pile-board__move-button"
-                                                data-testid="set-commander-from-pile-@card.CardId"
-                                                disabled="@(!card.IsCommanderEligible)"
-                                                title="@(card.IsCommanderEligible ? "Set this card as your commander" : "Only legal commanders can be selected.")"
-                                                @onclick="() => SetCommanderRequested.InvokeAsync(card.CardId)">
-                                            Set as commander
-                                        </button>
+                                        @RenderCard(card, isMainboard: true)
                                     }
-
-                                    <button type="button"
-                                            class="pile-board__remove-button"
-                                            data-testid="remove-@card.CardId"
-                                            @onclick="() => RemoveRequested.InvokeAsync(card.CardId)">
-                                        Remove
-                                    </button>
                                 </div>
-                            </article>
+                            </section>
                         }
                     }
                 </div>
@@ -83,13 +115,90 @@
     public EventCallback<string> SetCommanderRequested { get; set; }
 
     [Parameter]
+    public EventCallback<string> IncrementRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<string> DecrementRequested { get; set; }
+
+    [Parameter]
     public EventCallback<string> RemoveRequested { get; set; }
+
+    private bool isCompactMode;
+    private MainboardGrouping selectedGrouping = MainboardGrouping.Type;
+    private MainboardSorting selectedSorting = MainboardSorting.Name;
 
     private IReadOnlyList<PileDefinitionContract> VisibleLanes => Piles
         .Where(static pile => string.Equals(pile.PileId, DeckWorkspaceViewModel.CommandZonePileId, StringComparison.OrdinalIgnoreCase)
             || string.Equals(pile.PileId, DeckWorkspaceViewModel.MainboardPileId, StringComparison.OrdinalIgnoreCase))
         .OrderBy(static pile => pile.SortOrder)
         .ToArray();
+
+    private RenderFragment RenderCard(WorkspaceCardView card, bool isMainboard) => builder =>
+    {
+        var sequence = 0;
+        var compactClass = isMainboard && isCompactMode ? " pile-board__card--compact" : string.Empty;
+
+        builder.OpenElement(sequence++, "article");
+        builder.AddAttribute(sequence++, "class", $"pile-board__card{compactClass}");
+        builder.AddAttribute(sequence++, "data-testid", $"pile-card-{card.CardId}");
+
+        builder.OpenComponent<CommanderCard>(sequence++);
+        builder.AddAttribute(sequence++, "Card", card);
+        builder.CloseComponent();
+
+        builder.OpenElement(sequence++, "div");
+        builder.AddAttribute(sequence++, "class", "pile-board__actions");
+
+        if (isMainboard && !card.IsCommander && card.AllowsMultipleCopies)
+        {
+            builder.OpenElement(sequence++, "button");
+            builder.AddAttribute(sequence++, "type", "button");
+            builder.AddAttribute(sequence++, "class", "pile-board__quantity-button");
+            builder.AddAttribute(sequence++, "data-testid", $"decrement-{card.CardId}");
+            builder.AddAttribute(sequence++, "disabled", card.Quantity <= 1);
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => DecrementRequested.InvokeAsync(card.CardId)));
+            builder.AddContent(sequence++, "−1");
+            builder.CloseElement();
+
+            builder.OpenElement(sequence++, "span");
+            builder.AddAttribute(sequence++, "class", "pile-board__quantity");
+            builder.AddAttribute(sequence++, "data-testid", $"quantity-{card.CardId}");
+            builder.AddContent(sequence++, $"{card.Quantity} copies");
+            builder.CloseElement();
+
+            builder.OpenElement(sequence++, "button");
+            builder.AddAttribute(sequence++, "type", "button");
+            builder.AddAttribute(sequence++, "class", "pile-board__quantity-button");
+            builder.AddAttribute(sequence++, "data-testid", $"increment-{card.CardId}");
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => IncrementRequested.InvokeAsync(card.CardId)));
+            builder.AddContent(sequence++, "+1");
+            builder.CloseElement();
+        }
+
+        if (CommanderSelectionEnabled && !card.IsCommander)
+        {
+            builder.OpenElement(sequence++, "button");
+            builder.AddAttribute(sequence++, "type", "button");
+            builder.AddAttribute(sequence++, "class", "pile-board__move-button");
+            builder.AddAttribute(sequence++, "data-testid", $"set-commander-from-pile-{card.CardId}");
+            builder.AddAttribute(sequence++, "disabled", !card.IsCommanderEligible);
+            builder.AddAttribute(sequence++, "title", card.IsCommanderEligible ? "Set this card as your commander" : "Only legal commanders can be selected.");
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => SetCommanderRequested.InvokeAsync(card.CardId)));
+            builder.AddContent(sequence++, "Set as commander");
+            builder.CloseElement();
+        }
+
+        builder.OpenElement(sequence++, "button");
+        builder.AddAttribute(sequence++, "type", "button");
+        builder.AddAttribute(sequence++, "class", "pile-board__remove-button");
+        builder.AddAttribute(sequence++, "data-testid", $"remove-{card.CardId}");
+        builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => RemoveRequested.InvokeAsync(card.CardId)));
+        builder.AddContent(sequence++, "Remove");
+        builder.CloseElement();
+
+        builder.CloseElement();
+        builder.CloseElement();
+    };
 
     private WorkspaceCardView[] GetCardsForPile(string pileId) => Cards
         .Where(card => string.Equals(ResolvePileId(card), pileId, StringComparison.OrdinalIgnoreCase))
@@ -116,4 +225,243 @@
     private static string ResolvePileId(WorkspaceCardView card) => card.IsCommander
         ? DeckWorkspaceViewModel.CommandZonePileId
         : card.AssignedPileId;
+
+    private IReadOnlyList<CardGroupView> GetMainboardGroups(IReadOnlyList<WorkspaceCardView> cards)
+    {
+        var sortedCards = SortCards(cards);
+        if (selectedGrouping is MainboardGrouping.None)
+        {
+            return [new CardGroupView("All cards", "all-cards", sortedCards)];
+        }
+
+        return sortedCards
+            .GroupBy(GetGroupKey)
+            .Select(group => new CardGroupView(
+                GetGroupLabel(group.Key),
+                ToTestId(group.Key),
+                group.ToArray()))
+            .OrderBy(GetGroupOrder)
+            .ThenBy(static group => group.Label, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    private WorkspaceCardView[] SortCards(IReadOnlyList<WorkspaceCardView> cards) => selectedSorting switch
+    {
+        MainboardSorting.ManaCost => cards
+            .OrderBy(static card => card.ManaValue)
+            .ThenBy(static card => card.Name, StringComparer.OrdinalIgnoreCase)
+            .ToArray(),
+        MainboardSorting.Type => cards
+            .OrderBy(card => GetTypeOrder(ResolveTypeGroup(card)))
+            .ThenBy(static card => card.Name, StringComparer.OrdinalIgnoreCase)
+            .ToArray(),
+        MainboardSorting.Color => cards
+            .OrderBy(card => ResolveColorSortKey(card))
+            .ThenBy(static card => card.Name, StringComparer.OrdinalIgnoreCase)
+            .ToArray(),
+        _ => cards
+            .OrderBy(static card => card.Name, StringComparer.OrdinalIgnoreCase)
+            .ToArray(),
+    };
+
+    private string GetGroupKey(WorkspaceCardView card) => selectedGrouping switch
+    {
+        MainboardGrouping.ManaCost => $"mana:{card.ManaValue:0.##}",
+        MainboardGrouping.Color => $"color:{ResolveColorGroup(card)}",
+        MainboardGrouping.Rarity => $"rarity:{ResolveRarityGroup(card)}",
+        MainboardGrouping.Set => $"set:{ResolveSetGroup(card)}",
+        _ => $"type:{ResolveTypeGroup(card)}",
+    };
+
+    private string GetGroupLabel(string groupKey)
+    {
+        var value = groupKey[(groupKey.IndexOf(':') + 1)..];
+        return selectedGrouping switch
+        {
+            MainboardGrouping.ManaCost => $"Mana value {value}",
+            MainboardGrouping.Color => value,
+            MainboardGrouping.Rarity => value,
+            MainboardGrouping.Set => value,
+            _ => value,
+        };
+    }
+
+    private decimal GetGroupOrder(CardGroupView group) => selectedGrouping switch
+    {
+        MainboardGrouping.ManaCost => ParseGroupOrder(group.Label),
+        MainboardGrouping.Color => ResolveColorOrder(group.Label),
+        MainboardGrouping.Rarity => ResolveRarityOrder(group.Label),
+        MainboardGrouping.Set => string.Equals(group.Label, UnknownSetLabel, StringComparison.OrdinalIgnoreCase) ? int.MaxValue : 0,
+        _ => GetTypeOrder(group.Label),
+    };
+
+    private void ToggleCompactMode()
+    {
+        isCompactMode = !isCompactMode;
+    }
+
+    private static string ResolveTypeGroup(WorkspaceCardView card)
+    {
+        var orderedTypes = new[]
+        {
+            "Land",
+            "Creature",
+            "Artifact",
+            "Enchantment",
+            "Planeswalker",
+            "Battle",
+            "Sorcery",
+            "Instant",
+        };
+
+        return orderedTypes.FirstOrDefault(type => card.TypeLine.Contains(type, StringComparison.OrdinalIgnoreCase))
+            ?? "Other";
+    }
+
+    private static int GetTypeOrder(string typeGroup) => typeGroup switch
+    {
+        "Land" => 0,
+        "Creature" => 1,
+        "Artifact" => 2,
+        "Enchantment" => 3,
+        "Planeswalker" => 4,
+        "Battle" => 5,
+        "Sorcery" => 6,
+        "Instant" => 7,
+        _ => 8,
+    };
+
+    private static string ResolveColorGroup(WorkspaceCardView card)
+    {
+        if (card.ColorIdentity.Count == 0)
+        {
+            return "Colorless";
+        }
+
+        if (card.ColorIdentity.Count == 1)
+        {
+            return ResolveColorName(card.ColorIdentity[0]);
+        }
+
+        var orderedColors = card.ColorIdentity
+            .Select(ResolveColorName)
+            .OrderBy(ResolveColorOrder)
+            .ToArray();
+
+        return $"Multicolor — {string.Join(" / ", orderedColors)}";
+    }
+
+    private static int ResolveColorSortKey(WorkspaceCardView card)
+    {
+        if (card.ColorIdentity.Count == 0)
+        {
+            return 0;
+        }
+
+        if (card.ColorIdentity.Count > 1)
+        {
+            return 100 + card.ColorIdentity.Count;
+        }
+
+        return ResolveColorOrder(ResolveColorName(card.ColorIdentity[0]));
+    }
+
+    private static int ResolveColorOrder(string color) => color switch
+    {
+        "Colorless" => 0,
+        "White" => 1,
+        "Blue" => 2,
+        "Black" => 3,
+        "Red" => 4,
+        "Green" => 5,
+        _ when color.StartsWith("Multicolor", StringComparison.OrdinalIgnoreCase) => 6,
+        _ => 7,
+    };
+
+    private static string ResolveColorName(string color) => color.Trim().ToUpperInvariant() switch
+    {
+        "W" => "White",
+        "U" => "Blue",
+        "B" => "Black",
+        "R" => "Red",
+        "G" => "Green",
+        _ => "Colorless",
+    };
+
+    private static string ResolveRarityGroup(WorkspaceCardView card)
+    {
+        if (!string.IsNullOrWhiteSpace(card.SourceTag))
+        {
+            var normalizedTag = card.SourceTag.Trim();
+            if (normalizedTag.Equals("common", StringComparison.OrdinalIgnoreCase)
+                || normalizedTag.Equals("uncommon", StringComparison.OrdinalIgnoreCase)
+                || normalizedTag.Equals("rare", StringComparison.OrdinalIgnoreCase)
+                || normalizedTag.Equals("mythic", StringComparison.OrdinalIgnoreCase)
+                || normalizedTag.Equals("mythic rare", StringComparison.OrdinalIgnoreCase))
+            {
+                return normalizedTag.Equals("mythic rare", StringComparison.OrdinalIgnoreCase)
+                    ? "Mythic"
+                    : char.ToUpperInvariant(normalizedTag[0]) + normalizedTag[1..].ToLowerInvariant();
+            }
+        }
+
+        return UnknownRarityLabel;
+    }
+
+    private static int ResolveRarityOrder(string rarity) => rarity switch
+    {
+        "Common" => 0,
+        "Uncommon" => 1,
+        "Rare" => 2,
+        "Mythic" => 3,
+        _ => 4,
+    };
+
+    private static string ResolveSetGroup(WorkspaceCardView card) => string.IsNullOrWhiteSpace(card.SourceSetCode)
+        ? UnknownSetLabel
+        : $"Set {card.SourceSetCode.Trim().ToUpperInvariant()}";
+
+    private static decimal ParseGroupOrder(string label)
+    {
+        var lastSpaceIndex = label.LastIndexOf(' ');
+        return lastSpaceIndex > -1 && decimal.TryParse(label[(lastSpaceIndex + 1)..], out var parsed)
+            ? parsed
+            : 0m;
+    }
+
+    private static string ToTestId(string label)
+    {
+        return new string(label
+            .Trim()
+            .ToLowerInvariant()
+            .Select(character => char.IsLetterOrDigit(character) ? character : '-')
+            .ToArray())
+            .Trim('-');
+    }
+
+    private const string UnknownRarityLabel = "Unknown rarity";
+    private const string UnknownSetLabel = "Unknown set";
+
+    private sealed record CardGroupView(string Label, string TestId, IReadOnlyList<WorkspaceCardView> Cards)
+    {
+        public int TotalQuantity => Cards.Sum(static card => card.Quantity);
+    }
+
+    private enum MainboardGrouping
+    {
+        Type,
+        ManaCost,
+        Color,
+        Rarity,
+        Set,
+        None,
+    }
+
+    private enum MainboardSorting
+    {
+        Name,
+        ManaCost,
+        Type,
+        Color,
+    }
 }

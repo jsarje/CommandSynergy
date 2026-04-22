@@ -444,6 +444,8 @@
                    Cards="Cards"
                    CommanderSelectionEnabled="@true"
                    SetCommanderRequested="CommanderSelected"
+                   IncrementRequested="CardIncrementRequested"
+                   DecrementRequested="CardDecrementRequested"
                    RemoveRequested="CardRemoved" />
 
         @if (pendingDeleteDeck is not null)
@@ -633,6 +635,12 @@
 
     [Parameter]
     public EventCallback<string> CardAdded { get; set; }
+
+    [Parameter]
+    public EventCallback<string> CardIncrementRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<string> CardDecrementRequested { get; set; }
 
     [Parameter]
     public EventCallback<MoveCardRequest> CardMoved { get; set; }

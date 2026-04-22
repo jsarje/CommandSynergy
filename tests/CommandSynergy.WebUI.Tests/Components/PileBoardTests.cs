@@ -42,6 +42,59 @@ public sealed class PileBoardTests : BunitContext
         capturedCardId.Should().Be("isshin-two-heavens-as-one");
     }
 
+    [Fact]
+    public void Pile_board_groups_and_sorts_mainboard_cards_using_selected_controls()
+    {
+        var cut = Render<PileBoard>(parameters => parameters
+            .Add(component => component.Piles, CreatePiles())
+            .Add(component => component.Cards,
+            [
+                CreateCard("arcane-signet", DeckWorkspaceViewModel.MainboardPileId, manaCost: "{2}", manaValue: 2m),
+                CreateCard("lightning-bolt", DeckWorkspaceViewModel.MainboardPileId, name: "Lightning Bolt", manaCost: "{R}", manaValue: 1m, typeLine: "Instant", colors: ["R"]),
+                CreateCard("island", DeckWorkspaceViewModel.MainboardPileId, name: "Island", manaCost: null, manaValue: 0m, typeLine: "Basic Land — Island"),
+            ]));
+
+        cut.Markup.Should().Contain("Artifact");
+        cut.Markup.Should().Contain("Instant");
+        cut.Markup.Should().Contain("Land");
+
+        cut.Find("[data-testid='mainboard-grouping']").Change("None");
+        cut.Find("[data-testid='mainboard-sorting']").Change("ManaCost");
+
+        cut.FindAll("[data-testid^='pile-card-']")
+            .Select(element => element.GetAttribute("data-testid"))
+            .Should()
+            .ContainInOrder("pile-card-island", "pile-card-lightning-bolt", "pile-card-arcane-signet");
+    }
+
+    [Fact]
+    public void Pile_board_supports_compact_mode_and_multiple_copy_quantity_actions()
+    {
+        string? incrementedCardId = null;
+        string? decrementedCardId = null;
+
+        var cut = Render<PileBoard>(parameters => parameters
+            .Add(component => component.Piles, CreatePiles())
+            .Add(component => component.Cards,
+            [
+                CreateCard("shadowborn-apostle", DeckWorkspaceViewModel.MainboardPileId, name: "Shadowborn Apostle", manaCost: "{B}", manaValue: 1m, typeLine: "Creature", colors: ["B"], quantity: 3, allowsMultipleCopies: true),
+                CreateCard("sol-ring", DeckWorkspaceViewModel.MainboardPileId),
+            ])
+            .Add(component => component.IncrementRequested, (string cardId) => incrementedCardId = cardId)
+            .Add(component => component.DecrementRequested, (string cardId) => decrementedCardId = cardId));
+
+        cut.Find("[data-testid='compact-mode-toggle']").Click();
+        cut.Find("[data-testid='pile-card-shadowborn-apostle']").ClassList.Should().Contain("pile-board__card--compact");
+        cut.Find("[data-testid='quantity-shadowborn-apostle']").TextContent.Should().Contain("3 copies");
+        cut.FindAll("[data-testid='increment-sol-ring']").Should().BeEmpty();
+
+        cut.Find("[data-testid='increment-shadowborn-apostle']").Click();
+        cut.Find("[data-testid='decrement-shadowborn-apostle']").Click();
+
+        incrementedCardId.Should().Be("shadowborn-apostle");
+        decrementedCardId.Should().Be("shadowborn-apostle");
+    }
+
     private static IReadOnlyList<PileDefinitionContract> CreatePiles() =>
     [
         new PileDefinitionContract { PileId = DeckWorkspaceViewModel.CommandZonePileId, Name = "Command Zone", SortOrder = 0 },
@@ -49,16 +102,36 @@ public sealed class PileBoardTests : BunitContext
         new PileDefinitionContract { PileId = "interaction", Name = "Interaction", SortOrder = 2 },
     ];
 
-    private static WorkspaceCardView CreateCard(string cardId, string pileId, bool isCommanderEligible = false) => new()
+    private static WorkspaceCardView CreateCard(
+        string cardId,
+        string pileId,
+        string? name = null,
+        string? manaCost = "{1}",
+        decimal manaValue = 1m,
+        string? typeLine = "Artifact",
+        IReadOnlyList<string>? colors = null,
+        bool isCommanderEligible = false,
+        int quantity = 1,
+        bool allowsMultipleCopies = false) => new()
     {
         CardId = cardId,
-        Name = cardId == "isshin-two-heavens-as-one" ? "Isshin, Two Heavens as One" : "Sol Ring",
-        ManaCost = cardId == "isshin-two-heavens-as-one" ? "{R}{W}{B}" : "{1}",
-        TypeLine = isCommanderEligible ? "Legendary Creature" : "Artifact",
-        ColorIdentity = isCommanderEligible ? ["R", "W", "B"] : Array.Empty<string>(),
-        Faces = [new WorkspaceCardFaceView(cardId == "isshin-two-heavens-as-one" ? "Isshin, Two Heavens as One" : "Sol Ring", cardId == "isshin-two-heavens-as-one" ? "{R}{W}{B}" : "{1}", isCommanderEligible ? "Legendary Creature" : "Artifact", null, true)],
+        Name = name ?? (cardId == "isshin-two-heavens-as-one" ? "Isshin, Two Heavens as One" : "Sol Ring"),
+        ManaCost = manaCost,
+        ManaValue = manaValue,
+        TypeLine = typeLine ?? (isCommanderEligible ? "Legendary Creature" : "Artifact"),
+        ColorIdentity = colors ?? (isCommanderEligible ? ["R", "W", "B"] : Array.Empty<string>()),
+        Faces =
+        [
+            new WorkspaceCardFaceView(
+                name ?? (cardId == "isshin-two-heavens-as-one" ? "Isshin, Two Heavens as One" : "Sol Ring"),
+                manaCost,
+                typeLine ?? (isCommanderEligible ? "Legendary Creature" : "Artifact"),
+                null,
+                true),
+        ],
         AssignedPileId = pileId,
-        Quantity = 1,
+        Quantity = quantity,
+        AllowsMultipleCopies = allowsMultipleCopies,
         CommanderEligibilityBasis = isCommanderEligible ? Domain.Cards.CommanderEligibilityBasis.LegendaryCreature : Domain.Cards.CommanderEligibilityBasis.Unknown,
     };
 }
