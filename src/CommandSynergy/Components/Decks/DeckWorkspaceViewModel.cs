@@ -1261,7 +1261,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             CardId = result.CardId,
             Name = result.Name,
             ManaCost = result.ManaCost,
-            ManaValue = result.ManaValue > 0m ? result.ManaValue : ParseManaValue(result.ManaCost),
+            ManaValue = string.IsNullOrWhiteSpace(result.ManaCost) ? result.ManaValue : ParseManaValue(result.ManaCost),
             TypeLine = result.TypeLine,
             ColorIdentity = result.ColorIdentity,
             SaltScore = result.SaltScore,
@@ -1362,7 +1362,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             {
                 total += numericValue;
             }
-            else if (!symbol.Contains('/', StringComparison.Ordinal))
+            else if (symbol is not ("X" or "Y" or "Z"))
             {
                 total += 1m;
             }
