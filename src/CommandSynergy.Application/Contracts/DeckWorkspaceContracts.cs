@@ -172,6 +172,65 @@ public sealed record DeckAnalysisResponseContract
 
     [JsonPropertyName("comboAnalysis")]
     public ComboAnalysisContract? ComboAnalysis { get; init; }
+
+    [JsonPropertyName("deckStats")]
+    public DeckStatsContract? DeckStats { get; init; }
+}
+
+/// <summary>
+/// Represents the chart-ready deck statistics shown in the workspace insights panel.
+/// </summary>
+public sealed record DeckStatsContract
+{
+    [JsonPropertyName("manaValueHistogram")]
+    public IReadOnlyList<DeckStatSliceContract> ManaValueHistogram { get; init; } = Array.Empty<DeckStatSliceContract>();
+
+    [JsonPropertyName("manaCostDistribution")]
+    public IReadOnlyList<DeckStatSliceContract> ManaCostDistribution { get; init; } = Array.Empty<DeckStatSliceContract>();
+
+    [JsonPropertyName("manaGenerationDistribution")]
+    public IReadOnlyList<DeckStatSliceContract> ManaGenerationDistribution { get; init; } = Array.Empty<DeckStatSliceContract>();
+
+    [JsonPropertyName("cardTypeDistribution")]
+    public IReadOnlyList<DeckStatSliceContract> CardTypeDistribution { get; init; } = Array.Empty<DeckStatSliceContract>();
+
+    [JsonPropertyName("manaCurve")]
+    public ManaCurveContract ManaCurve { get; init; } = ManaCurveContract.Empty();
+}
+
+/// <summary>
+/// Represents a single labelled slice or bucket in a deck-stat chart.
+/// </summary>
+public sealed record DeckStatSliceContract
+{
+    [JsonPropertyName("label")]
+    public required string Label { get; init; }
+
+    [JsonPropertyName("value")]
+    public decimal Value { get; init; }
+
+    [JsonPropertyName("share")]
+    public decimal Share { get; init; }
+}
+
+/// <summary>
+/// Represents the spell-only mana-curve summary.
+/// </summary>
+public sealed record ManaCurveContract
+{
+    [JsonPropertyName("buckets")]
+    public IReadOnlyList<DeckStatSliceContract> Buckets { get; init; } = Array.Empty<DeckStatSliceContract>();
+
+    [JsonPropertyName("averageManaValue")]
+    public decimal AverageManaValue { get; init; }
+
+    [JsonPropertyName("spellCount")]
+    public int SpellCount { get; init; }
+
+    /// <summary>
+    /// Returns the baseline empty mana-curve payload.
+    /// </summary>
+    public static ManaCurveContract Empty() => new();
 }
 
 /// <summary>

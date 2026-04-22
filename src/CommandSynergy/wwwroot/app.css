@@ -470,6 +470,10 @@ h1:focus {
     gap: 1.5rem;
 }
 
+.workspace-shell__stats-panel {
+    margin-top: 1.5rem;
+}
+
 .workspace-panel,
 .workspace-banner,
 .pile-board__pile {
@@ -491,7 +495,8 @@ h1:focus {
 
 .workspace-panel--library::before,
 .workspace-panel--search::before,
-.workspace-panel--status::before {
+.workspace-panel--status::before,
+.workspace-panel--stats::before {
     content: "";
     position: absolute;
     inset: 0 0 auto;
@@ -509,6 +514,10 @@ h1:focus {
 
 .workspace-panel--status::before {
     background: linear-gradient(90deg, var(--cs-accent), rgba(139, 63, 41, 0));
+}
+
+.workspace-panel--stats::before {
+    background: linear-gradient(90deg, var(--cs-forest), rgba(141, 106, 47, 0.18), rgba(31, 91, 75, 0));
 }
 
 .workspace-panel__header,

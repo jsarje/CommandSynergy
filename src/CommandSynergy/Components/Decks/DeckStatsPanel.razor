@@ -1,0 +1,211 @@
+@using CommandSynergy.Application.Contracts
+
+@if (IsLoading && !HasDeckStats)
+{
+    <div class="deck-stats deck-stats--loading" data-testid="deck-stats-loading">
+        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+        <p class="deck-stats__message">Preparing chart-ready deck stats…</p>
+    </div>
+}
+else if (HasError)
+{
+    <div class="deck-stats deck-stats--error" data-testid="deck-stats-error">
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+            Deck stats are temporarily unavailable. Retry sync to refresh the latest charts.
+        </MudAlert>
+    </div>
+}
+else if (!HasDeckStats)
+{
+    <div class="deck-stats deck-stats--empty" data-testid="deck-stats-empty">
+        <p class="deck-stats__message">Deck stats appear after the first successful sync with enough card metadata to chart the list.</p>
+    </div>
+}
+else
+{
+    <section class="deck-stats deck-stats--ready" data-testid="deck-stats-ready" aria-busy="@IsLoading">
+        <div class="deck-stats__header">
+            <div>
+                <p class="workspace-panel__label">Deck stats</p>
+                <h3 id="deck-stats-title">Curve, color pressure, and card mix</h3>
+            </div>
+
+            @if (IsLoading)
+            {
+                <span class="deck-stats__refresh">Refreshing after the latest sync…</span>
+            }
+        </div>
+
+        @if (!isExpanded)
+        {
+            <div class="deck-stats__lazy-shell" data-testid="deck-stats-lazy">
+                <p class="deck-stats__message">This bottom panel stays lightweight on first render. Load the charts only when you want a deeper read on curve and composition.</p>
+                <button type="button"
+                        class="workspace-search__button"
+                        data-testid="deck-stats-load-button"
+                        @onclick="Expand">
+                    Load deck stats
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="deck-stats__grid">
+                <section class="deck-stats__card" data-testid="deck-stats-mana-values">
+                    <div class="deck-stats__card-header">
+                        <div>
+                            <h4>Mana values</h4>
+                            <p>Nonland cards, including the commander.</p>
+                        </div>
+                    </div>
+
+                    <div class="deck-stats__bars" role="img" aria-label="Mana value bar chart">
+                        @foreach (var slice in DeckStats!.ManaValueHistogram)
+                        {
+                            <div class="deck-stats__bar">
+                                <span class="deck-stats__bar-value">@FormatStatValue(slice.Value)</span>
+                                <div class="deck-stats__bar-track">
+                                    <span class="deck-stats__bar-fill" style="@GetBarHeightStyle(slice.Value, MaxManaValueBucketValue)"></span>
+                                </div>
+                                <span class="deck-stats__bar-label">@slice.Label</span>
+                            </div>
+                        }
+                    </div>
+                </section>
+
+                <section class="deck-stats__card" data-testid="deck-stats-mana-cost">
+                    <div class="deck-stats__card-header">
+                        <div>
+                            <h4>Mana cost mix</h4>
+                            <p>Colored symbols pulled from spell mana costs.</p>
+                        </div>
+                    </div>
+
+                    @if (DeckStats!.ManaCostDistribution.Count == 0)
+                    {
+                        <p class="deck-stats__message">Not enough data yet to chart this distribution.</p>
+                    }
+                    else
+                    {
+                        <div class="deck-stats__pie-layout">
+                            <div class="deck-stats__pie" role="img" aria-label="Mana cost pie chart" style="@BuildPieStyle(DeckStats.ManaCostDistribution)"></div>
+                            <ul class="deck-stats__legend">
+                                @foreach (var slice in DeckStats.ManaCostDistribution)
+                                {
+                                    <li>
+                                        <span class="deck-stats__legend-swatch" style="@($"background:{ResolveColor(slice.Label)};")"></span>
+                                        <span class="deck-stats__legend-label">@slice.Label</span>
+                                        <strong>@FormatStatValue(slice.Value)</strong>
+                                        <span class="deck-stats__legend-share">@($"{Math.Round(slice.Share * 100m, 1):0.#}%")</span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </section>
+
+                <section class="deck-stats__card" data-testid="deck-stats-mana-generation">
+                    <div class="deck-stats__card-header">
+                        <div>
+                            <h4>Mana generation</h4>
+                            <p>Oracle-text mana production across the current list.</p>
+                        </div>
+                    </div>
+
+                    @if (DeckStats!.ManaGenerationDistribution.Count == 0)
+                    {
+                        <p class="deck-stats__message">Not enough data yet to chart this distribution.</p>
+                    }
+                    else
+                    {
+                        <div class="deck-stats__pie-layout">
+                            <div class="deck-stats__pie" role="img" aria-label="Mana generation pie chart" style="@BuildPieStyle(DeckStats.ManaGenerationDistribution)"></div>
+                            <ul class="deck-stats__legend">
+                                @foreach (var slice in DeckStats.ManaGenerationDistribution)
+                                {
+                                    <li>
+                                        <span class="deck-stats__legend-swatch" style="@($"background:{ResolveColor(slice.Label)};")"></span>
+                                        <span class="deck-stats__legend-label">@slice.Label</span>
+                                        <strong>@FormatStatValue(slice.Value)</strong>
+                                        <span class="deck-stats__legend-share">@($"{Math.Round(slice.Share * 100m, 1):0.#}%")</span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </section>
+
+                <section class="deck-stats__card" data-testid="deck-stats-card-types">
+                    <div class="deck-stats__card-header">
+                        <div>
+                            <h4>Card types</h4>
+                            <p>Primary card type for every card in the deck.</p>
+                        </div>
+                    </div>
+
+                    @if (DeckStats!.CardTypeDistribution.Count == 0)
+                    {
+                        <p class="deck-stats__message">Not enough data yet to chart this distribution.</p>
+                    }
+                    else
+                    {
+                        <div class="deck-stats__pie-layout">
+                            <div class="deck-stats__pie" role="img" aria-label="Card type pie chart" style="@BuildPieStyle(DeckStats.CardTypeDistribution)"></div>
+                            <ul class="deck-stats__legend">
+                                @foreach (var slice in DeckStats.CardTypeDistribution)
+                                {
+                                    <li>
+                                        <span class="deck-stats__legend-swatch" style="@($"background:{ResolveColor(slice.Label)};")"></span>
+                                        <span class="deck-stats__legend-label">@slice.Label</span>
+                                        <strong>@FormatStatValue(slice.Value)</strong>
+                                        <span class="deck-stats__legend-share">@($"{Math.Round(slice.Share * 100m, 1):0.#}%")</span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </section>
+
+                <section class="deck-stats__card deck-stats__card--curve" data-testid="deck-stats-curve">
+                    <div class="deck-stats__card-header">
+                        <div>
+                            <h4>Mana curve</h4>
+                            <p>Spell-only curve with average mana value and density markers.</p>
+                        </div>
+                        <div class="deck-stats__chips">
+                            <span class="deck-stats__chip">Avg MV @DeckStats.ManaCurve.AverageManaValue.ToString("0.0")</span>
+                            <span class="deck-stats__chip">@DeckStats.ManaCurve.SpellCount spells</span>
+                        </div>
+                    </div>
+
+                    @if (DeckStats.ManaCurve.SpellCount == 0)
+                    {
+                        <p class="deck-stats__message">Add nonland spells to reveal the mana curve.</p>
+                    }
+                    else
+                    {
+                        <svg class="deck-stats__curve" viewBox="0 0 360 180" role="img" aria-label="Mana curve line chart">
+                            <path class="deck-stats__curve-area" d="@CurveAreaPath"></path>
+                            <polyline class="deck-stats__curve-line" points="@CurvePolylinePoints"></polyline>
+
+                            @foreach (var point in CurvePoints)
+                            {
+                                <circle class="deck-stats__curve-point" cx="@point.X.ToString("0.##")" cy="@point.Y.ToString("0.##")" r="4"></circle>
+                            }
+                        </svg>
+
+                        <div class="deck-stats__curve-labels">
+                            @foreach (var slice in DeckStats.ManaCurve.Buckets)
+                            {
+                                <div>
+                                    <span>@slice.Label</span>
+                                    <strong>@FormatStatValue(slice.Value)</strong>
+                                </div>
+                            }
+                        </div>
+                    }
+                </section>
+            </div>
+        }
+    </section>
+}

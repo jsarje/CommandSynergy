@@ -97,10 +97,97 @@ public sealed class DeckAnalysisServiceTests
         spellbookClient.ReceivedCommanderNames.Should().Equal("Commander");
     }
 
+    [Fact]
+    public async Task AnalyzeAsync_includes_chart_ready_deck_stats()
+    {
+        var gateway = new StubCardCatalogGateway(new Dictionary<string, CardProfile>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["commander"] = CreateCard(
+                "commander",
+                "Commander",
+                "commander-oracle",
+                manaCost: "{1}{G}{W}",
+                manaValue: 3,
+                typeLine: "Legendary Creature — Advisor"),
+            ["signet"] = CreateCard(
+                "signet",
+                "Arcane Signet",
+                "signet-oracle",
+                manaCost: "{2}",
+                manaValue: 2,
+                typeLine: "Artifact",
+                oracleText: "{T}: Add one mana of any color."),
+            ["elf"] = CreateCard(
+                "elf",
+                "Mana Elf",
+                "elf-oracle",
+                manaCost: "{G}",
+                manaValue: 1,
+                typeLine: "Creature — Elf Druid",
+                oracleText: "{T}: Add {G}."),
+            ["removal"] = CreateCard(
+                "removal",
+                "Generous Gift",
+                "removal-oracle",
+                manaCost: "{2}{W}",
+                manaValue: 3,
+                typeLine: "Instant"),
+            ["garden"] = CreateCard(
+                "garden",
+                "Temple Garden",
+                "garden-oracle",
+                manaValue: 0,
+                typeLine: "Land",
+                oracleText: "{T}: Add {G} or {W}."),
+        });
+
+        var sut = new DeckAnalysisService(
+            gateway,
+            new StubCommanderSpellbookClient(),
+            new StubEdhrecClient(),
+            new BracketCalculationService(new Domain.Analysis.BracketEngine(), new AnalysisExplanationBuilder(), Options.Create(new BracketOptions())),
+            new PowerLevelCalculationService(),
+            new SynergyScoringService(new AnalysisExplanationBuilder()),
+            new ThemeAnalysisService(new ThemeMatchingService(), new AnalysisExplanationBuilder()),
+            Array.Empty<IDeckAdviceService>());
+
+        var response = await sut.AnalyzeAsync(new DeckSnapshotContract
+        {
+            CommanderCardId = "commander",
+            Entries =
+            [
+                new DeckEntryContract { CardId = "commander", Quantity = 1, IsCommander = true },
+                new DeckEntryContract { CardId = "signet", Quantity = 1 },
+                new DeckEntryContract { CardId = "elf", Quantity = 1 },
+                new DeckEntryContract { CardId = "removal", Quantity = 1 },
+                new DeckEntryContract { CardId = "garden", Quantity = 1 },
+            ],
+        });
+
+        response.DeckStats.Should().NotBeNull();
+        response.DeckStats!.ManaValueHistogram.Should().Contain(slice => slice.Label == "1" && slice.Value == 1m);
+        response.DeckStats.ManaValueHistogram.Should().Contain(slice => slice.Label == "2" && slice.Value == 2m);
+        response.DeckStats.ManaValueHistogram.Should().Contain(slice => slice.Label == "3" && slice.Value == 1m);
+        response.DeckStats.ManaCostDistribution.Should().Contain(slice => slice.Label == "Green" && slice.Value == 2m);
+        response.DeckStats.ManaCostDistribution.Should().Contain(slice => slice.Label == "White" && slice.Value == 2m);
+        response.DeckStats.ManaCostDistribution.Should().Contain(slice => slice.Label == "Colorless" && slice.Value == 3m);
+        response.DeckStats.ManaGenerationDistribution.Should().Contain(slice => slice.Label == "Any" && slice.Value == 1m);
+        response.DeckStats.ManaGenerationDistribution.Should().Contain(slice => slice.Label == "Green" && slice.Value == 2m);
+        response.DeckStats.ManaGenerationDistribution.Should().Contain(slice => slice.Label == "White" && slice.Value == 1m);
+        response.DeckStats.CardTypeDistribution.Should().Contain(slice => slice.Label == "Creature" && slice.Value == 2m);
+        response.DeckStats.CardTypeDistribution.Should().Contain(slice => slice.Label == "Artifact" && slice.Value == 1m);
+        response.DeckStats.CardTypeDistribution.Should().Contain(slice => slice.Label == "Instant" && slice.Value == 1m);
+        response.DeckStats.CardTypeDistribution.Should().Contain(slice => slice.Label == "Land" && slice.Value == 1m);
+        response.DeckStats.ManaCurve.SpellCount.Should().Be(3);
+        response.DeckStats.ManaCurve.AverageManaValue.Should().BeApproximately(5m / 3m, 0.001m);
+    }
+
     private static CardProfile CreateCard(
         string cardId,
         string name,
         string oracleId,
+        string? manaCost = null,
+        decimal manaValue = 2,
         string? oracleText = null,
         string? typeLine = null,
         IReadOnlyDictionary<string, decimal>? playRateByCommander = null,
@@ -110,7 +197,8 @@ public sealed class DeckAnalysisServiceTests
         CardId = cardId,
         OracleId = oracleId,
         Name = name,
-        ManaValue = 2,
+        ManaCost = manaCost,
+        ManaValue = manaValue,
         TypeLine = typeLine ?? "Artifact",
         OracleText = oracleText,
         SaltScore = saltScore,
