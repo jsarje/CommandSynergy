@@ -23,7 +23,7 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddCommandSynergyInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddMemoryCache();
+        services.AddDistributedMemoryCache();
         services.AddScryfallClient(configuration);
         services.AddEdhrecClient(configuration);
         services.AddCommanderSpellbookClient(configuration);

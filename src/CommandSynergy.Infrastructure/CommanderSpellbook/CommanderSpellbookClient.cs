@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using CommandSynergy.Application.Abstractions;
 using CommandSynergy.Application.Configuration;
 using CommandSynergy.Domain.Analysis;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -14,15 +15,20 @@ namespace CommandSynergy.Infrastructure.CommanderSpellbook;
 /// </summary>
 public sealed class CommanderSpellbookClient : ICommanderSpellbookClient
 {
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(15);
+    private const string CacheKeyPrefix = "CommanderSpellbookClient";
+
     private readonly HttpClient httpClient;
+    private readonly IDistributedCache distributedCache;
     private readonly ILogger<CommanderSpellbookClient> logger;
 
     /// <summary>
     /// Creates a Commander Spellbook client.
     /// </summary>
-    public CommanderSpellbookClient(HttpClient httpClient, IOptions<CommanderSpellbookOptions> options, ILogger<CommanderSpellbookClient> logger)
+    public CommanderSpellbookClient(HttpClient httpClient, IDistributedCache distributedCache, IOptions<CommanderSpellbookOptions> options, ILogger<CommanderSpellbookClient> logger)
     {
         this.httpClient = httpClient;
+        this.distributedCache = distributedCache;
         this.logger = logger;
 
         httpClient.BaseAddress = new Uri(options.Value.BaseUrl, UriKind.Absolute);
@@ -47,6 +53,13 @@ public sealed class CommanderSpellbookClient : ICommanderSpellbookClient
 
         var commanderList = NormalizeNames(commanderNames);
         var mainDeckList = NormalizeNames(mainDeckNames);
+        var cacheKey = BuildCacheKey(commanderList, mainDeckList);
+
+        var cachedAnalysis = await GetCachedAnalysisAsync(cacheKey, cancellationToken).ConfigureAwait(false);
+        if (cachedAnalysis is not null)
+        {
+            return cachedAnalysis;
+        }
 
         if (commanderList.Length == 0 && mainDeckList.Length == 0)
         {
@@ -63,7 +76,12 @@ public sealed class CommanderSpellbookClient : ICommanderSpellbookClient
             response.EnsureSuccessStatusCode();
 
             var document = await response.Content.ReadFromJsonAsync<FindMyCombosResponse>(cancellationToken: cancellationToken).ConfigureAwait(false);
-            return Map(document);
+            var analysis = Map(document);
+            await distributedCache.SetStringAsync(cacheKey, JsonSerializer.Serialize(analysis), new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = CacheDuration,
+            }, cancellationToken).ConfigureAwait(false);
+            return analysis;
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
@@ -79,6 +97,25 @@ public sealed class CommanderSpellbookClient : ICommanderSpellbookClient
         {
             logger.LogWarning(exception, "Received invalid Commander Spellbook JSON.");
             return ComboAnalysis.Empty();
+        }
+    }
+
+    private async Task<ComboAnalysis?> GetCachedAnalysisAsync(string cacheKey, CancellationToken cancellationToken)
+    {
+        var payload = await distributedCache.GetStringAsync(cacheKey, cancellationToken).ConfigureAwait(false);
+        if (payload is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<ComboAnalysis>(payload);
+        }
+        catch (JsonException exception)
+        {
+            logger.LogWarning(exception, "Received invalid Commander Spellbook cache payload.");
+            return null;
         }
     }
 
@@ -118,6 +155,13 @@ public sealed class CommanderSpellbookClient : ICommanderSpellbookClient
         .Select(static name => name.Trim())
         .Distinct(StringComparer.OrdinalIgnoreCase)
         .ToArray();
+
+    private static string BuildCacheKey(IReadOnlyCollection<string> commanderNames, IReadOnlyCollection<string> mainDeckNames) =>
+        string.Join(
+            '|',
+            CacheKeyPrefix,
+            string.Join('\u001f', commanderNames.Select(static name => name.ToLowerInvariant()).Order(StringComparer.Ordinal)),
+            string.Join('\u001f', mainDeckNames.Select(static name => name.ToLowerInvariant()).Order(StringComparer.Ordinal)));
 
     private sealed record FindMyCombosRequest(
         [property: JsonPropertyName("commanders")] IReadOnlyList<ComboCardRequest> Commanders,

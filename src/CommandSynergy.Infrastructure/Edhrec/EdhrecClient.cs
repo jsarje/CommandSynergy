@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using CommandSynergy.Application.Abstractions;
 using CommandSynergy.Application.Configuration;
 using CommandSynergy.Domain.Cards;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -21,18 +21,19 @@ public sealed class EdhrecClient : IEdhrecClient
     private static readonly Regex MultiDash = new("-{2,}", RegexOptions.Compiled | RegexOptions.NonBacktracking);
     private static readonly Regex SlugAllowlist = new("^[a-z0-9][a-z0-9-]{1,80}[a-z0-9]$", RegexOptions.Compiled | RegexOptions.NonBacktracking);
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(15);
+    private const string CacheKeyPrefix = "EdhRecClient";
 
     private readonly HttpClient httpClient;
-    private readonly IMemoryCache memoryCache;
+    private readonly IDistributedCache distributedCache;
     private readonly ILogger<EdhrecClient> logger;
 
     /// <summary>
     /// Creates an EDHREC client.
     /// </summary>
-    public EdhrecClient(HttpClient httpClient, IMemoryCache memoryCache, IOptions<EdhrecOptions> options, ILogger<EdhrecClient> logger)
+    public EdhrecClient(HttpClient httpClient, IDistributedCache distributedCache, IOptions<EdhrecOptions> options, ILogger<EdhrecClient> logger)
     {
         this.httpClient = httpClient;
-        this.memoryCache = memoryCache;
+        this.distributedCache = distributedCache;
         this.logger = logger;
 
         this.httpClient.BaseAddress = NormalizeBaseAddress(httpClient.BaseAddress ?? new Uri(options.Value.BaseUrl, UriKind.Absolute));
@@ -60,7 +61,9 @@ public sealed class EdhrecClient : IEdhrecClient
             return CommanderThemeInsights.Empty(slug);
         }
 
-        if (memoryCache.TryGetValue(slug, out CommanderThemeInsights? cachedInsights) && cachedInsights is not null)
+        var cacheKey = BuildCacheKey(slug);
+        var cachedInsights = await GetCachedInsightsAsync(cacheKey, cancellationToken).ConfigureAwait(false);
+        if (cachedInsights is not null)
         {
             return cachedInsights;
         }
@@ -79,7 +82,10 @@ public sealed class EdhrecClient : IEdhrecClient
                 ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
 
             var insights = new CommanderThemeInsights(slug, synergyByCardId.Count > 0, synergyByCardId);
-            memoryCache.Set(slug, insights, CacheDuration);
+            await distributedCache.SetStringAsync(cacheKey, JsonSerializer.Serialize(insights), new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = CacheDuration,
+            }, cancellationToken).ConfigureAwait(false);
             return insights;
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -99,6 +105,25 @@ public sealed class EdhrecClient : IEdhrecClient
         }
     }
 
+    private async Task<CommanderThemeInsights?> GetCachedInsightsAsync(string cacheKey, CancellationToken cancellationToken)
+    {
+        var payload = await distributedCache.GetStringAsync(cacheKey, cancellationToken).ConfigureAwait(false);
+        if (payload is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<CommanderThemeInsights>(payload);
+        }
+        catch (JsonException exception)
+        {
+            logger.LogWarning(exception, "Received invalid EDHREC cache payload for {CommanderName}", cacheKey);
+            return null;
+        }
+    }
+
     internal static string BuildCommanderSlug(string commanderName)
     {
         var lowerInvariant = commanderName.ToLowerInvariant();
@@ -106,6 +131,12 @@ public sealed class EdhrecClient : IEdhrecClient
         var spaced = stripped.Replace(' ', '-');
         return MultiDash.Replace(spaced, "-");
     }
+
+    private static string BuildCacheKey(string commanderSlug) =>
+        string.Join(
+            '|',
+            CacheKeyPrefix,
+            commanderSlug);
 
     private async Task<EdhrecCommanderDocument?> GetCommanderDocumentAsync(string slug, CancellationToken cancellationToken)
     {
