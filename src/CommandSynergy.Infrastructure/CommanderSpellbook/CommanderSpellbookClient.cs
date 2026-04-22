@@ -1,4 +1,6 @@
 using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CommandSynergy.Application.Abstractions;
@@ -156,12 +158,15 @@ public sealed class CommanderSpellbookClient : ICommanderSpellbookClient
         .Distinct(StringComparer.OrdinalIgnoreCase)
         .ToArray();
 
-    private static string BuildCacheKey(IReadOnlyCollection<string> commanderNames, IReadOnlyCollection<string> mainDeckNames) =>
-        string.Join(
-            '|',
-            CacheKeyPrefix,
-            string.Join('\u001f', commanderNames.Select(static name => name.ToLowerInvariant()).Order(StringComparer.Ordinal)),
-            string.Join('\u001f', mainDeckNames.Select(static name => name.ToLowerInvariant()).Order(StringComparer.Ordinal)));
+    private static string BuildCacheKey(IReadOnlyCollection<string> commanderNames, IReadOnlyCollection<string> mainDeckNames)
+    {
+        var builder = new StringBuilder();
+        builder.Append(string.Join('\u001f', commanderNames.Select(static name => name.ToLowerInvariant()).Order(StringComparer.Ordinal))).Append('|');
+        builder.Append(string.Join('\u001f', mainDeckNames.Select(static name => name.ToLowerInvariant()).Order(StringComparer.Ordinal)));
+
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(builder.ToString()));
+        return string.Concat(CacheKeyPrefix, "|", Convert.ToHexString(hash));
+    }
 
     private sealed record FindMyCombosRequest(
         [property: JsonPropertyName("commanders")] IReadOnlyList<ComboCardRequest> Commanders,
