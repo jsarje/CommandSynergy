@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using CommandSynergy.Application.Configuration;
 using CommandSynergy.Infrastructure.CommanderSpellbook;
 using FluentAssertions;
@@ -15,7 +16,7 @@ public sealed class CommanderSpellbookClientTests
     public async Task FindCombosAsync_returns_included_combos_for_valid_payload()
     {
         var mockHttp = new MockHttpMessageHandler();
-        mockHttp.When(HttpMethod.Post, "https://backend.commanderspellbook.com/find-my-combos")
+        mockHttp.When(HttpMethod.Post, "https://backend.commanderspellbook.com/find-my-combos?count=false")
             .Respond("application/json", """
                 {
                   "results": {
@@ -49,10 +50,32 @@ public sealed class CommanderSpellbookClientTests
     }
 
     [Fact]
+    public async Task FindCombosAsync_sends_json_content_with_content_type_header()
+    {
+        var handler = new CapturingHttpMessageHandler();
+        var sut = CreateClient(handler);
+
+        _ = await sut.FindCombosAsync(["Kinnan, Bonder Prodigy"], ["Sol Ring"]);
+
+        handler.Request.Should().NotBeNull();
+        handler.Request!.RequestUri.Should().Be("https://backend.commanderspellbook.com/find-my-combos?count=false");
+        handler.Request!.Content.Should().NotBeNull();
+        handler.Request.Content!.Headers.ContentType.Should().NotBeNull();
+        handler.Request.Content.Headers.ContentType!.MediaType.Should().Be("application/json");
+
+        var json = await handler.Request.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        document.RootElement.GetProperty("commanders")[0].GetProperty("card").GetString().Should().Be("Kinnan, Bonder Prodigy");
+        document.RootElement.GetProperty("commanders")[0].GetProperty("quantity").GetInt32().Should().Be(1);
+        document.RootElement.GetProperty("main")[0].GetProperty("card").GetString().Should().Be("Sol Ring");
+        document.RootElement.GetProperty("main")[0].GetProperty("quantity").GetInt32().Should().Be(1);
+    }
+
+    [Fact]
     public async Task FindCombosAsync_returns_almost_included_combos_and_missing_one_count()
     {
         var mockHttp = new MockHttpMessageHandler();
-        mockHttp.When(HttpMethod.Post, "https://backend.commanderspellbook.com/find-my-combos")
+        mockHttp.When(HttpMethod.Post, "https://backend.commanderspellbook.com/find-my-combos?count=false")
             .Respond("application/json", """
                 {
                   "results": {
@@ -90,7 +113,7 @@ public sealed class CommanderSpellbookClientTests
     public async Task FindCombosAsync_returns_empty_result_for_empty_payload()
     {
         var mockHttp = new MockHttpMessageHandler();
-        mockHttp.When(HttpMethod.Post, "https://backend.commanderspellbook.com/find-my-combos")
+        mockHttp.When(HttpMethod.Post, "https://backend.commanderspellbook.com/find-my-combos?count=false")
             .Respond("application/json", """
                 {
                   "results": {
@@ -112,7 +135,7 @@ public sealed class CommanderSpellbookClientTests
     public async Task FindCombosAsync_returns_empty_result_for_invalid_json()
     {
         var mockHttp = new MockHttpMessageHandler();
-        mockHttp.When(HttpMethod.Post, "https://backend.commanderspellbook.com/find-my-combos")
+        mockHttp.When(HttpMethod.Post, "https://backend.commanderspellbook.com/find-my-combos?count=false")
             .Respond("application/json", "not-json");
         var sut = CreateClient(mockHttp);
 
@@ -168,5 +191,19 @@ public sealed class CommanderSpellbookClientTests
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
             Task.FromException<HttpResponseMessage>(new OperationCanceledException("timeout"));
+    }
+
+    private sealed class CapturingHttpMessageHandler : HttpMessageHandler
+    {
+        public HttpRequestMessage? Request { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Request = request;
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("{\"results\":{\"included\":[],\"almostIncluded\":[]}}", Encoding.UTF8, "application/json"),
+            });
+        }
     }
 }

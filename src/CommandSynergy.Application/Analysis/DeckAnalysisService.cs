@@ -65,7 +65,9 @@ public sealed class DeckAnalysisService
             .ToArray();
         var mainDeckNames = deck.Entries
             .Where(static entry => !entry.IsCommander)
-            .Select(entry => profiles.TryGetValue(entry.CardId, out var profile) ? profile.Name : null)
+            .Select(entry => profiles.TryGetValue(entry.CardId, out var profile) ? profile : null)
+            .Where(static profile => profile is not null && !profile.IsLand)
+            .Select(static profile => profile!.Name)
             .Where(static name => !string.IsNullOrWhiteSpace(name))
             .Cast<string>()
             .ToArray();

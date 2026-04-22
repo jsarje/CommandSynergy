@@ -35,6 +35,11 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(EdhrecOptions.SectionName))
             .ValidateDataAnnotations();
 
+        services
+            .AddOptions<CommanderSpellbookOptions>()
+            .Bind(configuration.GetSection(CommanderSpellbookOptions.SectionName))
+            .ValidateDataAnnotations();
+
         services.AddSingleton<CommanderRules>();
         services.AddSingleton<BracketEngine>();
         services.AddSingleton<AnalysisExplanationBuilder>();

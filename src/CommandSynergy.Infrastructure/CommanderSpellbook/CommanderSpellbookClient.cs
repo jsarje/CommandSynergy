@@ -25,11 +25,17 @@ public sealed class CommanderSpellbookClient : ICommanderSpellbookClient
         this.httpClient = httpClient;
         this.logger = logger;
 
-        if (httpClient.BaseAddress is null)
+        httpClient.BaseAddress = new Uri(options.Value.BaseUrl, UriKind.Absolute);
+        httpClient.Timeout = TimeSpan.FromSeconds(10);
+
+        if (httpClient.DefaultRequestHeaders.UserAgent.Count == 0)
         {
-            httpClient.BaseAddress = new Uri(options.Value.BaseUrl, UriKind.Absolute);
-            httpClient.Timeout = TimeSpan.FromSeconds(10);
             httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(options.Value.UserAgent);
+        }
+
+        if (!httpClient.DefaultRequestHeaders.Accept.Any(static header => header.MediaType == "application/json"))
+        {
+            httpClient.DefaultRequestHeaders.Accept.ParseAdd("application/json");
         }
     }
 
@@ -47,11 +53,13 @@ public sealed class CommanderSpellbookClient : ICommanderSpellbookClient
             return ComboAnalysis.Empty();
         }
 
-        var request = new FindMyCombosRequest(commanderList, mainDeckList);
+        var request = new FindMyCombosRequest(
+            commanderList.Select(static name => new ComboCardRequest(name, 1)).ToArray(),
+            mainDeckList.Select(static name => new ComboCardRequest(name, 1)).ToArray());
 
         try
         {
-            using var response = await httpClient.PostAsJsonAsync("find-my-combos", request, cancellationToken).ConfigureAwait(false);
+            using var response = await httpClient.PostAsJsonAsync("find-my-combos?count=false", request, cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
             var document = await response.Content.ReadFromJsonAsync<FindMyCombosResponse>(cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -112,8 +120,12 @@ public sealed class CommanderSpellbookClient : ICommanderSpellbookClient
         .ToArray();
 
     private sealed record FindMyCombosRequest(
-        [property: JsonPropertyName("commanders")] IReadOnlyList<string> Commanders,
-        [property: JsonPropertyName("main")] IReadOnlyList<string> Main);
+        [property: JsonPropertyName("commanders")] IReadOnlyList<ComboCardRequest> Commanders,
+        [property: JsonPropertyName("main")] IReadOnlyList<ComboCardRequest> Main);
+
+    private sealed record ComboCardRequest(
+        [property: JsonPropertyName("card")] string Card,
+        [property: JsonPropertyName("quantity")] int Quantity);
 
     private sealed record FindMyCombosResponse(
         [property: JsonPropertyName("results")] FindMyCombosResults? Results);

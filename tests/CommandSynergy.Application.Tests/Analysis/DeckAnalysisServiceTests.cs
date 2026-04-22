@@ -59,11 +59,47 @@ public sealed class DeckAnalysisServiceTests
         response.Synergy.Score.Should().BeGreaterThan(50m);
     }
 
+    [Fact]
+    public async Task AnalyzeAsync_does_not_forward_land_cards_to_Commander_Spellbook()
+    {
+        var gateway = new StubCardCatalogGateway(new Dictionary<string, CardProfile>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["commander"] = CreateCard("commander", "Commander", "commander-oracle"),
+            ["mountain"] = CreateCard("mountain", "Mountain", "mountain-oracle", typeLine: "Basic Land — Mountain"),
+            ["sol-ring"] = CreateCard("sol-ring", "Sol Ring", "sol-ring-oracle", typeLine: "Artifact"),
+        });
+        var spellbookClient = new CapturingCommanderSpellbookClient();
+
+        var sut = new DeckAnalysisService(
+            gateway,
+            spellbookClient,
+            new StubEdhrecClient(),
+            new BracketCalculationService(new Domain.Analysis.BracketEngine(), new AnalysisExplanationBuilder(), Options.Create(new BracketOptions())),
+            new SynergyScoringService(new AnalysisExplanationBuilder()),
+            new ThemeAnalysisService(new ThemeMatchingService(), new AnalysisExplanationBuilder()),
+            Array.Empty<IDeckAdviceService>());
+
+        await sut.AnalyzeAsync(new DeckSnapshotContract
+        {
+            CommanderCardId = "commander",
+            Entries =
+            [
+                new DeckEntryContract { CardId = "commander", Quantity = 1, IsCommander = true },
+                new DeckEntryContract { CardId = "mountain", Quantity = 24 },
+                new DeckEntryContract { CardId = "sol-ring", Quantity = 1 },
+            ],
+        });
+
+        spellbookClient.ReceivedMainDeckNames.Should().Equal("Sol Ring");
+        spellbookClient.ReceivedCommanderNames.Should().Equal("Commander");
+    }
+
     private static CardProfile CreateCard(
         string cardId,
         string name,
         string oracleId,
         string? oracleText = null,
+        string? typeLine = null,
         IReadOnlyDictionary<string, decimal>? playRateByCommander = null,
         decimal? genericColorStapleRate = null,
         decimal? saltScore = null) => new()
@@ -72,7 +108,7 @@ public sealed class DeckAnalysisServiceTests
         OracleId = oracleId,
         Name = name,
         ManaValue = 2,
-        TypeLine = "Artifact",
+        TypeLine = typeLine ?? "Artifact",
         OracleText = oracleText,
         SaltScore = saltScore,
         GenericColorStapleRate = genericColorStapleRate,
@@ -109,5 +145,19 @@ public sealed class DeckAnalysisServiceTests
     {
         public Task<Domain.Analysis.ComboAnalysis> FindCombosAsync(IEnumerable<string> commanderNames, IEnumerable<string> mainDeckNames, CancellationToken cancellationToken = default) =>
             Task.FromResult(Domain.Analysis.ComboAnalysis.Empty());
+    }
+
+    private sealed class CapturingCommanderSpellbookClient : ICommanderSpellbookClient
+    {
+        public IReadOnlyList<string> ReceivedCommanderNames { get; private set; } = Array.Empty<string>();
+
+        public IReadOnlyList<string> ReceivedMainDeckNames { get; private set; } = Array.Empty<string>();
+
+        public Task<Domain.Analysis.ComboAnalysis> FindCombosAsync(IEnumerable<string> commanderNames, IEnumerable<string> mainDeckNames, CancellationToken cancellationToken = default)
+        {
+            ReceivedCommanderNames = commanderNames.ToArray();
+            ReceivedMainDeckNames = mainDeckNames.ToArray();
+            return Task.FromResult(Domain.Analysis.ComboAnalysis.Empty());
+        }
     }
 }
