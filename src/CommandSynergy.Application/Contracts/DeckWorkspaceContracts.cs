@@ -89,6 +89,9 @@ public sealed record CardSearchResultContract
     [JsonPropertyName("manaCost")]
     public string? ManaCost { get; init; }
 
+    [JsonPropertyName("manaValue")]
+    public decimal ManaValue { get; init; }
+
     [JsonPropertyName("typeLine")]
     public required string TypeLine { get; init; }
 
@@ -103,6 +106,9 @@ public sealed record CardSearchResultContract
 
     [JsonPropertyName("hasMultipleFaces")]
     public bool HasMultipleFaces { get; init; }
+
+    [JsonPropertyName("allowsMultipleCopies")]
+    public bool AllowsMultipleCopies { get; init; }
 
     [JsonPropertyName("commanderEligibilityBasis")]
     public CommanderEligibilityBasis CommanderEligibilityBasis { get; init; }

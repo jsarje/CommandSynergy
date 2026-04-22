@@ -32,11 +32,13 @@ public sealed class SearchIndexSnapshotBuilder
                 CardId = card.CardId,
                 Name = card.Name,
                 ManaCost = card.ManaCost,
+                ManaValue = card.ManaValue,
                 TypeLine = card.TypeLine,
                 ColorIdentity = card.ColorIdentity,
                 SaltScore = card.SaltScore,
                 ImageUri = card.ImageUri,
                 HasMultipleFaces = card.HasMultipleFaces,
+                AllowsMultipleCopies = card.AllowsMultipleCopies,
                 CommanderEligibilityBasis = card.CommanderEligibilityBasis,
             })
             .ToArray();

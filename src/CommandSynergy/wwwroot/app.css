@@ -583,7 +583,9 @@ h1:focus {
 .workspace-search-result__secondary,
 .workspace-search-result__danger,
 .workspace-state__retry,
+.pile-board__compact-toggle,
 .pile-board__move-button,
+.pile-board__quantity-button,
 .pile-board__remove-button {
     border-radius: 999px;
     font: inherit;
@@ -603,7 +605,9 @@ h1:focus {
 .workspace-search-result__secondary:focus-visible,
 .workspace-search-result__danger:focus-visible,
 .workspace-state__retry:focus-visible,
+.pile-board__compact-toggle:focus-visible,
 .pile-board__move-button:focus-visible,
+.pile-board__quantity-button:focus-visible,
 .pile-board__remove-button:focus-visible {
     outline: 3px solid rgba(31, 91, 75, 0.26);
     outline-offset: 2px;
@@ -623,7 +627,9 @@ h1:focus {
 
 .workspace-search-result__secondary,
 .workspace-search-result__danger,
+.pile-board__compact-toggle,
 .pile-board__move-button,
+.pile-board__quantity-button,
 .pile-board__remove-button {
     border: 1px solid rgba(31, 91, 75, 0.14);
     padding: 0.68rem 0.96rem;
@@ -645,7 +651,9 @@ h1:focus {
 .workspace-search-result__secondary:hover,
 .workspace-search-result__danger:hover,
 .workspace-state__retry:hover,
+.pile-board__compact-toggle:hover,
 .pile-board__move-button:hover,
+.pile-board__quantity-button:hover,
 .pile-board__remove-button:hover {
     transform: translateY(-1px);
 }
@@ -655,7 +663,9 @@ h1:focus {
 .workspace-search-result__secondary[disabled],
 .workspace-search-result__danger[disabled],
 .workspace-state__retry[disabled],
+.pile-board__compact-toggle[disabled],
 .pile-board__move-button[disabled],
+.pile-board__quantity-button[disabled],
 .pile-board__remove-button[disabled] {
     cursor: not-allowed;
     opacity: 0.58;
@@ -1017,6 +1027,46 @@ h1:focus {
     align-items: end;
 }
 
+.pile-board__header-side {
+    display: grid;
+    gap: 0.9rem;
+    justify-items: end;
+}
+
+.pile-board__controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: end;
+}
+
+.pile-board__control {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.pile-board__control span {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cs-muted);
+}
+
+.pile-board__control select {
+    min-width: 10rem;
+    padding: 0.7rem 0.95rem;
+    border-radius: var(--cs-radius-md);
+    border: 1px solid rgba(33, 52, 43, 0.16);
+    background: rgba(255, 255, 255, 0.88);
+    color: var(--cs-panel-title);
+    font: inherit;
+}
+
+.pile-board__compact-toggle {
+    align-self: end;
+}
+
 .pile-board__lanes {
     display: grid;
     grid-template-columns: minmax(17rem, 0.72fr) minmax(0, 1.68fr);
@@ -1050,12 +1100,51 @@ h1:focus {
 }
 
 .pile-board__cards--mainboard {
-    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
     gap: 1.1rem;
 }
 
 .pile-board__lane-badge {
     background: rgba(31, 91, 75, 0.08);
+}
+
+.pile-board__group {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.pile-board__group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid rgba(31, 91, 75, 0.12);
+}
+
+.pile-board__group-header h4,
+.pile-board__group-header span {
+    margin: 0;
+}
+
+.pile-board__group-header h4 {
+    color: var(--cs-panel-title);
+    font-size: 1rem;
+}
+
+.pile-board__group-header span {
+    font-size: 0.82rem;
+    color: var(--cs-muted);
+}
+
+.pile-board__group-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+    gap: 1rem;
+}
+
+.pile-board__group-cards--compact {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 0.65rem;
 }
 
 .pile-board__card {
@@ -1065,6 +1154,86 @@ h1:focus {
 
 .pile-board__actions {
     flex-wrap: wrap;
+}
+
+.pile-board__quantity {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.42rem 0.72rem;
+    border-radius: 999px;
+    background: rgba(31, 91, 75, 0.08);
+    color: var(--cs-panel-title);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.pile-board__card--compact .commander-card {
+    gap: 0;
+}
+
+.pile-board__card--compact .commander-card__surface {
+    min-height: auto;
+    border-radius: 1rem;
+    box-shadow: none;
+}
+
+.pile-board__card--compact .commander-card__face {
+    grid-template-rows: 0 auto;
+    height: auto;
+}
+
+.pile-board__card--compact .commander-card__art,
+.pile-board__card--compact .commander-card__content p,
+.pile-board__card--compact .commander-card__topline span,
+.pile-board__card--compact .commander-card__footer {
+    display: none;
+}
+
+.pile-board__card--compact .commander-card__art-image,
+.pile-board__card--compact .commander-card__art-placeholder {
+    opacity: 0;
+}
+
+.pile-board__card--compact .commander-card__content {
+    padding: 0.75rem 0.9rem;
+    background: transparent;
+}
+
+.pile-board__card--compact .commander-card__content h3 {
+    font-size: 1rem;
+}
+
+.pile-board__card--compact .pile-board__actions {
+    display: none;
+}
+
+.pile-board__card--compact:hover .commander-card__content p,
+.pile-board__card--compact:focus-within .commander-card__content p {
+    display: block;
+}
+
+.pile-board__card--compact:hover .commander-card__topline span,
+.pile-board__card--compact:focus-within .commander-card__topline span {
+    display: inline-flex;
+}
+
+.pile-board__card--compact:hover .commander-card__art,
+.pile-board__card--compact:focus-within .commander-card__art {
+    display: grid;
+}
+
+.pile-board__card--compact:hover .commander-card__footer,
+.pile-board__card--compact:hover .pile-board__actions,
+.pile-board__card--compact:focus-within .commander-card__footer,
+.pile-board__card--compact:focus-within .pile-board__actions {
+    display: flex;
+}
+
+.pile-board__card--compact:hover .commander-card__art-image,
+.pile-board__card--compact:hover .commander-card__art-placeholder,
+.pile-board__card--compact:focus-within .commander-card__art-image,
+.pile-board__card--compact:focus-within .commander-card__art-placeholder {
+    opacity: 1;
 }
 
 @keyframes workspace-rise {
@@ -1097,7 +1266,7 @@ h1:focus {
     }
 
     .pile-board__cards--mainboard {
-        grid-template-columns: 1fr;
+        gap: 1rem;
     }
 }
 
@@ -1125,6 +1294,12 @@ h1:focus {
     .theme-analysis__off-theme-card {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .pile-board__header-side,
+    .pile-board__controls {
+        justify-items: stretch;
+        justify-content: stretch;
     }
 
     .workspace-hero__status-grid,
@@ -1165,7 +1340,9 @@ h1:focus {
     .workspace-search-result__secondary,
     .workspace-search-result__danger,
     .workspace-state__retry,
+    .pile-board__compact-toggle,
     .pile-board__move-button,
+    .pile-board__quantity-button,
     .pile-board__remove-button {
         animation: none;
         transition: none;

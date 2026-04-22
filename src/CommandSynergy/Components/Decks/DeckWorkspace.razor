@@ -444,6 +444,8 @@
                    Cards="Cards"
                    CommanderSelectionEnabled="@true"
                    SetCommanderRequested="CommanderSelected"
+                   IncrementRequested="CardIncrementRequested"
+                   DecrementRequested="CardDecrementRequested"
                    RemoveRequested="CardRemoved" />
 
         <section class="workspace-shell__stats-panel">
@@ -639,6 +641,12 @@
 
     [Parameter]
     public EventCallback<string> CardAdded { get; set; }
+
+    [Parameter]
+    public EventCallback<string> CardIncrementRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<string> CardDecrementRequested { get; set; }
 
     [Parameter]
     public EventCallback<MoveCardRequest> CardMoved { get; set; }
