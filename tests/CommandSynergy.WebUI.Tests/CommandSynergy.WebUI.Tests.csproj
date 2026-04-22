@@ -33,6 +33,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\CommandSynergy.Application.Tests\Analysis\Fixtures\**\*.json"
+          Link="Analysis\Fixtures\%(RecursiveDir)%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 

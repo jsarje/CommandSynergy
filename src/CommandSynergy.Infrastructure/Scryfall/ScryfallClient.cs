@@ -331,6 +331,9 @@ public sealed record ScryfallCardDocument
     [JsonPropertyName("oracle_text")]
     public string? OracleText { get; init; }
 
+    [JsonPropertyName("keywords")]
+    public IReadOnlyList<string> Keywords { get; init; } = Array.Empty<string>();
+
     [JsonPropertyName("type_line")]
     public string? TypeLine { get; init; }
 

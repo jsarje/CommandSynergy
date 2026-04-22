@@ -1,0 +1,194 @@
+@using CommandSynergy.Application.Contracts
+
+@if (IsLoading && !HasAnalysis)
+{
+    <div class="theme-analysis theme-analysis--loading" data-testid="theme-analysis-loading" role="status" aria-live="polite" aria-label="Theme analysis loading">
+        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+        <p class="theme-analysis__message">Recomputing deck themes…</p>
+    </div>
+}
+else if (HasError)
+{
+    <div class="theme-analysis theme-analysis--error" data-testid="theme-analysis-error" role="alert" aria-label="Theme analysis error">
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+            Theme analysis is temporarily unavailable. Retry sync to refresh the deck's current direction.
+        </MudAlert>
+    </div>
+}
+else if (Analysis?.ThemeAnalysis is null)
+{
+    <div class="theme-analysis theme-analysis--empty" data-testid="theme-analysis-empty" role="status" aria-live="polite" aria-label="Theme analysis empty state">
+        <p class="theme-analysis__message">Theme analysis appears after the first successful sync with enough cards to evaluate a strategy.</p>
+    </div>
+}
+else if (Analysis.ThemeAnalysis.IsInsufficient)
+{
+    <div class="theme-analysis theme-analysis--insufficient" data-testid="theme-analysis-insufficient" role="status" aria-live="polite" aria-label="Theme analysis insufficient cards">
+        <p class="theme-analysis__eyebrow">Sample too small</p>
+        <p class="theme-analysis__message">Add more cards to reveal the deck's dominant themes and thematic score.</p>
+    </div>
+}
+else
+{
+    <section class="theme-analysis theme-analysis--ready"
+             data-testid="theme-analysis-ready"
+             role="region"
+             aria-labelledby="theme-analysis-title"
+             aria-busy="@IsLoading">
+        <div class="theme-analysis__header">
+            <div>
+                <h4 id="theme-analysis-title">Deck Themes</h4>
+                @if (IsLoading)
+                {
+                    <p class="theme-analysis__refresh-banner" data-testid="theme-analysis-refreshing" role="status" aria-live="polite">
+                        Refreshing analysis. Showing the previous result until the new pass completes.
+                    </p>
+                }
+                @if (!string.IsNullOrWhiteSpace(Analysis.ThemeAnalysis.RefreshSummary))
+                {
+                    <p class="theme-analysis__message">@Analysis.ThemeAnalysis.RefreshSummary</p>
+                }
+            </div>
+            <span class="theme-analysis__alignment theme-analysis__alignment--@Analysis.ThemeAnalysis.CommanderAlignment.Level.ToLowerInvariant()">
+                @Analysis.ThemeAnalysis.CommanderAlignment.Level alignment
+            </span>
+        </div>
+
+        @if (Analysis.ThemeAnalysis.PrimaryThemes.Count == 0)
+        {
+            <p class="theme-analysis__message">No dominant themes surfaced yet. Keep tuning the 99 to sharpen the plan.</p>
+        }
+        else
+        {
+            <div class="theme-analysis__chips" aria-label="Detected themes">
+                @foreach (var theme in Analysis.ThemeAnalysis.PrimaryThemes)
+                {
+                    <span class="theme-analysis__chip">
+                        @theme.Name
+                        <strong>@theme.Strength.ToString("0.00")</strong>
+                    </span>
+                }
+            </div>
+        }
+
+        <section class="theme-analysis__section" aria-labelledby="theme-alignment-title">
+            <div class="theme-analysis__section-header">
+                <h5 id="theme-alignment-title">Commander alignment</h5>
+                <span class="theme-analysis__subtle">@Analysis.ThemeAnalysis.CommanderAlignment.CommanderTopTheme</span>
+            </div>
+            <p class="theme-analysis__message">@Analysis.ThemeAnalysis.CommanderAlignment.Summary</p>
+        </section>
+
+        @foreach (var theme in Analysis.ThemeAnalysis.RankedThemes.Take(3))
+        {
+            var themeSlug = Slugify(theme.Name);
+            var contributorTestId = $"theme-contributors-{themeSlug}";
+            var detailsTestId = $"theme-details-{themeSlug}";
+            var isExpanded = expandedThemes.Contains(theme.Name);
+            var leadContributor = theme.Contributors.FirstOrDefault();
+
+            <section class="theme-analysis__section" aria-labelledby="@($"theme-{themeSlug}")" data-testid="@($"theme-section-{themeSlug}")">
+                <div class="theme-analysis__section-header">
+                    <div>
+                        <h5 id="@($"theme-{themeSlug}")">@theme.Name</h5>
+                        <span class="theme-analysis__subtle">@theme.StrengthLabel</span>
+                    </div>
+                    <button type="button"
+                            class="theme-analysis__toggle"
+                            data-testid="@($"theme-toggle-{themeSlug}")"
+                            aria-expanded="@isExpanded"
+                            aria-controls="@detailsTestId"
+                            @onclick="() => ToggleTheme(theme.Name)">
+                        @(isExpanded ? "Collapse details" : "Expand details")
+                    </button>
+                </div>
+                <p class="theme-analysis__message">@theme.Description</p>
+                @if (leadContributor is not null)
+                {
+                    <div class="theme-analysis__preview" data-testid="@($"theme-preview-{themeSlug}")">
+                        <span class="theme-analysis__preview-label">Leading contributor</span>
+                        <article class="theme-analysis__contributor theme-analysis__contributor--preview">
+                            <div>
+                                <strong>@leadContributor.CardName</strong>
+                                <p>@leadContributor.Reason</p>
+                            </div>
+                            <span>@leadContributor.Signal.ToString("0.00")</span>
+                        </article>
+                    </div>
+                }
+
+                <div id="@detailsTestId" data-testid="@detailsTestId" hidden="@(!isExpanded)">
+                    @if (theme.Contributors.Count > 0)
+                    {
+                        <ul class="theme-analysis__contributors" data-testid="@contributorTestId" aria-label="@($"{theme.Name} contributors")">
+                            @foreach (var contributor in theme.Contributors.Take(6))
+                            {
+                                <li class="theme-analysis__contributor">
+                                    <div>
+                                        <strong>@contributor.CardName</strong>
+                                        <p>@contributor.Reason</p>
+                                    </div>
+                                    <span>@contributor.Signal.ToString("0.00")</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </section>
+        }
+
+        <section class="theme-analysis__section" aria-labelledby="off-theme-title">
+            <div class="theme-analysis__section-header">
+                <h5 id="off-theme-title">Off-theme cards</h5>
+                <span class="theme-analysis__subtle">@Analysis.ThemeAnalysis.OffThemeCards.Count</span>
+            </div>
+            @if (Analysis.ThemeAnalysis.OffThemeCards.Count == 0)
+            {
+                <p class="theme-analysis__message">Every analysed card is currently reinforcing at least one detected theme.</p>
+            }
+            else
+            {
+                <ul class="theme-analysis__off-theme" data-testid="off-theme-cards" aria-label="Off-theme cards">
+                    @foreach (var card in Analysis.ThemeAnalysis.OffThemeCards.Take(8))
+                    {
+                        <li class="theme-analysis__off-theme-card">
+                            <div>
+                                <strong>@card.CardName</strong>
+                                <p>@card.Reason</p>
+                            </div>
+                            @if (card.MetadataUnavailable)
+                            {
+                                <span class="theme-analysis__metadata-pill">Metadata unavailable</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    </section>
+}
+
+@code {
+    private readonly HashSet<string> expandedThemes = new(StringComparer.OrdinalIgnoreCase);
+
+    [Parameter]
+    public DeckAnalysisResponseContract? Analysis { get; set; }
+
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    [Parameter]
+    public bool HasError { get; set; }
+
+    private bool HasAnalysis => Analysis?.ThemeAnalysis is not null;
+
+    private void ToggleTheme(string themeName)
+    {
+        if (!expandedThemes.Add(themeName))
+        {
+            expandedThemes.Remove(themeName);
+        }
+    }
+
+    private static string Slugify(string value) => value.ToLowerInvariant().Replace(" ", "-").Replace("/", "-");
+}

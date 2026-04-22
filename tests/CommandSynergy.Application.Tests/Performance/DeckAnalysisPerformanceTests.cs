@@ -46,8 +46,10 @@ public sealed class DeckAnalysisPerformanceTests
 
         var sut = new DeckAnalysisService(
             gateway,
+            new StubEdhrecClient(),
             new BracketCalculationService(new Domain.Analysis.BracketEngine(), new AnalysisExplanationBuilder(), options),
             new SynergyScoringService(new AnalysisExplanationBuilder()),
+            new ThemeAnalysisService(new ThemeMatchingService(), new AnalysisExplanationBuilder()),
             Array.Empty<IDeckAdviceService>());
 
         var deckSnapshot = new DeckSnapshotContract
@@ -87,5 +89,11 @@ public sealed class DeckAnalysisPerformanceTests
             Task.FromResult((IReadOnlyList<CardSearchResultContract>)Array.Empty<CardSearchResultContract>());
 
         public Task<string?> GetSnapshotVersionAsync(CancellationToken cancellationToken = default) => Task.FromResult<string?>("perf-v1");
+    }
+
+    private sealed class StubEdhrecClient : IEdhrecClient
+    {
+        public Task<CommanderThemeInsights> GetCommanderThemeInsightsAsync(CardProfile commanderProfile, CancellationToken cancellationToken = default) =>
+            Task.FromResult(CommanderThemeInsights.Empty());
     }
 }

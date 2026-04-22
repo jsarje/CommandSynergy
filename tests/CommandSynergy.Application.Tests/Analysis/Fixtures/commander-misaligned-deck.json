@@ -1,0 +1,35 @@
+{
+  "deckName": "Commander Misaligned",
+  "cards": [
+    {
+      "cardId": "misaligned-commander",
+      "name": "Misaligned Commander",
+      "typeLine": "Legendary Creature",
+      "quantity": 1,
+      "isCommander": true,
+      "themeSignals": {
+        "Tokens": 0.96
+      }
+    }
+  ],
+  "groups": [
+    {
+      "prefix": "spell-card",
+      "nameTemplate": "Spell Card {n}",
+      "typeLine": "Instant",
+      "count": 18,
+      "themeSignals": {
+        "Spellslinger": 0.84
+      }
+    },
+    {
+      "prefix": "draw-support",
+      "nameTemplate": "Draw Support {n}",
+      "typeLine": "Sorcery",
+      "count": 6,
+      "themeSignals": {
+        "Card Draw / Wheels": 0.52
+      }
+    }
+  ]
+}

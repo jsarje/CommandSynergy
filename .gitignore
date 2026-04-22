@@ -9,6 +9,9 @@
 *.user
 *.userosscache
 *.sln.docstates
+.DS_Store
+Thumbs.db
+.idea/
 *.env
 *.env.*
 

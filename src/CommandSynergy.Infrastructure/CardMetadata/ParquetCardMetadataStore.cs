@@ -273,6 +273,7 @@ public sealed class ParquetCardMetadataStore
         row.HasMultipleFaces,
         row.OracleText,
         row.PlayRateByCommander,
+        row.ThemeSignals,
         row.GenericColorStapleRate,
         row.IsGameChanger,
         row.IsMassLandDenial,
@@ -298,6 +299,9 @@ public sealed class ParquetCardMetadataStore
         OracleText = card.OracleText,
         PlayRateByCommander = card.PlayRateByCommander.Count > 0
             ? new Dictionary<string, decimal>(card.PlayRateByCommander, StringComparer.OrdinalIgnoreCase)
+            : null,
+        ThemeSignals = card.ThemeSignals.Count > 0
+            ? new Dictionary<string, decimal>(card.ThemeSignals, StringComparer.OrdinalIgnoreCase)
             : null,
         GenericColorStapleRate = card.GenericColorStapleRate,
         IsGameChanger = card.IsGameChanger,
@@ -336,6 +340,8 @@ public sealed class ParquetCardMetadataStore
         public string? OracleText { get; init; }
 
         public Dictionary<string, decimal>? PlayRateByCommander { get; init; }
+
+        public Dictionary<string, decimal>? ThemeSignals { get; init; }
 
         public decimal? GenericColorStapleRate { get; init; }
 
@@ -387,6 +393,7 @@ public sealed record CardMetadataRecord(
     bool HasMultipleFaces,
     string? OracleText = null,
     IReadOnlyDictionary<string, decimal>? PlayRateByCommander = null,
+    IReadOnlyDictionary<string, decimal>? ThemeSignals = null,
     decimal? GenericColorStapleRate = null,
     bool IsGameChanger = false,
     bool IsMassLandDenial = false,

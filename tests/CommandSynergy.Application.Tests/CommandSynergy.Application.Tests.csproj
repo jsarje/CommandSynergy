@@ -28,6 +28,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Analysis\Fixtures\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
     <None Update="Decks\Fixtures\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

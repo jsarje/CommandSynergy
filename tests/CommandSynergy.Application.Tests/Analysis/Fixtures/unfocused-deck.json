@@ -1,0 +1,60 @@
+{
+  "deckName": "Unfocused Pile",
+  "cards": [
+    {
+      "cardId": "pile-commander",
+      "name": "Pile Commander",
+      "typeLine": "Legendary Creature",
+      "quantity": 1,
+      "isCommander": true,
+      "themeSignals": {
+        "Artifacts": 0.28
+      }
+    }
+  ],
+  "groups": [
+    {
+      "prefix": "ramp-card",
+      "nameTemplate": "Ramp Card {n}",
+      "typeLine": "Sorcery",
+      "count": 5,
+      "themeSignals": {
+        "Ramp": 0.32
+      }
+    },
+    {
+      "prefix": "draw-card",
+      "nameTemplate": "Draw Card {n}",
+      "typeLine": "Instant",
+      "count": 5,
+      "themeSignals": {
+        "Card Draw / Wheels": 0.30
+      }
+    },
+    {
+      "prefix": "burn-card",
+      "nameTemplate": "Burn Card {n}",
+      "typeLine": "Instant",
+      "count": 5,
+      "themeSignals": {
+        "Burn": 0.28
+      }
+    },
+    {
+      "prefix": "lifegain-card",
+      "nameTemplate": "Lifegain Card {n}",
+      "typeLine": "Creature",
+      "count": 5,
+      "themeSignals": {
+        "Life Gain": 0.27
+      }
+    },
+    {
+      "prefix": "misc-card",
+      "nameTemplate": "Misc Card {n}",
+      "typeLine": "",
+      "count": 4,
+      "themeSignals": {}
+    }
+  ]
+}

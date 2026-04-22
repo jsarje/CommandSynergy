@@ -13,4 +13,8 @@ public sealed record SynergyAssessment(
     IReadOnlyList<string> CommanderSpecificHits,
     IReadOnlyList<string> StapleOverloadIndicators,
     string Summary,
-    DateTimeOffset CalculatedUtc);
+    DateTimeOffset CalculatedUtc,
+    decimal ThemeScore = 0m,
+    decimal FinalScore = 0m,
+    string QualitativeLabel = "Pile",
+    bool EdhrecEnhanced = false);

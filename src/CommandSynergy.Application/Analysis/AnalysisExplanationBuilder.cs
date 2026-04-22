@@ -49,4 +49,45 @@ public sealed class AnalysisExplanationBuilder
 
         return $"Synergy score {assessment.SynergyScore:0.#}/100. {hitText}; {stapleText}.{metadataText}";
     }
+
+    /// <summary>
+    /// Builds the theme-analysis summary for the supplied score and alignment state.
+    /// </summary>
+    public string BuildThemeSummary(decimal themeScore, decimal finalScore, string qualitativeLabel, CommanderAlignment alignment, int offThemeCardCount, int totalCardCount, bool edhrecEnhanced)
+    {
+        var offThemeText = offThemeCardCount == 0
+            ? "Every analysed card reinforced at least one theme"
+            : $"{offThemeCardCount} of {totalCardCount} cards currently read as off-theme";
+        var edhrecText = edhrecEnhanced
+            ? " EDHREC data nudged the final score."
+            : string.Empty;
+
+        return $"Theme score {themeScore:0.#}/100, final score {finalScore:0.#}/100 ({qualitativeLabel}). {alignment.Summary} {offThemeText}.{edhrecText}";
+    }
+
+    /// <summary>
+    /// Builds the workspace refresh summary for theme analysis.
+    /// </summary>
+    public string BuildThemeRefreshSummary(IReadOnlyList<DeckTheme> primaryThemes, int offThemeCardCount, int totalCardCount)
+    {
+        if (primaryThemes.Count == 0)
+        {
+            return $"No dominant themes surfaced yet across {totalCardCount} analysed cards.";
+        }
+
+        var themeNames = string.Join(", ", primaryThemes.Take(2).Select(static theme => theme.Name));
+        return $"Primary themes: {themeNames}. {offThemeCardCount} card(s) are currently off-theme.";
+    }
+
+    /// <summary>
+    /// Resolves a user-facing qualitative label from a 0-100 score.
+    /// </summary>
+    public string DetermineQualitativeLabel(decimal finalScore) => finalScore switch
+    {
+        >= 80m => "Tuned",
+        >= 60m => "Focused",
+        >= 40m => "Developing",
+        >= 20m => "Unfocused",
+        _ => "Pile",
+    };
 }

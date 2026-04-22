@@ -1,0 +1,42 @@
+{
+  "deckName": "Focused Tokens",
+  "cards": [
+    {
+      "cardId": "focused-commander",
+      "name": "Focused Commander",
+      "typeLine": "Legendary Creature",
+      "quantity": 1,
+      "isCommander": true,
+      "themeSignals": {
+        "Tokens": 0.95
+      }
+    },
+    {
+      "cardId": "anthem-engine",
+      "name": "Anthem Engine",
+      "typeLine": "Enchantment",
+      "quantity": 1,
+      "themeSignals": {
+        "Tokens": 0.78,
+        "+1/+1 Counters": 0.24
+      }
+    }
+  ],
+  "groups": [
+    {
+      "prefix": "token-support",
+      "nameTemplate": "Token Support {n}",
+      "typeLine": "Creature",
+      "count": 23,
+      "themeSignals": {
+        "Tokens": 0.82
+      }
+    }
+  ],
+  "edhrecSynergyByCardId": {
+    "anthem-engine": 0.62,
+    "token-support-01": 0.58,
+    "token-support-02": 0.55,
+    "token-support-03": 0.53
+  }
+}

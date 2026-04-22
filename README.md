@@ -19,6 +19,13 @@ CommandSynergy is a developer-focused .NET 10 Blazor Web App to build, validate,
 - `POST /api/decks/analyze` — compute bracket and synergy outputs for a deck.
 - Parquet-backed metadata with a separate ingestion tool that regenerates the authoritative snapshot from Scryfall bulk data.
 
+## Theme analysis
+
+- Theme analysis ranks deck themes, computes a qualitative synergy score, and reports commander alignment directly in the workspace.
+- The ingestion pipeline now pre-computes per-card `ThemeSignals` into the Parquet snapshot so deck analysis stays fast at request time.
+- Optional EDHREC enrichment is SSRF-guarded, cached for 15 minutes, and degrades cleanly to local-only scoring when unavailable.
+- The workspace keeps the last successful theme result visible while a refresh is in flight so deck edits do not blank the analysis panel.
+
 ## Architecture overview
 
 - `src/CommandSynergy`: Blazor Web App, JSON endpoints, and interactive workspace shell.

@@ -402,7 +402,10 @@ h1:focus {
 .pile-board__empty,
 .analysis-panel__message,
 .analysis-bracket__summary,
-.analysis-synergy__summary {
+.analysis-synergy__summary,
+.theme-analysis__message,
+.theme-analysis__contributor p,
+.theme-analysis__off-theme-card p {
     margin: 0.55rem 0 0;
     color: var(--cs-muted);
 }
@@ -430,7 +433,11 @@ h1:focus {
 .pile-board__actions,
 .workspace-dialog__actions,
 .analysis-bracket__header,
-.analysis-synergy__header {
+.analysis-synergy__header,
+.theme-analysis__header,
+.theme-analysis__section-header,
+.theme-analysis__contributor,
+.theme-analysis__off-theme-card {
     display: flex;
     gap: 0.85rem;
 }
@@ -509,7 +516,11 @@ h1:focus {
 .workspace-search-result__actions,
 .workspace-dialog__actions,
 .analysis-bracket__header,
-.analysis-synergy__header {
+.analysis-synergy__header,
+.theme-analysis__header,
+.theme-analysis__section-header,
+.theme-analysis__contributor,
+.theme-analysis__off-theme-card {
     align-items: center;
     justify-content: space-between;
 }
@@ -769,7 +780,11 @@ h1:focus {
 
 .analysis-panel--loading,
 .analysis-panel--empty,
-.analysis-panel--error {
+.analysis-panel--error,
+.theme-analysis--loading,
+.theme-analysis--empty,
+.theme-analysis--error,
+.theme-analysis--insufficient {
     padding: 1rem;
     border-radius: var(--cs-radius-lg);
     background: rgba(255, 255, 255, 0.52);
@@ -782,13 +797,32 @@ h1:focus {
     align-items: center;
 }
 
+.theme-analysis--loading {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
 .analysis-bracket,
 .analysis-synergy {
     padding: 1rem;
 }
 
+.theme-analysis--ready {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: var(--cs-radius-lg);
+    background: rgba(255, 255, 255, 0.52);
+    border: 1px solid rgba(31, 91, 75, 0.08);
+}
+
 .analysis-bracket__label,
 .analysis-synergy__label,
+.theme-analysis__header h4,
+.theme-analysis__section h5,
 .workspace-callouts h3,
 .workspace-state h3,
 .workspace-banner h3,
@@ -801,6 +835,86 @@ h1:focus {
 .analysis-synergy__score {
     background: var(--cs-gold-soft);
     color: var(--cs-gold-deep);
+}
+
+.analysis-synergy__label-pill,
+.theme-analysis__alignment,
+.theme-analysis__chip,
+.theme-analysis__metadata-pill,
+.theme-analysis__subtle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.32rem 0.68rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.analysis-synergy__label-pill,
+.theme-analysis__chip,
+.theme-analysis__subtle {
+    background: var(--cs-forest-soft);
+    color: var(--cs-panel-title);
+}
+
+.analysis-synergy__score--muted,
+.theme-analysis__metadata-pill {
+    background: rgba(141, 106, 47, 0.14);
+    color: var(--cs-gold-deep);
+}
+
+.theme-analysis__alignment--strong {
+    background: rgba(31, 91, 75, 0.12);
+    color: var(--cs-forest);
+}
+
+.theme-analysis__alignment--moderate {
+    background: rgba(141, 106, 47, 0.16);
+    color: var(--cs-gold-deep);
+}
+
+.theme-analysis__alignment--low,
+.theme-analysis__alignment--none {
+    background: rgba(139, 63, 41, 0.1);
+    color: var(--cs-accent);
+}
+
+.theme-analysis__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.theme-analysis__section {
+    display: grid;
+    gap: 0.65rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(31, 91, 75, 0.08);
+}
+
+.theme-analysis__contributors,
+.theme-analysis__off-theme {
+    display: grid;
+    gap: 0.8rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.theme-analysis__contributor,
+.theme-analysis__off-theme-card {
+    padding: 0.82rem 0.94rem;
+    border-radius: var(--cs-radius-sm);
+    background: rgba(31, 91, 75, 0.06);
+}
+
+.theme-analysis__eyebrow {
+    margin: 0;
+    color: var(--cs-accent);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .analysis-factor {
@@ -986,7 +1100,11 @@ h1:focus {
     .pile-board__pile-header,
     .pile-board__actions,
     .analysis-bracket__header,
-    .analysis-synergy__header {
+    .analysis-synergy__header,
+    .theme-analysis__header,
+    .theme-analysis__section-header,
+    .theme-analysis__contributor,
+    .theme-analysis__off-theme-card {
         flex-direction: column;
         align-items: stretch;
     }

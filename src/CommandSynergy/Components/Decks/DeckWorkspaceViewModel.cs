@@ -87,6 +87,11 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     public bool IsBusy { get; private set; }
 
     /// <summary>
+    /// Gets whether validation and analysis are currently being recomputed.
+    /// </summary>
+    public bool IsRefreshingInsights { get; private set; }
+
+    /// <summary>
     /// Gets the available workspace piles.
     /// </summary>
     public IReadOnlyList<PileDefinitionContract> Piles { get; private set; }
@@ -882,6 +887,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         try
         {
             IsBusy = true;
+            IsRefreshingInsights = true;
             var snapshot = CreateSnapshot(commanderCardId);
             var validationTask = deckWorkspaceClient.ValidateAsync(snapshot, cancellationToken);
             var analysisTask = deckWorkspaceClient.AnalyzeAsync(snapshot, cancellationToken);
@@ -907,6 +913,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         finally
         {
             IsBusy = false;
+            IsRefreshingInsights = false;
         }
     }
 

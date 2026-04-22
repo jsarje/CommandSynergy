@@ -1,12 +1,16 @@
 ﻿# CommandSynergy Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-19
+Auto-generated from all feature plans. Last updated: 2026-04-21
 
 ## Active Technologies
 - .NET 10 / C# 14 + ASP.NET Core Blazor Web App, Interactive Auto render mode, MudBlazor, Parquet.Net, typed HttpClient for Scryfall, xUnit, bUnit, FluentAssertions (001-commander-deck-architect)
 - Local Parquet snapshot files for authoritative card metadata plus derived in-memory search index data (001-commander-deck-architect)
 - .NET 10 / C# 14 + ASP.NET Core Blazor Web App with Interactive Auto render mode, (002-deck-import-export)
 - Browser localStorage for persisted imported decks, active deck selection, and import (002-deck-import-export)
+- .NET 10 / C# 14 + ASP.NET Core 10, Blazor Web App (Interactive Auto render mode), MudBlazor, Parquet.Net 5.2.0, xUnit, bUnit, FluentAssertions, `System.Text.RegularExpressions` (slug generation), `Microsoft.Extensions.Http.Resilience` (EDHREC client) (003-synergy-theme-analysis)
+- Local Parquet snapshot (`cards.parquet`); in-memory caches (snapshot search index + EDHREC per-commander cache, 15-minute TTL) (003-synergy-theme-analysis)
+- .NET 10 / C# 14 + ASP.NET Core 10, Blazor Web App (Interactive Auto render mode), MudBlazor, Parquet.Net 5.2.0, `System.Text.RegularExpressions` (NonBacktracking engine), `Microsoft.Extensions.Http.Resilience` (EDHREC HTTP client), xUnit, bUnit, FluentAssertions (003-synergy-theme-analysis)
+- Local Parquet snapshot (`cards.parquet`) — additive `ThemeSignals` column; in-memory `IMemoryCache` for EDHREC per-commander data (15-min TTL) (003-synergy-theme-analysis)
 
 - .NET 10 / C# 14 + ASP.NET Core Blazor Web App, Interactive Auto render mode, MudBlazor, Parquet.Net, xUnit, bUnit (001-build-commander-architect)
 
@@ -40,9 +44,9 @@ dotnet test src/CommandSynergy.slnx
 .NET 10 / C# 14: Follow standard conventions and Clean Architecture dependency direction
 
 ## Recent Changes
+- 003-synergy-theme-analysis: Added .NET 10 / C# 14 + ASP.NET Core 10, Blazor Web App (Interactive Auto render mode), MudBlazor, Parquet.Net 5.2.0, `System.Text.RegularExpressions` (NonBacktracking engine), `Microsoft.Extensions.Http.Resilience` (EDHREC HTTP client), xUnit, bUnit, FluentAssertions
+- 003-synergy-theme-analysis: Added .NET 10 / C# 14 + ASP.NET Core 10, Blazor Web App (Interactive Auto render mode), MudBlazor, Parquet.Net 5.2.0, xUnit, bUnit, FluentAssertions, `System.Text.RegularExpressions` (slug generation), `Microsoft.Extensions.Http.Resilience` (EDHREC client)
 - 002-deck-import-export: Added .NET 10 / C# 14 + ASP.NET Core Blazor Web App with Interactive Auto render mode,
-- 001-commander-deck-architect: Added .NET 10 / C# 14 + ASP.NET Core Blazor Web App, Interactive Auto render mode, MudBlazor, Parquet.Net, typed HttpClient for Scryfall, xUnit, bUnit, FluentAssertions
-- 001-commander-deck-architect: **Implementation complete** – all 53 tests passing; Clean Architecture layers fully wired; Parquet-backed card metadata with bulk `oracle_cards` ingestion and read-only runtime fallback (using `long? LastSyncedUtcTicks` for Parquet.Net 5.x compatibility); commander eligibility basis enum; AnalysisPanel component with loading/empty/error/ready states; OWASP review complete (all high-severity issues resolved or waived).
 
 
 ## Implementation Notes
