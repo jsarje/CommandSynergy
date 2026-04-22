@@ -446,6 +446,12 @@
                    SetCommanderRequested="CommanderSelected"
                    RemoveRequested="CardRemoved" />
 
+        <section class="workspace-shell__stats-panel">
+            <MudPaper Elevation="0" Class="workspace-panel workspace-panel--stats">
+                <DeckStatsPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="@(State.Status == DeckWorkspaceStatus.Recovery)" />
+            </MudPaper>
+        </section>
+
         @if (pendingDeleteDeck is not null)
         {
             <div class="workspace-dialog-backdrop" data-testid="delete-imported-deck-dialog">

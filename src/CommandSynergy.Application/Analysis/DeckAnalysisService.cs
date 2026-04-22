@@ -11,6 +11,7 @@ namespace CommandSynergy.Application.Analysis;
 /// </summary>
 public sealed class DeckAnalysisService
 {
+    private static readonly DeckStatsCalculationService deckStatsCalculationService = new();
     private readonly ICardCatalogGateway cardCatalogGateway;
     private readonly ICommanderSpellbookClient commanderSpellbookClient;
     private readonly IEdhrecClient edhrecClient;
@@ -86,6 +87,7 @@ public sealed class DeckAnalysisService
         var (themeAnalysis, themeSynergy) = await themeAnalysisService.AnalyseAsync(deck, profiles, edhrecInsights, cancellationToken).ConfigureAwait(false);
         var synergyAssessment = MergeSynergyAssessments(baseSynergyAssessment, themeSynergy);
         var powerLevelAssessment = powerLevelCalculationService.Calculate(deck, profiles, comboAnalysis);
+        var deckStats = deckStatsCalculationService.Calculate(deck, profiles);
 
         var response = new DeckAnalysisResponseContract
         {
@@ -94,6 +96,7 @@ public sealed class DeckAnalysisService
             Synergy = MapSynergy(synergyAssessment),
             ThemeAnalysis = MapThemeAnalysis(themeAnalysis),
             ComboAnalysis = MapComboAnalysis(comboAnalysis),
+            DeckStats = deckStats,
         };
 
         foreach (var deckAdviceService in deckAdviceServices)
