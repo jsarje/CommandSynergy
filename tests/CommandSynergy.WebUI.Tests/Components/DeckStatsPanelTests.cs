@@ -55,9 +55,7 @@ public sealed class DeckStatsPanelTests : BunitContext
         cut.Find("[data-testid='deck-stats-mana-cost']").TextContent.Should().Contain("Mana cost mix");
         cut.Find("[data-testid='deck-stats-mana-generation']").TextContent.Should().Contain("Mana generation");
         cut.Find("[data-testid='deck-stats-card-types']").TextContent.Should().Contain("Card types");
-        cut.Find("[data-testid='deck-stats-curve']").TextContent.Should().Contain("Mana curve");
-        cut.Markup.Should().Contain("Avg MV 2.3");
-        cut.Markup.Should().NotContain("Mana curve line chart");
+        cut.Markup.Should().NotContain("Mana curve");
     }
 
     private static DeckAnalysisResponseContract CreateAnalysis() => new()

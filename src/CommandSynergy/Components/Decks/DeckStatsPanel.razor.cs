@@ -57,8 +57,6 @@ public partial class DeckStatsPanel : ComponentBase
     private bool HasDeckStats => DeckStats is not null;
 
     private decimal MaxManaValueBucketValue => DeckStats?.ManaValueHistogram.Max(static slice => slice.Value) ?? 0m;
-    
-    private decimal MaxManaCurveBucketValue => DeckStats?.ManaCurve.Buckets.Max(static slice => slice.Value) ?? 0m;
 
     protected override void OnParametersSet()
     {

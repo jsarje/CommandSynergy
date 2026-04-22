@@ -161,48 +161,6 @@ else
                     }
                 </section>
 
-                <section class="deck-stats__card deck-stats__card--curve" data-testid="deck-stats-curve">
-                    <div class="deck-stats__card-header">
-                        <div>
-                            <h4>Mana curve</h4>
-                            <p>Spell-only bucket spread with average mana value and density markers.</p>
-                        </div>
-                        <div class="deck-stats__chips">
-                            <span class="deck-stats__chip">Avg MV @DeckStats.ManaCurve.AverageManaValue.ToString("0.0")</span>
-                            <span class="deck-stats__chip">@DeckStats.ManaCurve.SpellCount spells</span>
-                        </div>
-                    </div>
-
-                    @if (DeckStats.ManaCurve.SpellCount == 0)
-                    {
-                        <p class="deck-stats__message">Add nonland spells to reveal the mana curve.</p>
-                    }
-                    else
-                    {
-                        <div class="deck-stats__curve-bars" role="img" aria-label="Mana curve chart">
-                            @foreach (var slice in DeckStats.ManaCurve.Buckets)
-                            {
-                                <div class="deck-stats__curve-bar">
-                                    <span class="deck-stats__curve-value">@FormatStatValue(slice.Value)</span>
-                                    <div class="deck-stats__curve-track">
-                                        <span class="deck-stats__curve-fill" style="@GetBarHeightStyle(slice.Value, MaxManaCurveBucketValue)"></span>
-                                    </div>
-                                    <span class="deck-stats__curve-label">@slice.Label</span>
-                                </div>
-                            }
-                        </div>
-
-                        <div class="deck-stats__curve-labels">
-                            @foreach (var slice in DeckStats.ManaCurve.Buckets)
-                            {
-                                <div>
-                                    <span>@slice.Label</span>
-                                    <strong>@FormatStatValue(slice.Value)</strong>
-                                </div>
-                            }
-                        </div>
-                    }
-                </section>
             </div>
         }
     </section>
