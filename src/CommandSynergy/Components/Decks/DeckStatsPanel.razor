@@ -36,16 +36,11 @@ else
             }
         </div>
 
-        @if (!isExpanded)
+        @if (!areChartsReady)
         {
             <div class="deck-stats__lazy-shell" data-testid="deck-stats-lazy">
-                <p class="deck-stats__message">This bottom panel stays lightweight on first render. Load the charts only when you want a deeper read on curve and composition.</p>
-                <button type="button"
-                        class="workspace-search__button"
-                        data-testid="deck-stats-load-button"
-                        @onclick="Expand">
-                    Load deck stats
-                </button>
+                <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                <p class="deck-stats__message">Loading deck stats in the background so the rest of the workspace stays responsive.</p>
             </div>
         }
         else
@@ -170,7 +165,7 @@ else
                     <div class="deck-stats__card-header">
                         <div>
                             <h4>Mana curve</h4>
-                            <p>Spell-only curve with average mana value and density markers.</p>
+                            <p>Spell-only bucket spread with average mana value and density markers.</p>
                         </div>
                         <div class="deck-stats__chips">
                             <span class="deck-stats__chip">Avg MV @DeckStats.ManaCurve.AverageManaValue.ToString("0.0")</span>
@@ -184,15 +179,18 @@ else
                     }
                     else
                     {
-                        <svg class="deck-stats__curve" viewBox="0 0 360 180" role="img" aria-label="Mana curve line chart">
-                            <path class="deck-stats__curve-area" d="@CurveAreaPath"></path>
-                            <polyline class="deck-stats__curve-line" points="@CurvePolylinePoints"></polyline>
-
-                            @foreach (var point in CurvePoints)
+                        <div class="deck-stats__curve-bars" role="img" aria-label="Mana curve chart">
+                            @foreach (var slice in DeckStats.ManaCurve.Buckets)
                             {
-                                <circle class="deck-stats__curve-point" cx="@point.X.ToString("0.##")" cy="@point.Y.ToString("0.##")" r="4"></circle>
+                                <div class="deck-stats__curve-bar">
+                                    <span class="deck-stats__curve-value">@FormatStatValue(slice.Value)</span>
+                                    <div class="deck-stats__curve-track">
+                                        <span class="deck-stats__curve-fill" style="@GetBarHeightStyle(slice.Value, MaxManaCurveBucketValue)"></span>
+                                    </div>
+                                    <span class="deck-stats__curve-label">@slice.Label</span>
+                                </div>
                             }
-                        </svg>
+                        </div>
 
                         <div class="deck-stats__curve-labels">
                             @foreach (var slice in DeckStats.ManaCurve.Buckets)

@@ -7,7 +7,7 @@ using MudBlazor.Services;
 namespace CommandSynergy.WebUI.Tests.Components;
 
 /// <summary>
-/// Validates the deferred deck-stats experience and ready-state rendering.
+/// Validates the deferred background-loading deck-stats experience and ready-state rendering.
 /// </summary>
 public sealed class DeckStatsPanelTests : BunitContext
 {
@@ -29,7 +29,7 @@ public sealed class DeckStatsPanelTests : BunitContext
     }
 
     [Fact]
-    public void Deck_stats_panel_defers_chart_rendering_until_requested()
+    public void Deck_stats_panel_shows_background_loading_shell_before_rendering_charts()
     {
         var cut = Render<DeckStatsPanel>(parameters => parameters
             .Add(component => component.IsLoading, false)
@@ -37,18 +37,19 @@ public sealed class DeckStatsPanelTests : BunitContext
             .Add(component => component.Analysis, CreateAnalysis()));
 
         cut.Find("[data-testid='deck-stats-lazy']").Should().NotBeNull();
-        cut.Markup.Should().NotContain("Mana values");
+        cut.Markup.Should().Contain("Loading deck stats in the background");
+        cut.Markup.Should().NotContain("deck-stats-load-button");
     }
 
     [Fact]
-    public void Deck_stats_panel_renders_all_requested_charts_after_loading()
+    public void Deck_stats_panel_renders_all_requested_charts_after_background_loading()
     {
         var cut = Render<DeckStatsPanel>(parameters => parameters
             .Add(component => component.IsLoading, false)
             .Add(component => component.HasError, false)
             .Add(component => component.Analysis, CreateAnalysis()));
 
-        cut.Find("[data-testid='deck-stats-load-button']").Click();
+        cut.WaitForAssertion(() => cut.Find("[data-testid='deck-stats-mana-values']"));
 
         cut.Find("[data-testid='deck-stats-mana-values']").TextContent.Should().Contain("Mana values");
         cut.Find("[data-testid='deck-stats-mana-cost']").TextContent.Should().Contain("Mana cost mix");
@@ -56,6 +57,7 @@ public sealed class DeckStatsPanelTests : BunitContext
         cut.Find("[data-testid='deck-stats-card-types']").TextContent.Should().Contain("Card types");
         cut.Find("[data-testid='deck-stats-curve']").TextContent.Should().Contain("Mana curve");
         cut.Markup.Should().Contain("Avg MV 2.3");
+        cut.Markup.Should().NotContain("Mana curve line chart");
     }
 
     private static DeckAnalysisResponseContract CreateAnalysis() => new()

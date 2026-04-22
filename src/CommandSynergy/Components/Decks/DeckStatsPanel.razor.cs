@@ -3,11 +3,12 @@ using Microsoft.AspNetCore.Components;
 namespace CommandSynergy.Components.Decks;
 
 /// <summary>
-/// Renders the optional deck-stat charts once the user opts into the deferred visualization panel.
+/// Renders the optional deck-stat charts after a lightweight deferred background load.
 /// </summary>
 public partial class DeckStatsPanel : ComponentBase
 {
     private const decimal MinimumBarHeightPercent = 8m;
+    private static readonly TimeSpan DeferredChartLoadDelay = TimeSpan.FromMilliseconds(50);
     private static readonly IReadOnlyDictionary<string, string> ChartColors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
         ["White"] = "oklch(0.95 0.03 95)",
@@ -47,37 +48,39 @@ public partial class DeckStatsPanel : ComponentBase
     [Parameter]
     public bool HasError { get; set; }
 
-    private bool isExpanded;
+    private bool areChartsReady;
+
+    private bool isDeferredLoadPending;
 
     private DeckStatsContract? DeckStats => Analysis?.DeckStats;
 
     private bool HasDeckStats => DeckStats is not null;
 
     private decimal MaxManaValueBucketValue => DeckStats?.ManaValueHistogram.Max(static slice => slice.Value) ?? 0m;
+    
+    private decimal MaxManaCurveBucketValue => DeckStats?.ManaCurve.Buckets.Max(static slice => slice.Value) ?? 0m;
 
-    private IReadOnlyList<CurvePoint> CurvePoints => BuildCurvePoints();
-
-    private string CurvePolylinePoints => string.Join(" ", CurvePoints.Select(point => $"{point.X.ToString("0.##")},{point.Y.ToString("0.##")}"));
-
-    private string CurveAreaPath
+    protected override void OnParametersSet()
     {
-        get
+        if (HasError || !HasDeckStats)
         {
-            if (CurvePoints.Count == 0)
-            {
-                return string.Empty;
-            }
-
-            var first = CurvePoints[0];
-            var last = CurvePoints[^1];
-            var points = string.Join(" L ", CurvePoints.Select(point => $"{point.X.ToString("0.##")} {point.Y.ToString("0.##")}"));
-            return $"M {first.X.ToString("0.##")} 154 L {points} L {last.X.ToString("0.##")} 154 Z";
+            areChartsReady = false;
+            isDeferredLoadPending = false;
         }
     }
 
-    private void Expand()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        isExpanded = true;
+        if (HasError || !HasDeckStats || areChartsReady || isDeferredLoadPending)
+        {
+            return;
+        }
+
+        isDeferredLoadPending = true;
+        await Task.Delay(DeferredChartLoadDelay).ConfigureAwait(false);
+        areChartsReady = true;
+        isDeferredLoadPending = false;
+        await InvokeAsync(StateHasChanged).ConfigureAwait(false);
     }
 
     private static string FormatStatValue(decimal value) =>
@@ -87,35 +90,6 @@ public partial class DeckStatsPanel : ComponentBase
     {
         var height = maxValue <= 0m ? 0m : Math.Max(MinimumBarHeightPercent, Math.Round((value / maxValue) * 100m, 2));
         return $"height: {height.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}%;";
-    }
-
-    private IReadOnlyList<CurvePoint> BuildCurvePoints()
-    {
-        if (DeckStats?.ManaCurve.Buckets.Count is not > 0)
-        {
-            return Array.Empty<CurvePoint>();
-        }
-
-        var maxValue = DeckStats.ManaCurve.Buckets.Max(static slice => slice.Value);
-        if (maxValue <= 0m)
-        {
-            return DeckStats.ManaCurve.Buckets
-                .Select((slice, index) => new CurvePoint(
-                    ManaCurveChartDimensions.Left + ((ManaCurveChartDimensions.Width / Math.Max(DeckStats.ManaCurve.Buckets.Count - 1, 1)) * index),
-                    ManaCurveChartDimensions.Bottom,
-                    slice))
-                .ToArray();
-        }
-
-        var step = ManaCurveChartDimensions.Width / Math.Max(DeckStats.ManaCurve.Buckets.Count - 1, 1);
-        return DeckStats.ManaCurve.Buckets
-            .Select((slice, index) =>
-            {
-                var x = ManaCurveChartDimensions.Left + (step * index);
-                var y = ManaCurveChartDimensions.Bottom - ((slice.Value / maxValue) * ManaCurveChartDimensions.Height);
-                return new CurvePoint(x, y, slice);
-            })
-            .ToArray();
     }
 
     private static string BuildPieStyle(IReadOnlyList<DeckStatSliceContract> slices)
@@ -137,10 +111,4 @@ public partial class DeckStatsPanel : ComponentBase
         ChartColors.TryGetValue(label, out var color)
             ? color
             : "oklch(0.78 0.03 120)";
-
-    private sealed record ChartDimensions(decimal Left, decimal Width, decimal Height, decimal Bottom);
-
-    private sealed record CurvePoint(decimal X, decimal Y, DeckStatSliceContract Slice);
-
-    private static readonly ChartDimensions ManaCurveChartDimensions = new(24m, 312m, 126m, 154m);
 }
