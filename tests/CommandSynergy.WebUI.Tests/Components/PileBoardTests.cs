@@ -108,7 +108,7 @@ public sealed class PileBoardTests : BunitContext
         cut.Find("[data-testid='compact-mode-toggle']").Click();
         cut.Find("[data-testid='pile-card-shadowborn-apostle']").ClassList.Should().Contain("pile-board__card--compact");
         cut.Find(".pile-board__group-cards").ClassList.Should().Contain("pile-board__group-cards--compact");
-        cut.Find("[data-testid='quantity-shadowborn-apostle']").ParentElement!.ClassList.Should().Contain("pile-board__actions--compact");
+        cut.Find("[data-testid='quantity-shadowborn-apostle']").ParentElement!.ClassList.Should().Contain("pile-board__actions");
         cut.Find("[data-testid='compact-mode-toggle']").TextContent.Should().Contain("Compact mode on");
         cut.Find("[data-testid='quantity-shadowborn-apostle']").TextContent.Should().Contain("3 copies");
         cut.FindAll("[data-testid='increment-sol-ring']").Should().BeEmpty();

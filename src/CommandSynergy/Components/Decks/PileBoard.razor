@@ -162,7 +162,7 @@
         builder.CloseComponent();
 
         builder.OpenElement(sequence++, "div");
-        builder.AddAttribute(sequence++, "class", isMainboard && isCompactMode ? "pile-board__actions pile-board__actions--compact" : "pile-board__actions");
+        builder.AddAttribute(sequence++, "class", "pile-board__actions");
 
         if (isMainboard && !card.IsCommander && card.AllowsMultipleCopies)
         {

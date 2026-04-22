@@ -1169,7 +1169,7 @@ h1:focus {
 }
 
 .pile-board__card--compact .commander-card__face {
-    display: block;
+    grid-template-rows: 0 auto;
     height: auto;
 }
 
@@ -1194,7 +1194,7 @@ h1:focus {
     font-size: 1rem;
 }
 
-.pile-board__actions--compact {
+.pile-board__card--compact .pile-board__actions {
     display: none;
 }
 
@@ -1214,9 +1214,9 @@ h1:focus {
 }
 
 .pile-board__card--compact:hover .commander-card__footer,
-.pile-board__card--compact:hover .pile-board__actions--compact,
+.pile-board__card--compact:hover .pile-board__actions,
 .pile-board__card--compact:focus-within .commander-card__footer,
-.pile-board__card--compact:focus-within .pile-board__actions--compact {
+.pile-board__card--compact:focus-within .pile-board__actions {
     display: flex;
 }
 
