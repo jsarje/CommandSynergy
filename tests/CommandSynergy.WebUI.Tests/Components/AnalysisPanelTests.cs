@@ -62,6 +62,7 @@ public sealed class AnalysisPanelTests : BunitContext
 
         cut.Find("[data-testid='analysis-panel-ready']").Should().NotBeNull();
         cut.Find("[data-testid='analysis-bracket']").TextContent.Should().Contain("Bracket 3");
+        cut.Find("[data-testid='analysis-power']").TextContent.Should().Contain("6.7");
         cut.Find("[data-testid='analysis-synergy']").TextContent.Should().Contain("74.2");
     }
 
@@ -121,6 +122,11 @@ public sealed class AnalysisPanelTests : BunitContext
     private static DeckAnalysisResponseContract CreateAnalysis(int bracketLevel, decimal synergyScore) => new()
     {
         Bracket = CreateBracket(bracketLevel, bracketLevel * 2m, $"Bracket {bracketLevel} deck."),
+        PowerLevel = new PowerLevelAssessmentContract
+        {
+            Score = 6.7m,
+            Summary = "avg MV 2.4; 1 fast mana card, 0 efficient tutors, 0 free interaction pieces, and 0 included combos.",
+        },
         Synergy = new SynergyAssessmentContract
         {
             Score = synergyScore,

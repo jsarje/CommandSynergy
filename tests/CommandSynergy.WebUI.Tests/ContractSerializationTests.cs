@@ -59,6 +59,11 @@ public sealed class ContractSerializationTests
                     },
                 ],
             },
+            PowerLevel = new PowerLevelAssessmentContract
+            {
+                Score = 7.8m,
+                Summary = "avg MV 2.05; 2 fast mana cards, 1 efficient tutor, 1 free interaction piece, and 1 included combo.",
+            },
             Synergy = new SynergyAssessmentContract
             {
                 Score = 74.2m,
@@ -123,12 +128,15 @@ public sealed class ContractSerializationTests
         var roundTrip = JsonSerializer.Deserialize<DeckAnalysisResponseContract>(json, SerializerOptions);
 
         json.Should().Contain("\"level\":3");
+        json.Should().Contain("\"powerLevel\"");
+        json.Should().Contain("\"score\":7.8");
         json.Should().Contain("\"commanderSpecificHits\"");
         json.Should().Contain("\"themeAnalysis\"");
         json.Should().Contain("\"usedEdhrecFallback\":true");
         json.Should().Contain("\"metadataUnavailable\":true");
         roundTrip.Should().NotBeNull();
         roundTrip!.Bracket.Level.Should().Be(3);
+        roundTrip.PowerLevel.Score.Should().Be(7.8m);
         roundTrip.Synergy.StapleOverloadIndicators.Should().ContainSingle("rhystic study");
         roundTrip.ThemeAnalysis!.CommanderAlignment.Level.Should().Be("Strong");
         roundTrip.ThemeAnalysis.OffThemeCards[0].MetadataUnavailable.Should().BeTrue();

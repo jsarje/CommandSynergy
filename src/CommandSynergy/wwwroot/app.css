@@ -351,6 +351,7 @@ h1:focus {
 .workspace-banner,
 .pile-board__pile,
 .analysis-bracket,
+.analysis-power,
 .analysis-synergy {
     border: 1px solid var(--cs-outline);
     border-radius: var(--cs-radius-xl);
@@ -370,6 +371,7 @@ h1:focus {
 .workspace-subheader__label,
 .workspace-search-result__timestamp,
 .analysis-factor__weight,
+.analysis-power__label,
 .analysis-synergy__hits-label,
 .analysis-synergy__staples-label {
     display: block;
@@ -516,6 +518,7 @@ h1:focus {
 .workspace-search-result__actions,
 .workspace-dialog__actions,
 .analysis-bracket__header,
+.analysis-power__header,
 .analysis-synergy__header,
 .theme-analysis__header,
 .theme-analysis__section-header,
@@ -536,6 +539,7 @@ h1:focus {
 .workspace-panel__badge,
 .workspace-subheader__value,
 .analysis-bracket__weight,
+.analysis-power__score,
 .analysis-synergy__score,
 .pile-board__lane-badge {
     display: inline-flex;
@@ -805,6 +809,7 @@ h1:focus {
 }
 
 .analysis-bracket,
+.analysis-power,
 .analysis-synergy {
     padding: 1rem;
 }
@@ -820,6 +825,7 @@ h1:focus {
 }
 
 .analysis-bracket__label,
+.analysis-power__label,
 .analysis-synergy__label,
 .theme-analysis__header h4,
 .theme-analysis__section h5,
@@ -832,6 +838,7 @@ h1:focus {
 }
 
 .analysis-bracket__weight,
+.analysis-power__score,
 .analysis-synergy__score {
     background: var(--cs-gold-soft);
     color: var(--cs-gold-deep);
@@ -986,6 +993,7 @@ h1:focus {
 .workspace-state p,
 .workspace-banner p,
 .analysis-bracket__summary,
+.analysis-power__summary,
 .analysis-synergy__summary,
 .pile-board__hint {
     margin: 0;
@@ -1100,6 +1108,7 @@ h1:focus {
     .pile-board__pile-header,
     .pile-board__actions,
     .analysis-bracket__header,
+    .analysis-power__header,
     .analysis-synergy__header,
     .theme-analysis__header,
     .theme-analysis__section-header,

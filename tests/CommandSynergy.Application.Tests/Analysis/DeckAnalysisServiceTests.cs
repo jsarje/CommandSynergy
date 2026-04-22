@@ -40,6 +40,7 @@ public sealed class DeckAnalysisServiceTests
             new StubCommanderSpellbookClient(),
             new StubEdhrecClient(),
             new BracketCalculationService(new Domain.Analysis.BracketEngine(), new AnalysisExplanationBuilder(), options),
+            new PowerLevelCalculationService(),
             new SynergyScoringService(new AnalysisExplanationBuilder()),
             new ThemeAnalysisService(new ThemeMatchingService(), new AnalysisExplanationBuilder()),
             Array.Empty<IDeckAdviceService>());
@@ -56,6 +57,7 @@ public sealed class DeckAnalysisServiceTests
 
         response.Bracket.Level.Should().BeGreaterThan(1);
         response.Bracket.Factors.Should().Contain(factor => factor.Category == "game-changer");
+        response.PowerLevel.Score.Should().BeGreaterThan(4m);
         response.Synergy.Score.Should().BeGreaterThan(50m);
     }
 
@@ -75,6 +77,7 @@ public sealed class DeckAnalysisServiceTests
             spellbookClient,
             new StubEdhrecClient(),
             new BracketCalculationService(new Domain.Analysis.BracketEngine(), new AnalysisExplanationBuilder(), Options.Create(new BracketOptions())),
+            new PowerLevelCalculationService(),
             new SynergyScoringService(new AnalysisExplanationBuilder()),
             new ThemeAnalysisService(new ThemeMatchingService(), new AnalysisExplanationBuilder()),
             Array.Empty<IDeckAdviceService>());

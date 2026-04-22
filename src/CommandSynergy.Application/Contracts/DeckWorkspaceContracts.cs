@@ -161,6 +161,9 @@ public sealed record DeckAnalysisResponseContract
     [JsonPropertyName("bracket")]
     public required BracketAssessmentContract Bracket { get; init; }
 
+    [JsonPropertyName("powerLevel")]
+    public PowerLevelAssessmentContract PowerLevel { get; init; } = PowerLevelAssessmentContract.Baseline();
+
     [JsonPropertyName("synergy")]
     public required SynergyAssessmentContract Synergy { get; init; }
 
@@ -169,6 +172,27 @@ public sealed record DeckAnalysisResponseContract
 
     [JsonPropertyName("comboAnalysis")]
     public ComboAnalysisContract? ComboAnalysis { get; init; }
+}
+
+/// <summary>
+/// Represents the heuristic power-level response payload.
+/// </summary>
+public sealed record PowerLevelAssessmentContract
+{
+    [JsonPropertyName("score")]
+    public decimal Score { get; init; }
+
+    [JsonPropertyName("summary")]
+    public required string Summary { get; init; }
+
+    /// <summary>
+    /// Gets a baseline power-level payload used when older cached responses omit this field.
+    /// </summary>
+    public static PowerLevelAssessmentContract Baseline() => new()
+    {
+        Score = 4.0m,
+        Summary = "Baseline heuristic score before card-speed and combo adjustments.",
+    };
 }
 
 /// <summary>
