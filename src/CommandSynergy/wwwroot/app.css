@@ -1133,6 +1133,11 @@ h1:focus {
     gap: 1rem;
 }
 
+.pile-board__group-cards--compact {
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 0.65rem;
+}
+
 .pile-board__card {
     display: grid;
     gap: 0.9rem;
@@ -1163,6 +1168,10 @@ h1:focus {
     box-shadow: none;
 }
 
+.pile-board__card--compact .commander-card__face {
+    grid-template-rows: auto;
+}
+
 .pile-board__card--compact .commander-card__art,
 .pile-board__card--compact .commander-card__content p,
 .pile-board__card--compact .commander-card__topline span,
@@ -1176,27 +1185,38 @@ h1:focus {
 }
 
 .pile-board__card--compact .commander-card__content {
-    padding: 0.9rem 1rem;
+    padding: 0.75rem 0.9rem;
     background: transparent;
 }
 
 .pile-board__card--compact .commander-card__content h3 {
-    font-size: 1.05rem;
+    font-size: 1rem;
+}
+
+.pile-board__actions--compact {
+    display: none;
 }
 
 .pile-board__card--compact:hover .commander-card__art,
 .pile-board__card--compact:hover .commander-card__content p,
 .pile-board__card--compact:hover .commander-card__topline span,
 .pile-board__card--compact:hover .commander-card__footer,
+.pile-board__card--compact:hover .pile-board__actions--compact,
 .pile-board__card--compact:focus-within .commander-card__art,
 .pile-board__card--compact:focus-within .commander-card__content p,
 .pile-board__card--compact:focus-within .commander-card__topline span,
-.pile-board__card--compact:focus-within .commander-card__footer {
+.pile-board__card--compact:focus-within .commander-card__footer,
+.pile-board__card--compact:focus-within .pile-board__actions--compact {
     display: initial;
 }
 
 .pile-board__card--compact:hover .commander-card__footer,
+.pile-board__card--compact:hover .pile-board__actions--compact,
 .pile-board__card--compact:focus-within .commander-card__footer {
+    display: flex;
+}
+
+.pile-board__card--compact:focus-within .pile-board__actions--compact {
     display: flex;
 }
 
