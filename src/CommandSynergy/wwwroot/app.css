@@ -1198,13 +1198,19 @@ h1:focus {
     display: none;
 }
 
-.pile-board__card--compact:hover .commander-card__art,
 .pile-board__card--compact:hover .commander-card__content p,
-.pile-board__card--compact:hover .commander-card__topline span,
-.pile-board__card--compact:focus-within .commander-card__art,
-.pile-board__card--compact:focus-within .commander-card__content p,
-.pile-board__card--compact:focus-within .commander-card__topline span {
+.pile-board__card--compact:focus-within .commander-card__content p {
     display: block;
+}
+
+.pile-board__card--compact:hover .commander-card__topline span,
+.pile-board__card--compact:focus-within .commander-card__topline span {
+    display: inline-flex;
+}
+
+.pile-board__card--compact:hover .commander-card__art,
+.pile-board__card--compact:focus-within .commander-card__art {
+    display: grid;
 }
 
 .pile-board__card--compact:hover .commander-card__footer,
@@ -1212,11 +1218,6 @@ h1:focus {
 .pile-board__card--compact:focus-within .commander-card__footer,
 .pile-board__card--compact:focus-within .pile-board__actions--compact {
     display: flex;
-}
-
-.pile-board__card--compact:hover .commander-card__art,
-.pile-board__card--compact:focus-within .commander-card__art {
-    display: grid;
 }
 
 .pile-board__card--compact:hover .commander-card__art-image,
