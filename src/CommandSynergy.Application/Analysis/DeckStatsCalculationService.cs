@@ -10,6 +10,7 @@ namespace CommandSynergy.Application.Analysis;
 /// </summary>
 public sealed partial class DeckStatsCalculationService
 {
+    private const int MinimumManaAmount = 1;
     private static readonly string[] ManaValueBucketOrder = ["0", "1", "2", "3", "4", "5", "6", "7", "8+"];
     private static readonly string[] ManaColorOrder = ["White", "Blue", "Black", "Red", "Green", "Colorless", "Any"];
     private static readonly string[] CardTypeOrder = ["Creature", "Artifact", "Enchantment", "Instant", "Sorcery", "Planeswalker", "Land", "Battle", "Kindred", "Other"];
@@ -216,6 +217,11 @@ public sealed partial class DeckStatsCalculationService
 
     private static IEnumerable<(string Label, decimal Weight)> ParseManaSymbol(string rawToken)
     {
+        if (int.TryParse(rawToken, out var genericManaValue) && genericManaValue > 0)
+        {
+            return [("Colorless", genericManaValue)];
+        }
+
         var matches = ManaColorKeyRegex().Matches(rawToken);
         if (matches.Count == 0)
         {
@@ -245,7 +251,7 @@ public sealed partial class DeckStatsCalculationService
         var numericMatch = NumericAmountRegex().Match(segment);
         if (numericMatch.Success && int.TryParse(numericMatch.Value, out var numericAmount))
         {
-            return Math.Max(numericAmount, 1);
+            return Math.Max(numericAmount, MinimumManaAmount);
         }
 
         foreach (var (word, amount) in NumberWords)
@@ -257,7 +263,7 @@ public sealed partial class DeckStatsCalculationService
         }
 
         var tokenCount = ManaSymbolRegex().Matches(segment).Count;
-        return tokenCount > 0 ? tokenCount : 1;
+        return tokenCount > 0 ? tokenCount : MinimumManaAmount;
     }
 
     private static string GetPrimaryCardType(string typeLine)

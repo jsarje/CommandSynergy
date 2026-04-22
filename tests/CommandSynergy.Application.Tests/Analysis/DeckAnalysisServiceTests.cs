@@ -166,11 +166,11 @@ public sealed class DeckAnalysisServiceTests
 
         response.DeckStats.Should().NotBeNull();
         response.DeckStats!.ManaValueHistogram.Should().Contain(slice => slice.Label == "1" && slice.Value == 1m);
-        response.DeckStats.ManaValueHistogram.Should().Contain(slice => slice.Label == "2" && slice.Value == 2m);
-        response.DeckStats.ManaValueHistogram.Should().Contain(slice => slice.Label == "3" && slice.Value == 1m);
+        response.DeckStats.ManaValueHistogram.Should().Contain(slice => slice.Label == "2" && slice.Value == 1m);
+        response.DeckStats.ManaValueHistogram.Should().Contain(slice => slice.Label == "3" && slice.Value == 2m);
         response.DeckStats.ManaCostDistribution.Should().Contain(slice => slice.Label == "Green" && slice.Value == 2m);
         response.DeckStats.ManaCostDistribution.Should().Contain(slice => slice.Label == "White" && slice.Value == 2m);
-        response.DeckStats.ManaCostDistribution.Should().Contain(slice => slice.Label == "Colorless" && slice.Value == 3m);
+        response.DeckStats.ManaCostDistribution.Should().Contain(slice => slice.Label == "Colorless" && slice.Value == 5m);
         response.DeckStats.ManaGenerationDistribution.Should().Contain(slice => slice.Label == "Any" && slice.Value == 1m);
         response.DeckStats.ManaGenerationDistribution.Should().Contain(slice => slice.Label == "Green" && slice.Value == 2m);
         response.DeckStats.ManaGenerationDistribution.Should().Contain(slice => slice.Label == "White" && slice.Value == 1m);
@@ -179,7 +179,7 @@ public sealed class DeckAnalysisServiceTests
         response.DeckStats.CardTypeDistribution.Should().Contain(slice => slice.Label == "Instant" && slice.Value == 1m);
         response.DeckStats.CardTypeDistribution.Should().Contain(slice => slice.Label == "Land" && slice.Value == 1m);
         response.DeckStats.ManaCurve.SpellCount.Should().Be(3);
-        response.DeckStats.ManaCurve.AverageManaValue.Should().BeApproximately(5m / 3m, 0.001m);
+        response.DeckStats.ManaCurve.AverageManaValue.Should().BeApproximately(2m, 0.001m);
     }
 
     private static CardProfile CreateCard(

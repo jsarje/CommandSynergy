@@ -7,6 +7,7 @@ namespace CommandSynergy.Components.Decks;
 /// </summary>
 public partial class DeckStatsPanel : ComponentBase
 {
+    private const decimal MinimumBarHeightPercent = 8m;
     private static readonly IReadOnlyDictionary<string, string> ChartColors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
         ["White"] = "oklch(0.95 0.03 95)",
@@ -84,7 +85,7 @@ public partial class DeckStatsPanel : ComponentBase
 
     private static string GetBarHeightStyle(decimal value, decimal maxValue)
     {
-        var height = maxValue <= 0m ? 0m : Math.Max(8m, Math.Round((value / maxValue) * 100m, 2));
+        var height = maxValue <= 0m ? 0m : Math.Max(MinimumBarHeightPercent, Math.Round((value / maxValue) * 100m, 2));
         return $"height: {height.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}%;";
     }
 
@@ -95,25 +96,23 @@ public partial class DeckStatsPanel : ComponentBase
             return Array.Empty<CurvePoint>();
         }
 
-        const decimal chartLeft = 24m;
-        const decimal chartWidth = 312m;
-        const decimal chartHeight = 126m;
-        const decimal chartBottom = 154m;
-
         var maxValue = DeckStats.ManaCurve.Buckets.Max(static slice => slice.Value);
         if (maxValue <= 0m)
         {
             return DeckStats.ManaCurve.Buckets
-                .Select((slice, index) => new CurvePoint(chartLeft + ((chartWidth / Math.Max(DeckStats.ManaCurve.Buckets.Count - 1, 1)) * index), chartBottom, slice))
+                .Select((slice, index) => new CurvePoint(
+                    ManaCurveChartDimensions.Left + ((ManaCurveChartDimensions.Width / Math.Max(DeckStats.ManaCurve.Buckets.Count - 1, 1)) * index),
+                    ManaCurveChartDimensions.Bottom,
+                    slice))
                 .ToArray();
         }
 
-        var step = chartWidth / Math.Max(DeckStats.ManaCurve.Buckets.Count - 1, 1);
+        var step = ManaCurveChartDimensions.Width / Math.Max(DeckStats.ManaCurve.Buckets.Count - 1, 1);
         return DeckStats.ManaCurve.Buckets
             .Select((slice, index) =>
             {
-                var x = chartLeft + (step * index);
-                var y = chartBottom - ((slice.Value / maxValue) * chartHeight);
+                var x = ManaCurveChartDimensions.Left + (step * index);
+                var y = ManaCurveChartDimensions.Bottom - ((slice.Value / maxValue) * ManaCurveChartDimensions.Height);
                 return new CurvePoint(x, y, slice);
             })
             .ToArray();
@@ -139,5 +138,9 @@ public partial class DeckStatsPanel : ComponentBase
             ? color
             : "oklch(0.78 0.03 120)";
 
+    private sealed record ChartDimensions(decimal Left, decimal Width, decimal Height, decimal Bottom);
+
     private sealed record CurvePoint(decimal X, decimal Y, DeckStatSliceContract Slice);
+
+    private static readonly ChartDimensions ManaCurveChartDimensions = new(24m, 312m, 126m, 154m);
 }
