@@ -166,6 +166,45 @@ public sealed record DeckAnalysisResponseContract
 
     [JsonPropertyName("themeAnalysis")]
     public ThemeAnalysisContract? ThemeAnalysis { get; init; }
+
+    [JsonPropertyName("comboAnalysis")]
+    public ComboAnalysisContract? ComboAnalysis { get; init; }
+}
+
+/// <summary>
+/// Represents the combo-analysis response payload.
+/// </summary>
+public sealed record ComboAnalysisContract
+{
+    [JsonPropertyName("includedCombos")]
+    public IReadOnlyList<ComboResultContract> IncludedCombos { get; init; } = Array.Empty<ComboResultContract>();
+
+    [JsonPropertyName("almostIncludedCombos")]
+    public IReadOnlyList<ComboResultContract> AlmostIncludedCombos { get; init; } = Array.Empty<ComboResultContract>();
+
+    [JsonPropertyName("missingOneCount")]
+    public int MissingOneCount { get; init; }
+
+    [JsonPropertyName("analysedAtUtc")]
+    public DateTimeOffset AnalysedAtUtc { get; init; }
+}
+
+/// <summary>
+/// Represents a single combo in the analysis response.
+/// </summary>
+public sealed record ComboResultContract
+{
+    [JsonPropertyName("cardNames")]
+    public IReadOnlyList<string> CardNames { get; init; } = Array.Empty<string>();
+
+    [JsonPropertyName("produces")]
+    public IReadOnlyList<string> Produces { get; init; } = Array.Empty<string>();
+
+    [JsonPropertyName("steps")]
+    public required string Steps { get; init; }
+
+    [JsonPropertyName("prerequisites")]
+    public required string Prerequisites { get; init; }
 }
 
 /// <summary>

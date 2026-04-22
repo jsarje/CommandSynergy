@@ -1,9 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using CommandSynergy.Application.Abstractions;
 using CommandSynergy.Application.Analysis;
 using CommandSynergy.Application.Contracts;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace CommandSynergy.Infrastructure.Analysis;
 
@@ -13,29 +14,54 @@ namespace CommandSynergy.Infrastructure.Analysis;
 public sealed class DeckAnalysisCache
 {
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
+    private const string CacheKeyPrefix = "DeckAnalysis";
 
-    private readonly IMemoryCache memoryCache;
+    private readonly IDistributedCache distributedCache;
 
     /// <summary>
     /// Creates a deck analysis cache helper.
     /// </summary>
-    public DeckAnalysisCache(IMemoryCache memoryCache)
+    public DeckAnalysisCache(IDistributedCache distributedCache)
     {
-        this.memoryCache = memoryCache;
+        this.distributedCache = distributedCache;
     }
 
     /// <summary>
     /// Tries to get a cached response for the supplied key.
     /// </summary>
-    public bool TryGet(string cacheKey, out DeckAnalysisResponseContract response) =>
-        memoryCache.TryGetValue(cacheKey, out response!);
+    public bool TryGet(string cacheKey, out DeckAnalysisResponseContract response)
+    {
+        var payload = distributedCache.GetString(cacheKey);
+        if (payload is null)
+        {
+            response = null!;
+            return false;
+        }
+
+        try
+        {
+            response = JsonSerializer.Deserialize<DeckAnalysisResponseContract>(payload)!;
+            return response is not null;
+        }
+        catch (JsonException)
+        {
+            response = null!;
+            return false;
+        }
+    }
 
     /// <summary>
     /// Stores a response for the supplied cache key.
     /// </summary>
     public void Set(string cacheKey, DeckAnalysisResponseContract response)
     {
-        memoryCache.Set(cacheKey, response, CacheDuration);
+        distributedCache.SetString(
+            cacheKey,
+            JsonSerializer.Serialize(response),
+            new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = CacheDuration,
+            });
     }
 
     /// <summary>
@@ -69,7 +95,7 @@ public sealed class DeckAnalysisCache
         }
 
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(builder.ToString()));
-        return Convert.ToHexString(hash);
+        return string.Concat(CacheKeyPrefix, "|", Convert.ToHexString(hash));
     }
 }
 

@@ -12,6 +12,7 @@ namespace CommandSynergy.Application.Analysis;
 public sealed class DeckAnalysisService
 {
     private readonly ICardCatalogGateway cardCatalogGateway;
+    private readonly ICommanderSpellbookClient commanderSpellbookClient;
     private readonly IEdhrecClient edhrecClient;
     private readonly BracketCalculationService bracketCalculationService;
     private readonly SynergyScoringService synergyScoringService;
@@ -23,6 +24,7 @@ public sealed class DeckAnalysisService
     /// </summary>
     public DeckAnalysisService(
         ICardCatalogGateway cardCatalogGateway,
+        ICommanderSpellbookClient commanderSpellbookClient,
         IEdhrecClient edhrecClient,
         BracketCalculationService bracketCalculationService,
         SynergyScoringService synergyScoringService,
@@ -30,6 +32,7 @@ public sealed class DeckAnalysisService
         IEnumerable<IDeckAdviceService> deckAdviceServices)
     {
         this.cardCatalogGateway = cardCatalogGateway;
+        this.commanderSpellbookClient = commanderSpellbookClient;
         this.edhrecClient = edhrecClient;
         this.bracketCalculationService = bracketCalculationService;
         this.synergyScoringService = synergyScoringService;
@@ -54,9 +57,29 @@ public sealed class DeckAnalysisService
         var commanderProfile = commanderEntry is not null && profiles.TryGetValue(commanderEntry.CardId, out var profile)
             ? profile
             : null;
-        var edhrecInsights = commanderProfile is null
-            ? CommanderThemeInsights.Empty()
-            : await edhrecClient.GetCommanderThemeInsightsAsync(commanderProfile, cancellationToken).ConfigureAwait(false);
+        var commanderNames = deck.Entries
+            .Where(static entry => entry.IsCommander)
+            .Select(entry => profiles.TryGetValue(entry.CardId, out var profile) ? profile.Name : null)
+            .Where(static name => !string.IsNullOrWhiteSpace(name))
+            .Cast<string>()
+            .ToArray();
+        var mainDeckNames = deck.Entries
+            .Where(static entry => !entry.IsCommander)
+            .Select(entry => profiles.TryGetValue(entry.CardId, out var profile) ? profile : null)
+            .Where(static profile => profile is not null && !profile.IsLand)
+            .Select(static profile => profile!.Name)
+            .Where(static name => !string.IsNullOrWhiteSpace(name))
+            .Cast<string>()
+            .ToArray();
+
+        var comboAnalysisTask = commanderSpellbookClient.FindCombosAsync(commanderNames, mainDeckNames, cancellationToken);
+        var edhrecInsightsTask = commanderProfile is null
+            ? Task.FromResult(CommanderThemeInsights.Empty())
+            : edhrecClient.GetCommanderThemeInsightsAsync(commanderProfile, cancellationToken);
+        await Task.WhenAll(comboAnalysisTask, edhrecInsightsTask).ConfigureAwait(false);
+
+        var comboAnalysis = await comboAnalysisTask.ConfigureAwait(false);
+        var edhrecInsights = await edhrecInsightsTask.ConfigureAwait(false);
         var (themeAnalysis, themeSynergy) = await themeAnalysisService.AnalyseAsync(deck, profiles, edhrecInsights, cancellationToken).ConfigureAwait(false);
         var synergyAssessment = MergeSynergyAssessments(baseSynergyAssessment, themeSynergy);
 
@@ -65,6 +88,7 @@ public sealed class DeckAnalysisService
             Bracket = MapBracket(bracketAssessment),
             Synergy = MapSynergy(synergyAssessment),
             ThemeAnalysis = MapThemeAnalysis(themeAnalysis),
+            ComboAnalysis = MapComboAnalysis(comboAnalysis),
         };
 
         foreach (var deckAdviceService in deckAdviceServices)
@@ -139,6 +163,22 @@ public sealed class DeckAnalysisService
         themeAssessment.FinalScore == 0m ? baseAssessment.SynergyScore : themeAssessment.FinalScore,
         themeAssessment.QualitativeLabel,
         themeAssessment.EdhrecEnhanced);
+
+    private static ComboAnalysisContract MapComboAnalysis(ComboAnalysis analysis) => new()
+    {
+        IncludedCombos = analysis.IncludedCombos.Select(MapComboResult).ToArray(),
+        AlmostIncludedCombos = analysis.AlmostIncludedCombos.Select(MapComboResult).ToArray(),
+        MissingOneCount = analysis.MissingOneCount,
+        AnalysedAtUtc = analysis.AnalysedAtUtc,
+    };
+
+    private static ComboResultContract MapComboResult(ComboResult combo) => new()
+    {
+        CardNames = combo.CardNames,
+        Produces = combo.Produces,
+        Steps = combo.Steps,
+        Prerequisites = combo.Prerequisites,
+    };
 
     private static ThemeAnalysisContract MapThemeAnalysis(ThemeAnalysis analysis) => new()
     {

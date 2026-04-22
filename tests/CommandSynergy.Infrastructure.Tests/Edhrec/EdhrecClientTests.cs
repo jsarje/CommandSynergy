@@ -1,11 +1,12 @@
 using System.Net;
+using System.Collections.Concurrent;
 using System.Text;
 using System.Reflection;
 using CommandSynergy.Application.Configuration;
 using CommandSynergy.Domain.Cards;
 using CommandSynergy.Infrastructure.Edhrec;
 using FluentAssertions;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using RichardSzalay.MockHttp;
@@ -119,6 +120,66 @@ public sealed class EdhrecClientTests
         result.SynergyByCardId.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task GetCommanderThemeInsightsAsync_retries_against_canonical_json_host_after_not_found()
+    {
+        var mockHttp = new MockHttpMessageHandler();
+        var alternateRequest = mockHttp.When("https://edhrec.com/pages/commanders/krenko-mob-boss.json");
+        alternateRequest.Respond(HttpStatusCode.NotFound);
+        var canonicalRequest = mockHttp.When("https://json.edhrec.com/pages/commanders/krenko-mob-boss.json");
+        canonicalRequest.Respond("application/json", """
+                {
+                  "container": {
+                    "json_dict": {
+                      "cardlists": [
+                        {
+                          "header": "High Synergy Cards",
+                          "tag": "highsynergycards",
+                          "cardviews": [
+                            {
+                              "id": "card-a",
+                              "name": "Card A",
+                              "sanitized": "card-a",
+                              "synergy": 0.72,
+                              "inclusion": 100,
+                              "num_decks": 100,
+                              "potential_decks": 120,
+                              "trend_zscore": 0.1
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+                """);
+        var sut = CreateClient(mockHttp, "https://edhrec.com/articles/");
+
+        var result = await sut.GetCommanderThemeInsightsAsync(CreateCommander("Krenko, Mob Boss"));
+
+        result.IsAvailable.Should().BeTrue();
+        result.SynergyByCardId.Should().ContainKey("card-a");
+        mockHttp.GetMatchCount(alternateRequest).Should().Be(1);
+        mockHttp.GetMatchCount(canonicalRequest).Should().Be(1);
+    }
+
+    [Fact]
+    public void Constructor_normalizes_base_address_to_origin_root()
+    {
+        var sut = CreateClient(new CountingHttpMessageHandler(), "https://edhrec.com/articles/");
+
+        sut.Should().NotBeNull();
+        sut.GetType();
+
+        var httpClientField = typeof(EdhrecClient).GetField("httpClient", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("httpClient field was not found.");
+
+        var httpClient = (HttpClient)(httpClientField.GetValue(sut)
+            ?? throw new InvalidOperationException("httpClient field was null."));
+
+        httpClient.BaseAddress.Should().Be(new Uri("https://edhrec.com/"));
+    }
+
     [Theory]
     [InlineData("Atraxa, Praetors' Voice", "atraxa-praetors-voice")]
     [InlineData("The Ur-Dragon", "the-ur-dragon")]
@@ -130,15 +191,49 @@ public sealed class EdhrecClientTests
       slugBuilder.Invoke(null, [name]).Should().Be(expectedSlug);
     }
 
-    private static EdhrecClient CreateClient(HttpMessageHandler handler) =>
+    private static EdhrecClient CreateClient(HttpMessageHandler handler, string? baseUrl = null) =>
         new(
             new HttpClient(handler)
             {
-                BaseAddress = new Uri("https://json.edhrec.com/", UriKind.Absolute),
+                BaseAddress = new Uri(baseUrl ?? "https://json.edhrec.com/", UriKind.Absolute),
             },
-            new MemoryCache(new MemoryCacheOptions()),
-            Options.Create(new EdhrecOptions()),
+            new TestDistributedCache(),
+            Options.Create(new EdhrecOptions
+            {
+                BaseUrl = baseUrl ?? "https://json.edhrec.com/",
+            }),
             NullLogger<EdhrecClient>.Instance);
+
+    private sealed class TestDistributedCache : IDistributedCache
+    {
+        private readonly ConcurrentDictionary<string, byte[]> cache = new(StringComparer.Ordinal);
+
+        public byte[]? Get(string key) => cache.TryGetValue(key, out var value) ? value.ToArray() : null;
+
+        public Task<byte[]?> GetAsync(string key, CancellationToken token = default) => Task.FromResult(Get(key));
+
+        public void Refresh(string key)
+        {
+        }
+
+        public Task RefreshAsync(string key, CancellationToken token = default) => Task.CompletedTask;
+
+        public void Remove(string key) => cache.TryRemove(key, out _);
+
+        public Task RemoveAsync(string key, CancellationToken token = default)
+        {
+            Remove(key);
+            return Task.CompletedTask;
+        }
+
+        public void Set(string key, byte[] value, DistributedCacheEntryOptions options) => cache[key] = value.ToArray();
+
+        public Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
+        {
+            Set(key, value, options);
+            return Task.CompletedTask;
+        }
+    }
 
     private static CardProfile CreateCommander(string name) => new()
     {
