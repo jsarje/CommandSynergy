@@ -1,5 +1,6 @@
 @using CommandSynergy.Application.Contracts
 @using CommandSynergy.Components.Cards
+@using System.Globalization
 
 <section class="pile-board">
     <div class="pile-board__header">
@@ -122,6 +123,21 @@
 
     [Parameter]
     public EventCallback<string> RemoveRequested { get; set; }
+
+    private const string UnknownRarityLabel = "Unknown rarity";
+    private const string UnknownSetLabel = "Unknown set";
+
+    private static readonly string[] PrimaryTypeGroups =
+    [
+        "Land",
+        "Creature",
+        "Artifact",
+        "Enchantment",
+        "Planeswalker",
+        "Battle",
+        "Sorcery",
+        "Instant",
+    ];
 
     private bool isCompactMode;
     private MainboardGrouping selectedGrouping = MainboardGrouping.Type;
@@ -302,19 +318,7 @@
 
     private static string ResolveTypeGroup(WorkspaceCardView card)
     {
-        var orderedTypes = new[]
-        {
-            "Land",
-            "Creature",
-            "Artifact",
-            "Enchantment",
-            "Planeswalker",
-            "Battle",
-            "Sorcery",
-            "Instant",
-        };
-
-        return orderedTypes.FirstOrDefault(type => card.TypeLine.Contains(type, StringComparison.OrdinalIgnoreCase))
+        return PrimaryTypeGroups.FirstOrDefault(type => card.TypeLine.Contains(type, StringComparison.OrdinalIgnoreCase))
             ?? "Other";
     }
 
@@ -421,10 +425,11 @@
         ? UnknownSetLabel
         : $"Set {card.SourceSetCode.Trim().ToUpperInvariant()}";
 
+    // Extract the numeric mana-value suffix from labels such as "Mana value 3" for deterministic group ordering.
     private static decimal ParseGroupOrder(string label)
     {
         var lastSpaceIndex = label.LastIndexOf(' ');
-        return lastSpaceIndex > -1 && decimal.TryParse(label[(lastSpaceIndex + 1)..], out var parsed)
+        return lastSpaceIndex > -1 && decimal.TryParse(label[(lastSpaceIndex + 1)..], NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
             ? parsed
             : 0m;
     }
@@ -438,9 +443,6 @@
             .ToArray())
             .Trim('-');
     }
-
-    private const string UnknownRarityLabel = "Unknown rarity";
-    private const string UnknownSetLabel = "Unknown set";
 
     private sealed record CardGroupView(string Label, string TestId, IReadOnlyList<WorkspaceCardView> Cards)
     {

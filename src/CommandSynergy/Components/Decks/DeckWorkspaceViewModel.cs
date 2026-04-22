@@ -27,6 +27,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
     private const string DefaultUnsavedDeckName = "Untitled Deck";
 
+    // Commander rules explicitly exempt these names from the singleton limit.
     private static readonly HashSet<string> MultipleCopyCardNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "Dragon's Approach",
@@ -1358,7 +1359,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             }
 
             var symbol = manaCost[(openBracketIndex + 1)..closeBracketIndex];
-            if (decimal.TryParse(symbol, NumberStyles.Number, CultureInfo.InvariantCulture, out var numericValue))
+            if (decimal.TryParse(symbol, NumberStyles.None, CultureInfo.InvariantCulture, out var numericValue))
             {
                 total += numericValue;
             }
