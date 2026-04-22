@@ -3,6 +3,10 @@
     gap: 0.9rem;
 }
 
+.commander-card--compact {
+    gap: 0;
+}
+
 .commander-card__surface {
     position: relative;
     min-height: 18rem;
@@ -90,6 +94,65 @@
     font-family: var(--cs-title-font);
     font-size: 1.32rem;
     line-height: 1;
+}
+
+.commander-card--compact .commander-card__surface {
+    min-height: auto;
+}
+
+.commander-card--compact .commander-card__face {
+    grid-template-rows: 1fr auto;
+}
+
+.commander-card--compact .commander-card__art,
+.commander-card--compact .commander-card__footer {
+    display: none;
+}
+
+.commander-card--compact .commander-card__content {
+    padding: 0.9rem 1rem;
+    display: grid;
+    align-items: center;
+}
+
+.commander-card--compact .commander-card__content p,
+.commander-card--compact .commander-card__topline span {
+    display: none;
+}
+
+.commander-card--compact .commander-card__topline {
+    justify-content: flex-start;
+}
+
+.commander-card--compact .commander-card__content h3 {
+    font-size: 1rem;
+    line-height: 1.15;
+}
+
+.commander-card--compact:hover .commander-card__art,
+.commander-card--compact:focus-within .commander-card__art,
+.commander-card--compact:hover .commander-card__footer,
+.commander-card--compact:focus-within .commander-card__footer {
+    display: grid;
+}
+
+.commander-card--compact:hover .commander-card__content,
+.commander-card--compact:focus-within .commander-card__content {
+    padding-bottom: 1.1rem;
+}
+
+.commander-card--compact:hover .commander-card__content p,
+.commander-card--compact:focus-within .commander-card__content p,
+.commander-card--compact:hover .commander-card__topline span,
+.commander-card--compact:focus-within .commander-card__topline span {
+    display: inline;
+}
+
+.commander-card--compact:hover .commander-card__content,
+.commander-card--compact:focus-within .commander-card__content,
+.commander-card--compact:hover .commander-card__footer,
+.commander-card--compact:focus-within .commander-card__footer {
+    display: grid;
 }
 
 .commander-card__content p {

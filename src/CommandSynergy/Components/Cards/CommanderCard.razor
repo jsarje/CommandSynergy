@@ -2,7 +2,7 @@
 
 <script type="module" src="@Assets["Components/Cards/CommanderCard.razor.js"]"></script>
 
-<article class="commander-card" data-testid="commander-card-@Card.CardId">
+<article class="commander-card @(IsCompact ? "commander-card--compact" : string.Empty)" data-testid="commander-card-@Card.CardId">
     <div class="commander-card__surface @(Card.HasMultipleFaces ? "commander-card__surface--multi-face" : string.Empty)"
          id="@surfaceId"
          data-testid="card-surface-@Card.CardId">
@@ -103,6 +103,9 @@
 @code {
     [Parameter]
     public required WorkspaceCardView Card { get; set; }
+
+    [Parameter]
+    public bool IsCompact { get; set; }
 
     private WorkspaceCardFaceView frontFace => Card.Faces.First(static face => face.IsPrimaryFace);
 

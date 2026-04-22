@@ -159,6 +159,7 @@
 
         builder.OpenComponent<CommanderCard>(sequence++);
         builder.AddAttribute(sequence++, "Card", card);
+        builder.AddAttribute(sequence++, "IsCompact", isMainboard && isCompactMode);
         builder.CloseComponent();
 
         builder.OpenElement(sequence++, "div");
