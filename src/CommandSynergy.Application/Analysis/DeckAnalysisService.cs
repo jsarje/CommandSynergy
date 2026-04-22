@@ -15,6 +15,7 @@ public sealed class DeckAnalysisService
     private readonly ICommanderSpellbookClient commanderSpellbookClient;
     private readonly IEdhrecClient edhrecClient;
     private readonly BracketCalculationService bracketCalculationService;
+    private readonly PowerLevelCalculationService powerLevelCalculationService;
     private readonly SynergyScoringService synergyScoringService;
     private readonly ThemeAnalysisService themeAnalysisService;
     private readonly IReadOnlyList<IDeckAdviceService> deckAdviceServices;
@@ -27,6 +28,7 @@ public sealed class DeckAnalysisService
         ICommanderSpellbookClient commanderSpellbookClient,
         IEdhrecClient edhrecClient,
         BracketCalculationService bracketCalculationService,
+        PowerLevelCalculationService powerLevelCalculationService,
         SynergyScoringService synergyScoringService,
         ThemeAnalysisService themeAnalysisService,
         IEnumerable<IDeckAdviceService> deckAdviceServices)
@@ -35,6 +37,7 @@ public sealed class DeckAnalysisService
         this.commanderSpellbookClient = commanderSpellbookClient;
         this.edhrecClient = edhrecClient;
         this.bracketCalculationService = bracketCalculationService;
+        this.powerLevelCalculationService = powerLevelCalculationService;
         this.synergyScoringService = synergyScoringService;
         this.themeAnalysisService = themeAnalysisService;
         this.deckAdviceServices = deckAdviceServices.ToArray();
@@ -82,10 +85,12 @@ public sealed class DeckAnalysisService
         var edhrecInsights = await edhrecInsightsTask.ConfigureAwait(false);
         var (themeAnalysis, themeSynergy) = await themeAnalysisService.AnalyseAsync(deck, profiles, edhrecInsights, cancellationToken).ConfigureAwait(false);
         var synergyAssessment = MergeSynergyAssessments(baseSynergyAssessment, themeSynergy);
+        var powerLevelAssessment = powerLevelCalculationService.Calculate(deck, profiles, comboAnalysis);
 
         var response = new DeckAnalysisResponseContract
         {
             Bracket = MapBracket(bracketAssessment),
+            PowerLevel = powerLevelAssessment,
             Synergy = MapSynergy(synergyAssessment),
             ThemeAnalysis = MapThemeAnalysis(themeAnalysis),
             ComboAnalysis = MapComboAnalysis(comboAnalysis),

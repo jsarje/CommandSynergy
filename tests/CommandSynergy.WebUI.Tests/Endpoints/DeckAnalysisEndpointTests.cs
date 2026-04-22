@@ -33,6 +33,7 @@ public sealed class DeckAnalysisEndpointTests : IClassFixture<TestApplicationFac
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         payload.Should().NotBeNull();
         payload!.Bracket.Level.Should().Be(4);
+        payload.PowerLevel.Score.Should().Be(7.4m);
         payload.Synergy.Score.Should().Be(67.5m);
         payload.ThemeAnalysis.Should().NotBeNull();
         payload.Synergy.ThemeScore.Should().Be(65m);
@@ -46,6 +47,7 @@ public sealed class DeckAnalysisEndpointTests : IClassFixture<TestApplicationFac
         using var client = CreateClient(new DeckAnalysisResponseContract
         {
             Bracket = CreateResponse().Bracket,
+            PowerLevel = CreateResponse().PowerLevel,
             Synergy = new SynergyAssessmentContract
             {
                 Score = 0m,
@@ -94,6 +96,11 @@ public sealed class DeckAnalysisEndpointTests : IClassFixture<TestApplicationFac
     {
         using var client = CreateClient(CreateResponse() with
         {
+            PowerLevel = new PowerLevelAssessmentContract
+            {
+                Score = 7.4m,
+                Summary = "avg MV 2.1; 2 fast mana cards, 1 efficient tutor, 1 free interaction piece, and 1 included combo.",
+            },
             Synergy = new SynergyAssessmentContract
             {
                 Score = 67.5m,
@@ -159,6 +166,11 @@ public sealed class DeckAnalysisEndpointTests : IClassFixture<TestApplicationFac
                     SourceCardId = "impact-card",
                 },
             ],
+        },
+        PowerLevel = new PowerLevelAssessmentContract
+        {
+            Score = 7.4m,
+            Summary = "avg MV 2.1; 2 fast mana cards, 1 efficient tutor, 1 free interaction piece, and 1 included combo.",
         },
         Synergy = new SynergyAssessmentContract
         {

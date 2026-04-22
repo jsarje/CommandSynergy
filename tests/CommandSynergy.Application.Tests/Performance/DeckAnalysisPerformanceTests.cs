@@ -49,6 +49,7 @@ public sealed class DeckAnalysisPerformanceTests
             new StubCommanderSpellbookClient(),
             new StubEdhrecClient(),
             new BracketCalculationService(new Domain.Analysis.BracketEngine(), new AnalysisExplanationBuilder(), options),
+            new PowerLevelCalculationService(),
             new SynergyScoringService(new AnalysisExplanationBuilder()),
             new ThemeAnalysisService(new ThemeMatchingService(), new AnalysisExplanationBuilder()),
             Array.Empty<IDeckAdviceService>());

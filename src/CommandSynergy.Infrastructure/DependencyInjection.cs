@@ -36,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<CardSearchService>();
         services.AddScoped<DeckValidationService>();
         services.AddScoped<BracketCalculationService>();
+        services.AddScoped<PowerLevelCalculationService>();
         services.AddScoped<SynergyScoringService>();
         services.AddScoped<DeckAnalysisService>();
         services.AddScoped<ICommanderSpellbookClient, CommanderSpellbookClient>();

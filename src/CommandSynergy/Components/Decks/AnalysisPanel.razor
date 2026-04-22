@@ -4,7 +4,7 @@
 {
     <div class="analysis-panel analysis-panel--loading" data-testid="analysis-panel-loading">
         <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-        <p class="analysis-panel__message">Fetching bracket and synergy results…</p>
+        <p class="analysis-panel__message">Fetching bracket, power, and synergy results…</p>
     </div>
 }
 else if (HasError)
@@ -18,7 +18,7 @@ else if (HasError)
 else if (Analysis is null)
 {
     <div class="analysis-panel analysis-panel--empty" data-testid="analysis-panel-empty">
-        <p class="analysis-panel__message">Bracket feedback arrives after the first successful sync.</p>
+        <p class="analysis-panel__message">Bracket, power, and synergy feedback arrives after the first successful sync.</p>
     </div>
 }
 else
@@ -44,6 +44,15 @@ else
                     }
                 </ul>
             }
+        </div>
+
+        <div class="analysis-power" data-testid="analysis-power">
+            <div class="analysis-power__header">
+                <h4 class="analysis-power__label">Power Level</h4>
+                <span class="analysis-power__score"
+                      title="Heuristic power level (1–10)">@Analysis.PowerLevel.Score.ToString("0.0")</span>
+            </div>
+            <p class="analysis-power__summary">@Analysis.PowerLevel.Summary</p>
         </div>
 
         <div class="analysis-synergy" data-testid="analysis-synergy">
