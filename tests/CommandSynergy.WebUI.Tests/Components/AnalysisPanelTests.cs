@@ -25,7 +25,7 @@ public sealed class AnalysisPanelTests : BunitContext
             .Add(component => component.HasError, false));
 
         cut.Find("[data-testid='analysis-panel-loading']").Should().NotBeNull();
-        cut.Markup.Should().Contain("Fetching bracket and synergy results");
+        cut.Markup.Should().Contain("Fetching bracket, power, and synergy results");
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed class AnalysisPanelTests : BunitContext
             .Add(component => component.HasError, false));
 
         cut.Find("[data-testid='analysis-panel-empty']").Should().NotBeNull();
-        cut.Markup.Should().Contain("Bracket feedback arrives after the first successful sync.");
+        cut.Markup.Should().Contain("Bracket, power, and synergy feedback arrives after the first successful sync.");
     }
 
     [Fact]
