@@ -127,16 +127,15 @@
     private const string UnknownRarityLabel = "Unknown rarity";
     private const string UnknownSetLabel = "Unknown set";
 
-    private static readonly string[] PrimaryTypeGroups =
+    private static readonly TypeGroupDefinition[] PrimaryTypeGroups =
     [
-        "Land",
-        "Creature",
-        "Artifact",
-        "Enchantment",
-        "Planeswalker",
-        "Battle",
-        "Sorcery",
-        "Instant",
+        new("Creature", "Creatures", 0),
+        new("Planeswalker", "Planeswalkers", 1),
+        new("Sorcery", "Sorceries", 2),
+        new("Instant", "Instants", 3),
+        new("Artifact", "Artifacts", 4),
+        new("Enchantment", "Enchantments", 5),
+        new("Land", "Lands", 6),
     ];
 
     private bool isCompactMode;
@@ -318,21 +317,13 @@
 
     private static string ResolveTypeGroup(WorkspaceCardView card)
     {
-        return PrimaryTypeGroups.FirstOrDefault(type => card.TypeLine.Contains(type, StringComparison.OrdinalIgnoreCase))
+        return PrimaryTypeGroups.FirstOrDefault(type => card.TypeLine.Contains(type.MatchText, StringComparison.OrdinalIgnoreCase))?.Label
             ?? "Other";
     }
 
     private static int GetTypeOrder(string typeGroup) => typeGroup switch
     {
-        "Land" => 0,
-        "Creature" => 1,
-        "Artifact" => 2,
-        "Enchantment" => 3,
-        "Planeswalker" => 4,
-        "Battle" => 5,
-        "Sorcery" => 6,
-        "Instant" => 7,
-        _ => 8,
+        _ => PrimaryTypeGroups.FirstOrDefault(type => string.Equals(type.Label, typeGroup, StringComparison.OrdinalIgnoreCase))?.SortOrder ?? int.MaxValue,
     };
 
     private static string ResolveColorGroup(WorkspaceCardView card)
@@ -448,6 +439,8 @@
     {
         public int TotalQuantity => Cards.Sum(static card => card.Quantity);
     }
+
+    private sealed record TypeGroupDefinition(string MatchText, string Label, int SortOrder);
 
     private enum MainboardGrouping
     {

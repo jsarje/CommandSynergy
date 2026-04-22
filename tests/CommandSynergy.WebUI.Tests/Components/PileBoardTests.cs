@@ -54,9 +54,9 @@ public sealed class PileBoardTests : BunitContext
                 CreateCard("island", DeckWorkspaceViewModel.MainboardPileId, name: "Island", manaCost: null, manaValue: 0m, typeLine: "Basic Land — Island"),
             ]));
 
-        cut.Markup.Should().Contain("Artifact");
-        cut.Markup.Should().Contain("Instant");
-        cut.Markup.Should().Contain("Land");
+        cut.Markup.Should().Contain("Artifacts");
+        cut.Markup.Should().Contain("Instants");
+        cut.Markup.Should().Contain("Lands");
 
         cut.Find("[data-testid='mainboard-grouping']").Change("None");
         cut.Find("[data-testid='mainboard-sorting']").Change("ManaCost");
@@ -65,6 +65,28 @@ public sealed class PileBoardTests : BunitContext
             .Select(element => element.GetAttribute("data-testid"))
             .Should()
             .ContainInOrder("pile-card-island", "pile-card-lightning-bolt", "pile-card-arcane-signet");
+    }
+
+    [Fact]
+    public void Pile_board_uses_requested_type_group_order_for_mainboard_sections()
+    {
+        var cut = Render<PileBoard>(parameters => parameters
+            .Add(component => component.Piles, CreatePiles())
+            .Add(component => component.Cards,
+            [
+                CreateCard("angel", DeckWorkspaceViewModel.MainboardPileId, name: "Angel", typeLine: "Creature — Angel"),
+                CreateCard("walker", DeckWorkspaceViewModel.MainboardPileId, name: "Walker", typeLine: "Planeswalker"),
+                CreateCard("wrath", DeckWorkspaceViewModel.MainboardPileId, name: "Wrath", typeLine: "Sorcery"),
+                CreateCard("bolt", DeckWorkspaceViewModel.MainboardPileId, name: "Bolt", typeLine: "Instant"),
+                CreateCard("ring", DeckWorkspaceViewModel.MainboardPileId, name: "Ring", typeLine: "Artifact"),
+                CreateCard("rhystic-study", DeckWorkspaceViewModel.MainboardPileId, name: "Rhystic Study", typeLine: "Enchantment"),
+                CreateCard("plains", DeckWorkspaceViewModel.MainboardPileId, name: "Plains", manaCost: null, manaValue: 0m, typeLine: "Basic Land — Plains"),
+            ]));
+
+        cut.FindAll(".pile-board__group-header h4")
+            .Select(element => element.TextContent.Trim())
+            .Should()
+            .ContainInOrder("Creatures", "Planeswalkers", "Sorceries", "Instants", "Artifacts", "Enchantments", "Lands");
     }
 
     [Fact]
@@ -85,6 +107,7 @@ public sealed class PileBoardTests : BunitContext
 
         cut.Find("[data-testid='compact-mode-toggle']").Click();
         cut.Find("[data-testid='pile-card-shadowborn-apostle']").ClassList.Should().Contain("pile-board__card--compact");
+        cut.Find("[data-testid='compact-mode-toggle']").TextContent.Should().Contain("Compact mode on");
         cut.Find("[data-testid='quantity-shadowborn-apostle']").TextContent.Should().Contain("3 copies");
         cut.FindAll("[data-testid='increment-sol-ring']").Should().BeEmpty();
 

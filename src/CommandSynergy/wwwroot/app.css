@@ -1170,6 +1170,11 @@ h1:focus {
     display: none;
 }
 
+.pile-board__card--compact .commander-card__art-image,
+.pile-board__card--compact .commander-card__art-placeholder {
+    opacity: 0;
+}
+
 .pile-board__card--compact .commander-card__content {
     padding: 0.9rem 1rem;
     background: transparent;
@@ -1198,6 +1203,13 @@ h1:focus {
 .pile-board__card--compact:hover .commander-card__art,
 .pile-board__card--compact:focus-within .commander-card__art {
     display: grid;
+}
+
+.pile-board__card--compact:hover .commander-card__art-image,
+.pile-board__card--compact:hover .commander-card__art-placeholder,
+.pile-board__card--compact:focus-within .commander-card__art-image,
+.pile-board__card--compact:focus-within .commander-card__art-placeholder {
+    opacity: 1;
 }
 
 @keyframes workspace-rise {
