@@ -143,6 +143,70 @@ public sealed class ThemeAnalysisServiceTests
         analysis.CommanderAlignment.CommanderTopTheme.Should().BeNull();
     }
 
+    [Fact]
+    public async Task AnalyseAsync_blends_available_edhrec_synergy_into_final_score()
+    {
+        var deck = new Deck();
+        deck.UpsertEntry("commander", 1, isCommander: true);
+
+        var profiles = new Dictionary<string, CardProfile>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["commander"] = CreateCard("commander", "Commander", new Dictionary<string, decimal> { ["Tokens"] = 0.9m }),
+        };
+
+        Dictionary<string, decimal> edhrecScores = new(StringComparer.OrdinalIgnoreCase);
+        for (var index = 1; index <= 20; index++)
+        {
+            var cardId = $"token-{index}";
+            deck.UpsertEntry(cardId, 1);
+            profiles[cardId] = CreateCard(cardId, $"Token {index}", new Dictionary<string, decimal> { ["Tokens"] = 0.8m });
+            edhrecScores[cardId] = 1.0m;
+        }
+
+        var (_, synergy) = await sut.AnalyseAsync(
+            deck,
+            profiles,
+            new CommanderThemeInsights("commander", true, edhrecScores));
+
+        synergy.EdhrecEnhanced.Should().BeTrue();
+        synergy.FinalScore.Should().BeGreaterThan(synergy.ThemeScore);
+        synergy.QualitativeLabel.Should().Be("Tuned");
+    }
+
+    [Fact]
+    public async Task AnalyseAsync_returns_no_theme_results_when_theme_matching_finds_no_signals()
+    {
+        var deck = new Deck();
+        deck.UpsertEntry("commander", 1, isCommander: true);
+
+        var profiles = new Dictionary<string, CardProfile>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["commander"] = CreateCard("commander", "Commander", new Dictionary<string, decimal>()),
+        };
+
+        for (var index = 1; index <= 20; index++)
+        {
+            var cardId = $"card-{index}";
+            deck.UpsertEntry(cardId, 1);
+            profiles[cardId] = CreateCard(cardId, $"Blank Card {index}", new Dictionary<string, decimal>());
+        }
+
+        var emptySignals = new EmptyThemeMatchingService();
+        var localSut = new ThemeAnalysisService(emptySignals, new AnalysisExplanationBuilder());
+
+        var (analysis, synergy) = await localSut.AnalyseAsync(deck, profiles, CommanderThemeInsights.Empty());
+
+        analysis.RankedThemes.Should().BeEmpty();
+        analysis.PrimaryThemes.Should().BeEmpty();
+        analysis.CommanderAlignment.Level.Should().Be(AlignmentLevel.None);
+        analysis.CommanderAlignment.Summary.Should().Be("The commander does not expose a strong local theme signal.");
+        analysis.OffThemeCards.Should().HaveCount(20);
+        analysis.OffThemeCards.Should().OnlyContain(card => !card.MetadataUnavailable);
+        synergy.ThemeScore.Should().Be(0m);
+        synergy.FinalScore.Should().Be(0m);
+        synergy.QualitativeLabel.Should().Be("Pile");
+    }
+
     private static CardProfile CreateCard(string cardId, string name, IReadOnlyDictionary<string, decimal> themeSignals) => new()
     {
         CardId = cardId,
@@ -153,4 +217,12 @@ public sealed class ThemeAnalysisServiceTests
         ThemeSignals = new Dictionary<string, decimal>(themeSignals, StringComparer.OrdinalIgnoreCase),
         FaceProfiles = [ new CardFaceProfile("0", name, null, "Creature", null, null, true) ],
     };
+
+    private sealed class EmptyThemeMatchingService : IThemeMatchingService
+    {
+        public IReadOnlyDictionary<string, decimal> ComputeThemeSignals(CardProfile profile) =>
+            new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+
+        public string DescribeMatch(CardProfile profile, string themeName) => $"{profile.Name} -> {themeName}";
+    }
 }
