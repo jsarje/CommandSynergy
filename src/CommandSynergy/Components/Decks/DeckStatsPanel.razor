@@ -18,7 +18,7 @@ else if (HasError)
 else if (!HasDeckStats)
 {
     <div class="deck-stats deck-stats--empty" data-testid="deck-stats-empty">
-        <p class="deck-stats__message">Deck stats appear after the first successful sync with enough card metadata to chart the list.</p>
+        <p class="deck-stats__message">Deck stats appear once analysis is performed.</p>
     </div>
 }
 else
@@ -26,8 +26,7 @@ else
     <section class="deck-stats deck-stats--ready" data-testid="deck-stats-ready" aria-busy="@IsLoading">
         <div class="deck-stats__header">
             <div>
-                <p class="workspace-panel__label">Deck stats</p>
-                <h3 id="deck-stats-title">Curve, color pressure, and card mix</h3>
+                <p class="workspace-panel__label">Deck stats</p>                
             </div>
 
             @if (IsLoading)

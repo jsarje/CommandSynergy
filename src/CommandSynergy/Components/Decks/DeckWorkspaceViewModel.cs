@@ -107,6 +107,12 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     public bool IsRefreshingInsights { get; private set; }
 
     /// <summary>
+    /// Gets or sets whether the workspace is currently auto-opening the last selected deck.
+    /// This is used to surface a restore/loading UI while the saved deck is being opened and prepared.
+    /// </summary>
+    public bool IsAutoOpeningDeck { get; set; }
+
+    /// <summary>
     /// Gets the available workspace piles.
     /// </summary>
     public IReadOnlyList<PileDefinitionContract> Piles { get; private set; }
@@ -145,7 +151,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
     public string ImportDocumentText { get; private set; } = string.Empty;
 
-    public string? SelectedImportFormatId { get; private set; }
+    public string? SelectedImportFormatId { get; private set; } = string.Empty;
 
     public string SelectedExportFormatId { get; private set; } = "moxfield-text";
 
@@ -1181,10 +1187,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         piles.AddRange(
         [
             new PileDefinitionContract { PileId = CommandZonePileId, Name = "Command Zone", SortOrder = 0 },
-            new PileDefinitionContract { PileId = MainboardPileId, Name = "Mainboard", SortOrder = 1 },
-            new PileDefinitionContract { PileId = "engine", Name = "Engine", SortOrder = 2 },
-            new PileDefinitionContract { PileId = "interaction", Name = "Interaction", SortOrder = 3 },
-            new PileDefinitionContract { PileId = "finishers", Name = "Finishers", SortOrder = 4 },
+            new PileDefinitionContract { PileId = MainboardPileId, Name = "Mainboard", SortOrder = 1 },            
         ]);
 
         Piles = piles.OrderBy(static pile => pile.SortOrder).ToArray();

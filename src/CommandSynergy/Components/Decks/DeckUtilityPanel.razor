@@ -1,0 +1,352 @@
+@using CommandSynergy.Application.Contracts
+@using CommandSynergy.Application.Decks.Portability
+
+<div class="workspace-utility-drawer-backdrop"
+    data-testid="workspace-utility-drawer-backdrop"
+    @onclick="async () => { if (!IsImporting) await CloseRequested.InvokeAsync(null); }">
+        <aside class="workspace-utility-drawer"
+            id="workspace-utility-drawer"
+            style="position:relative;"
+           role="dialog"
+           aria-modal="true"
+           aria-labelledby="workspace-utility-drawer-title"
+           data-testid="workspace-utility-menu"
+           @onclick:stopPropagation="true">
+        <div class="workspace-utility-menu__header">
+            <div>
+                <p class="workspace-panel__label">Deck Management</p>
+                <h2 id="workspace-utility-drawer-title">Deck library, import, and export</h2>
+            </div>
+            <button type="button"
+                    class="workspace-utility-menu__close"
+                    aria-label="Close menu"
+                    @onclick="async () => { if (!IsImporting) await CloseRequested.InvokeAsync(null); }"
+                    disabled="@IsImporting">
+                Close
+            </button>
+        </div>
+
+        <div class="workspace-utility-menu__content">
+            @if (IsImporting)
+            {
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.7);z-index:20;">
+                    <div style="text-align:center;">
+                        <MudProgressCircular Indeterminate="true" Size="Size.Large" />
+                        <div style="margin-top:8px;font-weight:600">Importing deck…</div>
+                    </div>
+                </div>
+            }
+            <MudExpansionPanels MultiExpansion="true" Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--drawer">
+                <MudExpansionPanel Text="@($"Library ({ImportedDecks?.Count ?? 0})")" Expanded="true">
+                    <section class="workspace-utility-section">
+                        <div class="workspace-panel__header">
+                            <div>
+                                <p class="workspace-panel__label">Library</p>
+                                <h2>Saved working copies</h2>
+                            </div>
+                            <div class="workspace-panel__header-side">
+                                @if (IsHydratingLibrary)
+                                {
+                                    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                                }
+                            </div>
+                        </div>
+
+                        <div class="workspace-search workspace-search--actions">
+                            <button type="button" class="workspace-search__button" @onclick="() => OpenImportedDeckRequested.InvokeAsync(null)" disabled="@((string.IsNullOrWhiteSpace(ActiveImportedDeckId)) || IsImporting)">Open selected deck</button>
+                            <button type="button" class="workspace-search-result__secondary" @onclick="() => StartNewDeckRequested.InvokeAsync(null)" disabled="@IsImporting">Start fresh deck</button>
+                        </div>
+
+                        @if (IsWorkspaceLinkedToSavedDeck)
+                        {
+                            <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" data-testid="workspace-link-status">
+                                Editing <strong>@ActiveWorkspaceDeckName</strong>. This working copy saves back to the selected local deck.
+                            </MudAlert>
+
+                            <div class="workspace-search" data-testid="linked-deck-rename-controls">
+                                <MudTextField T="string"
+                                              Label="Saved deck name"
+                                              Value="@LinkedDeckName"
+                                              ValueChanged="LinkedDeckNameChanged"
+                                              Variant="Variant.Outlined"
+                                              Disabled="@IsImporting" />
+                                <button type="button"
+                                        class="workspace-search__button"
+                                        @onclick="() => RenameLinkedDeckRequested.InvokeAsync(null)"
+                                        disabled="@(!CanRenameLinkedDeck || IsImporting)">
+                                    Rename deck
+                                </button>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(LinkedDeckStatusMessage))
+                            {
+                                <MudAlert Severity="@(LinkedDeckStatusHasError ? Severity.Warning : Severity.Success)"
+                                          Variant="Variant.Outlined"
+                                          data-testid="linked-deck-rename-status">
+                                    @LinkedDeckStatusMessage
+                                </MudAlert>
+                            }
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" data-testid="workspace-link-status">
+                                This draft is detached. Save it when you want it to become a reusable local deck.
+                            </MudAlert>
+
+                            <div class="workspace-search" data-testid="new-deck-save-controls">
+                                <MudTextField T="string"
+                                              Label="New deck name"
+                                              Value="@NewDeckName"
+                                              ValueChanged="NewDeckNameChanged"
+                                              Variant="Variant.Outlined"
+                                              Disabled="@IsImporting" />
+                                <button type="button"
+                                        class="workspace-search__button"
+                                        @onclick="() => SaveNewDeckRequested.InvokeAsync(null)"
+                                        disabled="@(!CanSaveNewDeck || IsImporting)">
+                                    Save to library
+                                </button>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(LibraryRecoveryMessage))
+                        {
+                            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">@LibraryRecoveryMessage</MudAlert>
+                        }
+
+                        <div class="workspace-search-results" data-testid="imported-deck-library">
+                            @if (ImportedDecks == null || ImportedDecks.Count == 0)
+                            {
+                                <p class="workspace-panel__empty">No saved decks yet. Imported lists stay in this browser only until you replace or delete them.</p>
+                            }
+                            else
+                            {
+                                @foreach (var importedDeck in ImportedDecks)
+                                {
+                                    var isActiveDeck = string.Equals(importedDeck.ImportedDeckId, ActiveImportedDeckId, StringComparison.OrdinalIgnoreCase);
+                                    <article class="workspace-search-result">
+                                        <div class="workspace-search-result__body">
+                                            <div class="workspace-search-result__headline">
+                                                <strong>@importedDeck.Name</strong>
+                                                <span class="workspace-search-result__meta">@(isActiveDeck ? "Active" : importedDeck.SourceFormatId)</span>
+                                            </div>
+                                            <p>@importedDeck.SourceFormatId</p>
+                                            <span class="workspace-search-result__timestamp">Imported @importedDeck.ImportedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</span>
+                                        </div>
+                                        <div class="workspace-search-result__actions">
+                                            <button type="button"
+                                                    class="workspace-search-result__primary"
+                                                    data-testid="@($"select-imported-deck-{importedDeck.ImportedDeckId}")"
+                                                    @onclick="() => ImportedDeckSelected.InvokeAsync(importedDeck.ImportedDeckId)"
+                                                    disabled="@IsImporting">
+                                                @(isActiveDeck ? "Selected" : "Select")
+                                            </button>
+                                            <button type="button"
+                                                    class="workspace-search-result__danger"
+                                                    data-testid="@($"delete-imported-deck-{importedDeck.ImportedDeckId}")"
+                                                    @onclick="() => OpenDeleteImportedDeckRequested.InvokeAsync(importedDeck.ImportedDeckId)"
+                                                    disabled="@IsImporting">
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </article>
+                                }
+                            }
+                        </div>
+
+                        @if (ActiveImportedDeckDiagnostics != null && ActiveImportedDeckDiagnostics.Count > 0)
+                        {
+                            <div class="workspace-section-heading">
+                                <h3>Import diagnostics</h3>
+                            </div>
+                            <ul class="workspace-findings" data-testid="import-diagnostics">
+                                @foreach (var diagnostic in ActiveImportedDeckDiagnostics)
+                                {
+                                    <li class="workspace-finding workspace-finding--@diagnostic.Severity.ToString().ToLowerInvariant()">@diagnostic.Message</li>
+                                }
+                            </ul>
+                        }
+                    </section>
+                </MudExpansionPanel>
+
+                <MudExpansionPanel Text="Import a deck">
+                    <section class="workspace-utility-section">
+                        <MudSelect T="string" Label="Source format" Value="@SelectedImportFormatId" ValueChanged="ImportFormatChanged" Disabled="@IsImporting">
+                            @foreach (var option in SupportedImportFormats)
+                            {
+                                <MudSelectItem Value="@option.Value">@option.Label</MudSelectItem>
+                            }
+                        </MudSelect>
+
+                        <MudTextField T="string"
+                                      Label="Paste deck"
+                                      Lines="10"
+                                      Value="@ImportDocumentText"
+                                      ValueChanged="ImportDocumentTextChanged"
+                                      Variant="Variant.Outlined"
+                                      Disabled="@IsImporting" />
+
+                        <div class="workspace-search workspace-search--actions">
+                            <button type="button" class="workspace-search__button" @onclick="() => ImportRequested.InvokeAsync(null)" disabled="@IsImporting">Import deck</button>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(ImportStatusMessage))
+                        {
+                            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">@ImportStatusMessage</MudAlert>
+                        }
+
+                        @if (HasPendingDuplicateImport)
+                        {
+                            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" data-testid="duplicate-import-resolution">
+                                <div class="workspace-stack">
+                                    <div>
+                                        <h3>Reimport options</h3>
+                                        <p>Update the existing <strong>@PendingDuplicateImportName</strong> entry or keep both by saving the new import as <strong>@PendingDuplicateImportTargetName</strong>.</p>
+                                    </div>
+                                    <div class="workspace-search workspace-search--actions">
+                                        <button type="button" class="workspace-search__button" @onclick="() => UpdateExistingImportedDeckRequested.InvokeAsync(null)" disabled="@IsImporting">Update existing deck</button>
+                                        <button type="button" class="workspace-search-result__secondary" @onclick="() => ImportDuplicateAsNewDeckRequested.InvokeAsync(null)" disabled="@IsImporting">Import as new deck</button>
+                                    </div>
+                                </div>
+                            </MudAlert>
+                        }
+                    </section>
+                </MudExpansionPanel>
+
+                <MudExpansionPanel Text="Export">
+                    <DeckExportPanel ExportPreview="@ExportPreview"
+                                     SupportedFormats="@SupportedExportFormats"
+                                     SelectedFormatId="@SelectedExportFormatId"
+                                     ExportStatusMessage="@ExportStatusMessage"
+                                     ExportFormatChanged="ExportFormatChanged"
+                                     ExportRequested="ExportRequested" />
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </div>
+    </aside>
+</div>
+
+@code {
+    [Parameter]
+    public required IReadOnlyList<ImportedDeckRecord> ImportedDecks { get; set; }
+
+    [Parameter]
+    public bool IsHydratingLibrary { get; set; }
+
+    [Parameter]
+    public bool IsImporting { get; set; }
+
+    [Parameter]
+    public string? ActiveImportedDeckId { get; set; }
+
+    [Parameter]
+    public EventCallback OpenImportedDeckRequested { get; set; }
+
+    [Parameter]
+    public EventCallback StartNewDeckRequested { get; set; }
+
+    [Parameter]
+    public bool IsWorkspaceLinkedToSavedDeck { get; set; }
+
+    [Parameter]
+    public string? ActiveWorkspaceDeckName { get; set; }
+
+    [Parameter]
+    public required string LinkedDeckName { get; set; }
+
+    [Parameter]
+    public EventCallback<string> LinkedDeckNameChanged { get; set; }
+
+    [Parameter]
+    public bool CanRenameLinkedDeck { get; set; }
+
+    [Parameter]
+    public EventCallback RenameLinkedDeckRequested { get; set; }
+
+    [Parameter]
+    public string? LinkedDeckStatusMessage { get; set; }
+
+    [Parameter]
+    public bool LinkedDeckStatusHasError { get; set; }
+
+    [Parameter]
+    public required string NewDeckName { get; set; }
+
+    [Parameter]
+    public EventCallback<string> NewDeckNameChanged { get; set; }
+
+    [Parameter]
+    public bool CanSaveNewDeck { get; set; }
+
+    [Parameter]
+    public EventCallback SaveNewDeckRequested { get; set; }
+
+    [Parameter]
+    public string? LibraryRecoveryMessage { get; set; }
+
+    [Parameter]
+    public required IReadOnlyList<ImportDiagnostic> ActiveImportedDeckDiagnostics { get; set; }
+
+    [Parameter]
+    public required IReadOnlyList<FormatOptionView> SupportedImportFormats { get; set; }
+
+    [Parameter]
+    public string? SelectedImportFormatId { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ImportFormatChanged { get; set; }
+
+    [Parameter]
+    public required string ImportDocumentText { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ImportDocumentTextChanged { get; set; }
+
+    [Parameter]
+    public EventCallback ImportRequested { get; set; }
+
+    [Parameter]
+    public string? ImportStatusMessage { get; set; }
+
+    [Parameter]
+    public bool HasPendingDuplicateImport { get; set; }
+
+    [Parameter]
+    public string? PendingDuplicateImportName { get; set; }
+
+    [Parameter]
+    public string? PendingDuplicateImportTargetName { get; set; }
+
+    [Parameter]
+    public EventCallback UpdateExistingImportedDeckRequested { get; set; }
+
+    [Parameter]
+    public EventCallback ImportDuplicateAsNewDeckRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ImportedDeckSelected { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OpenDeleteImportedDeckRequested { get; set; }
+
+    [Parameter]
+    public ExportPreviewContract? ExportPreview { get; set; }
+
+    [Parameter]
+    public required IReadOnlyList<FormatOptionView> SupportedExportFormats { get; set; }
+
+    [Parameter]
+    public required string SelectedExportFormatId { get; set; }
+
+    [Parameter]
+    public string? ExportStatusMessage { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ExportFormatChanged { get; set; }
+
+    [Parameter]
+    public EventCallback ExportRequested { get; set; }
+
+    [Parameter]
+    public EventCallback CloseRequested { get; set; }
+}

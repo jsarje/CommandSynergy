@@ -1,0 +1,186 @@
+@using CommandSynergy.Application.Contracts
+@using CommandSynergy.Application.Decks
+
+<MudPaper Elevation="0" Class="workspace-panel workspace-panel--status">
+    <div class="workspace-panel__header">
+        <div>
+            <p class="workspace-panel__label">Signals</p>
+            <h2>Deck signal</h2>
+        </div>
+        <div class="workspace-panel__header-side workspace-panel__header-side--status">
+                @if (IsHydratingLibrary || IsAutoOpeningDeck)
+                {
+                    <span class="workspace-panel__activity" aria-live="polite" data-testid="library-hydrate-indicator">
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="workspace-panel__activity-spinner" />
+                        <span>Restoring library</span>
+                    </span>
+                }
+                else if (IsRefreshingInsights)
+            {
+                <span class="workspace-panel__activity" aria-live="polite" data-testid="analysis-refresh-indicator">
+                    <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="workspace-panel__activity-spinner" />
+                    <span>Refreshing analysis</span>
+                </span>
+            }
+
+            <span class="workspace-panel__badge">@ValidationStatusLabel</span>
+        </div>
+    </div>
+
+    <div class="workspace-summary-strip" aria-label="Workspace summary" data-testid="workspace-summary">
+        <div>
+            <span>Commander</span>
+            <strong>@CommanderName</strong>
+        </div>
+        <div>
+            <span>Deck Name</span>
+            <strong>@DeckName</strong>
+        </div>        
+    </div>
+
+    @if (IsRefreshingInsights)
+    {
+        <div class="workspace-panel__activity-banner" aria-live="polite" data-testid="analysis-refresh-banner">
+            <MudProgressCircular Indeterminate="true" Size="Size.Medium" Class="workspace-panel__activity-banner-spinner" />
+            <div>
+                <strong>Analysis in progress</strong>
+                <p>Refreshing bracket, synergy, power level, and theme signals for the current deck state.</p>
+            </div>
+        </div>
+    }
+    else if (IsHydratingLibrary || IsAutoOpeningDeck)
+    {
+        <div class="workspace-panel__activity-banner" aria-live="polite" data-testid="library-hydrate-banner">
+            <MudProgressCircular Indeterminate="true" Size="Size.Medium" Class="workspace-panel__activity-banner-spinner" />
+            <div>
+                <strong>Restoring saved deck</strong>
+                <p>Opening your last selected deck and preparing analysis. This may take a moment.</p>
+            </div>
+        </div>
+    }
+    else if (State.Status == DeckWorkspaceStatus.Loading)
+    {
+        <div class="workspace-state workspace-state--loading" data-testid="workspace-loading">
+            <MudProgressCircular Indeterminate="true" Size="Size.Large" />
+            <p>Loading workspace shell.</p>
+        </div>
+    }
+    else if (State.Status == DeckWorkspaceStatus.Empty)
+    {
+        <div class="workspace-state workspace-state--empty" data-testid="workspace-empty">
+            <h3>Commander needed</h3>
+            <p>@State.Message</p>
+        </div>
+    }
+    else if (State.Status == DeckWorkspaceStatus.Recovery)
+    {
+        <div class="workspace-state workspace-state--recovery" data-testid="workspace-recovery">
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+                @State.Message
+            </MudAlert>
+            <button type="button" class="workspace-state__retry" @onclick="RetryRequested">Retry sync</button>
+        </div>
+    }
+    else
+    {
+        <div class="workspace-state workspace-state--ready" data-testid="workspace-ready">
+            <div class="workspace-metric-strip">
+                <div>
+                    <span>Deck cards</span>
+                    <strong>@State.Validation?.DeckCardCount</strong>
+                </div>
+                <div>
+                    <span>Legality</span>
+                    <strong>@(State.Validation?.IsValid == true ? "Legal" : "Needs work")</strong>
+                </div>
+                <div>
+                    <span>Bracket</span>
+                    <strong>@(Analysis?.Bracket.Level.ToString() ?? "-")</strong>
+                </div>
+                <div>
+                    <span>Synergy</span>
+                    <strong>@(Analysis?.Synergy.Score.ToString("0.#") ?? "-")</strong>
+                </div>
+                <div>
+                    <span>Power</span>
+                    <strong>@(Analysis?.PowerLevel.Score.ToString("0.#") ?? "-")</strong>
+                </div>
+                <div>
+                    <span>Commander Theme</span>
+                    <strong>@(Analysis?.ThemeAnalysis?.CommanderAlignment?.CommanderTopTheme ?? "-")</strong>
+                </div>
+            </div>            
+
+            <MudExpansionPanels MultiExpansion="true" Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
+                @if (State.Validation == null || State.Validation?.IsValid == false)
+                {
+                    <MudExpansionPanel Text="Legality/Validation">                    
+                        <section class="workspace-stack">
+                            <div class="workspace-section-heading">
+                                <h3>Validation findings</h3>
+                                <span class="workspace-panel__badge">@State.Findings.Count.ToString("00")</span>
+                            </div>
+
+                            @if (State.Findings.Count == 0)
+                            {
+                                <p class="workspace-panel__empty">No findings yet. Add a commander and a few core cards to unlock the deeper read.</p>
+                            }
+                            else
+                            {
+                                <ul class="workspace-findings" data-testid="validation-findings">
+                                    @foreach (var finding in State.Findings)
+                                    {
+                                        <li class="workspace-finding workspace-finding--@finding.Severity">@finding.Message</li>
+                                    }
+                                </ul>
+                            }
+                        </section>
+                    </MudExpansionPanel>
+                }
+                <MudExpansionPanel Text="Bracket">
+                    <BracketAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
+                </MudExpansionPanel>
+                <MudExpansionPanel Text="Synergy">
+                    <SynergyAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
+                </MudExpansionPanel>
+                <MudExpansionPanel Text="Power level">
+                    <PowerLevelAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
+                </MudExpansionPanel>
+                <MudExpansionPanel Text="Theme signals">
+                    <ThemeAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </div>
+    }
+</MudPaper>
+
+@code {
+    [Parameter]
+    public required DeckWorkspaceState State { get; set; }
+
+    [Parameter]
+    public DeckAnalysisResponseContract? Analysis { get; set; }
+
+    [Parameter]
+    public string CommanderName { get; set; } = "Unset";
+
+    [Parameter]
+    public string DeckName { get; set; } = "Unset";
+
+    [Parameter]
+    public int TotalDeckCards { get; set; }
+    [Parameter]
+    public bool IsRefreshingInsights { get; set; }
+    [Parameter]
+    public bool IsHydratingLibrary { get; set; }
+    
+    [Parameter]
+    public bool IsAutoOpeningDeck { get; set; }
+
+    [Parameter]
+    public EventCallback RetryRequested { get; set; }
+
+    private bool IsRecoveryState => State.Status == DeckWorkspaceStatus.Recovery;
+
+    private string ValidationStatusLabel => State.Validation?.IsValid == true ? "Ready" : "Needs work";
+}

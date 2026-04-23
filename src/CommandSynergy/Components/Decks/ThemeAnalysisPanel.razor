@@ -71,13 +71,10 @@ else
             </div>
         }
 
-        <section class="theme-analysis__section" aria-labelledby="theme-alignment-title">
-            <div class="theme-analysis__section-header">
-                <h5 id="theme-alignment-title">Commander alignment</h5>
-                <span class="theme-analysis__subtle">@Analysis.ThemeAnalysis.CommanderAlignment.CommanderTopTheme</span>
-            </div>
+        <div class="theme-analysis__summary-strip">
+            <span class="theme-analysis__subtle">Commander focus: @Analysis.ThemeAnalysis.CommanderAlignment.CommanderTopTheme</span>
             <p class="theme-analysis__message">@Analysis.ThemeAnalysis.CommanderAlignment.Summary</p>
-        </section>
+        </div>
 
         @foreach (var theme in Analysis.ThemeAnalysis.RankedThemes.Take(3))
         {
@@ -93,14 +90,15 @@ else
                         <h5 id="@($"theme-{themeSlug}")">@theme.Name</h5>
                         <span class="theme-analysis__subtle">@theme.StrengthLabel</span>
                     </div>
-                    <button type="button"
-                            class="theme-analysis__toggle"
-                            data-testid="@($"theme-toggle-{themeSlug}")"
-                            aria-expanded="@isExpanded"
-                            aria-controls="@detailsTestId"
-                            @onclick="() => ToggleTheme(theme.Name)">
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Default"
+                               Class="theme-analysis__toggle"
+                               data-testid="@($"theme-toggle-{themeSlug}")"
+                               aria-expanded="@isExpanded"
+                               aria-controls="@detailsTestId"
+                               @onclick="() => ToggleTheme(theme.Name)">
                         @(isExpanded ? "Collapse details" : "Expand details")
-                    </button>
+                    </MudButton>
                 </div>
                 <p class="theme-analysis__message">@theme.Description</p>
                 @if (leadContributor is not null)

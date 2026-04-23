@@ -1,0 +1,54 @@
+@using CommandSynergy.Application.Contracts
+
+@if (IsLoading)
+{
+    <div class="analysis-panel analysis-panel--loading" data-testid="power-analysis-loading">
+        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+        <p class="analysis-panel__message">Calculating power level…</p>
+    </div>
+}
+else if (HasError)
+{
+    <div class="analysis-panel analysis-panel--error" data-testid="power-analysis-error">
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+            Power level analysis is temporarily unavailable. Retry sync to refresh the current power read.
+        </MudAlert>
+    </div>
+}
+else if (Analysis is null)
+{
+    <div class="analysis-panel analysis-panel--empty" data-testid="power-analysis-empty">
+        <p class="analysis-panel__message">Power level feedback arrives after the first successful sync.</p>
+    </div>
+}
+else
+{
+    <div class="analysis-power" data-testid="analysis-power">
+        <div class="analysis-power__header">
+            <h4 class="analysis-power__label">Power Level</h4>
+            <span class="analysis-power__score"
+                  title="Heuristic power level (1–10)">@Analysis.PowerLevel.Score.ToString("0.0")</span>
+        </div>
+        <p class="analysis-power__summary">@Analysis.PowerLevel.Summary</p>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Gets or sets the current analysis response, or null when no analysis is available yet.
+    /// </summary>
+    [Parameter]
+    public DeckAnalysisResponseContract? Analysis { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether a power level analysis request is currently in progress.
+    /// </summary>
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the power level analysis is in an error recovery state.
+    /// </summary>
+    [Parameter]
+    public bool HasError { get; set; }
+}

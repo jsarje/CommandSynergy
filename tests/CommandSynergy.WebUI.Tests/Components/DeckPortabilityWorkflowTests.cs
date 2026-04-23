@@ -106,7 +106,7 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
 
     private static void OpenUtilityMenu(IRenderedComponent<DeckWorkspace> cut)
     {
-        cut.Find("button[aria-label='Open import and export menu']").Click();
+        cut.Find("button[aria-label='Open Deck Library']").Click();
     }
 
     private IRenderedComponent<DeckWorkspace> RenderWorkspace(

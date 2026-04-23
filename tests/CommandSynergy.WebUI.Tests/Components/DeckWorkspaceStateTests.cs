@@ -85,7 +85,8 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
             .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
             .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));
 
-        cut.Find("[data-testid='commander-needed-banner']").TextContent.Should().Contain("Validation and synergy stay paused until you pick a legal commander");
+        cut.Find("[data-testid='workspace-empty']").TextContent.Should().Contain("Pick a commander.");
+        cut.Find("[data-testid='pile-card-sol-ring']").Should().NotBeNull();
     }
 
     [Fact]
