@@ -107,6 +107,12 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     public bool IsRefreshingInsights { get; private set; }
 
     /// <summary>
+    /// Gets or sets whether the workspace is currently auto-opening the last selected deck.
+    /// This is used to surface a restore/loading UI while the saved deck is being opened and prepared.
+    /// </summary>
+    public bool IsAutoOpeningDeck { get; set; }
+
+    /// <summary>
     /// Gets the available workspace piles.
     /// </summary>
     public IReadOnlyList<PileDefinitionContract> Piles { get; private set; }

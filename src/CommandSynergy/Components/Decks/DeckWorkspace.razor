@@ -238,6 +238,8 @@
                           CommanderName="@(ActiveCommander?.Name ?? "Unset")"
                           DeckName="@(ActiveWorkspaceDeckName ?? NewDeckName ?? "Unset")"
                           IsRefreshingInsights="IsRefreshingInsights"
+                          IsHydratingLibrary="IsHydratingLibrary"
+                          IsAutoOpeningDeck="IsAutoOpeningDeck"
                           RetryRequested="RetryRequested" />
         </section>
 
@@ -368,6 +370,9 @@
 
     [Parameter]
     public bool IsHydratingLibrary { get; set; }
+
+    [Parameter]
+    public bool IsAutoOpeningDeck { get; set; }
 
     [Parameter]
     public string? LibraryRecoveryMessage { get; set; }

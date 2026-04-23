@@ -28,6 +28,26 @@ public partial class Home : ComponentBase
         }
 
         await ViewModel.HydrateImportedDeckLibraryAsync().ConfigureAwait(false);
+
+        // If a saved deck was active in the local library, automatically open it
+        // as the workspace working copy on first page load. Set a transient flag
+        // so the UI can render an explicit restore banner while the workspace
+        // is being populated and analyzed.
+        if (!string.IsNullOrWhiteSpace(ViewModel.ActiveImportedDeckId))
+        {
+            ViewModel.IsAutoOpeningDeck = true;
+            await InvokeAsync(StateHasChanged).ConfigureAwait(false);
+
+            try
+            {
+                await ViewModel.OpenActiveImportedDeckAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                ViewModel.IsAutoOpeningDeck = false;
+            }
+        }
+
         await InvokeAsync(StateHasChanged).ConfigureAwait(false);
     }
 

@@ -8,7 +8,14 @@
             <h2>Deck signal</h2>
         </div>
         <div class="workspace-panel__header-side workspace-panel__header-side--status">
-            @if (IsRefreshingInsights)
+                @if (IsHydratingLibrary || IsAutoOpeningDeck)
+                {
+                    <span class="workspace-panel__activity" aria-live="polite" data-testid="library-hydrate-indicator">
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="workspace-panel__activity-spinner" />
+                        <span>Restoring library</span>
+                    </span>
+                }
+                else if (IsRefreshingInsights)
             {
                 <span class="workspace-panel__activity" aria-live="polite" data-testid="analysis-refresh-indicator">
                     <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="workspace-panel__activity-spinner" />
@@ -38,6 +45,16 @@
             <div>
                 <strong>Analysis in progress</strong>
                 <p>Refreshing bracket, synergy, power level, and theme signals for the current deck state.</p>
+            </div>
+        </div>
+    }
+    else if (IsHydratingLibrary || IsAutoOpeningDeck)
+    {
+        <div class="workspace-panel__activity-banner" aria-live="polite" data-testid="library-hydrate-banner">
+            <MudProgressCircular Indeterminate="true" Size="Size.Medium" Class="workspace-panel__activity-banner-spinner" />
+            <div>
+                <strong>Restoring saved deck</strong>
+                <p>Opening your last selected deck and preparing analysis. This may take a moment.</p>
             </div>
         </div>
     }
@@ -152,9 +169,13 @@
 
     [Parameter]
     public int TotalDeckCards { get; set; }
-
     [Parameter]
     public bool IsRefreshingInsights { get; set; }
+    [Parameter]
+    public bool IsHydratingLibrary { get; set; }
+    
+    [Parameter]
+    public bool IsAutoOpeningDeck { get; set; }
 
     [Parameter]
     public EventCallback RetryRequested { get; set; }
