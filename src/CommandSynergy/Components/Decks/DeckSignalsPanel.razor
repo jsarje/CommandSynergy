@@ -7,7 +7,17 @@
             <p class="workspace-panel__label">Signals</p>
             <h2>Deck signal</h2>
         </div>
-        <span class="workspace-panel__badge">@ValidationStatusLabel</span>
+        <div class="workspace-panel__header-side workspace-panel__header-side--status">
+            @if (IsRefreshingInsights)
+            {
+                <span class="workspace-panel__activity" aria-live="polite" data-testid="analysis-refresh-indicator">
+                    <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="workspace-panel__activity-spinner" />
+                    <span>Refreshing analysis</span>
+                </span>
+            }
+
+            <span class="workspace-panel__badge">@ValidationStatusLabel</span>
+        </div>
     </div>
 
     <div class="workspace-summary-strip" aria-label="Workspace summary" data-testid="workspace-summary">
@@ -21,7 +31,17 @@
         </div>        
     </div>
 
-    @if (State.Status == DeckWorkspaceStatus.Loading)
+    @if (IsRefreshingInsights)
+    {
+        <div class="workspace-panel__activity-banner" aria-live="polite" data-testid="analysis-refresh-banner">
+            <MudProgressCircular Indeterminate="true" Size="Size.Medium" Class="workspace-panel__activity-banner-spinner" />
+            <div>
+                <strong>Analysis in progress</strong>
+                <p>Refreshing bracket, synergy, power level, and theme signals for the current deck state.</p>
+            </div>
+        </div>
+    }
+    else if (State.Status == DeckWorkspaceStatus.Loading)
     {
         <div class="workspace-state workspace-state--loading" data-testid="workspace-loading">
             <MudProgressCircular Indeterminate="true" Size="Size.Large" />

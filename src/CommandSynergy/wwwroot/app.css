@@ -456,11 +456,17 @@ h1:focus {
     align-items: center;
 }
 
+.workspace-panel__header-side--status {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 .workspace-panel__intro {
     font-size: 0.96rem;
 }
 
 .workspace-panel__badge,
+.workspace-panel__activity,
 .workspace-subheader__value,
 .analysis-bracket__weight,
 .analysis-power__score,
@@ -475,6 +481,40 @@ h1:focus {
     color: var(--cs-panel-title);
     font-size: 0.82rem;
     font-weight: 700;
+}
+
+.workspace-panel__activity {
+    gap: 0.5rem;
+    background: rgba(141, 106, 47, 0.16);
+    color: var(--cs-gold-deep);
+}
+
+.workspace-panel__activity-spinner,
+.workspace-panel__activity-banner-spinner {
+    color: currentColor;
+}
+
+.workspace-panel__activity-banner {
+    display: flex;
+    gap: 0.85rem;
+    align-items: start;
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: var(--cs-radius-lg);
+    background:
+        linear-gradient(135deg, rgba(141, 106, 47, 0.16), rgba(255, 248, 236, 0.9)),
+        var(--cs-surface);
+    border: 1px solid rgba(141, 106, 47, 0.2);
+}
+
+.workspace-panel__activity-banner strong {
+    display: block;
+    color: var(--cs-panel-title);
+}
+
+.workspace-panel__activity-banner p {
+    margin: 0.35rem 0 0;
+    color: var(--cs-muted);
 }
 
 .workspace-subheader {
