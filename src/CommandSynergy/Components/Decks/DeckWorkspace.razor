@@ -452,7 +452,6 @@
     {
         await ImportedDeckSelected.InvokeAsync(deckId);
         await InvokeAsync(StateHasChanged);
-        CloseUtilityMenu();
     }
 
     private async Task OnOpenImportedDeckRequestedAsync()
