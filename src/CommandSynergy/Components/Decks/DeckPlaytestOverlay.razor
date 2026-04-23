@@ -224,6 +224,7 @@
     private string? lastDeckSignature;
     private PlaytestPhase phase;
     private int mulliganCount;
+    private bool hasDrawnSinceHandStart;
 
     private int OpeningHandSize => Math.Min(7, deckTemplate.Count);
 
@@ -235,7 +236,7 @@
 
     private bool CanDraw => phase is PlaytestPhase.Playing && library.Count > 0;
 
-    private bool CanTakeMulligan => phase is PlaytestPhase.Playing && deckTemplate.Count > 0 && mulliganCount < MaxMulligans;
+    private bool CanTakeMulligan => phase is PlaytestPhase.Playing && deckTemplate.Count > 0 && mulliganCount < MaxMulligans && !hasDrawnSinceHandStart;
 
     protected override void OnParametersSet()
     {
@@ -265,6 +266,7 @@
 
         hand.Add(library[0]);
         library.RemoveAt(0);
+        hasDrawnSinceHandStart = true;
     }
 
     private void TakeMulligan()
@@ -306,6 +308,7 @@
         hand.Clear();
         library.Clear();
         bottomedCards.Clear();
+        hasDrawnSinceHandStart = false;
 
         if (deckTemplate.Count == 0)
         {
