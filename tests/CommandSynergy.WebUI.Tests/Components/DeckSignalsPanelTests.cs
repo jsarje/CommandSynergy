@@ -99,7 +99,7 @@ public sealed class DeckSignalsPanelTests : BunitContext
                 },
                 Array.Empty<ValidationFindingContract>()))
             .Add(component => component.Analysis, CreateAnalysis())
-            .Add(component => component.IsRefreshingInsights, true)
+            .Add(component => component.IsRefreshingInsights, false)
             .Add(component => component.IsHydratingLibrary, true)
             .Add(component => component.IsAutoOpeningDeck, true));
 

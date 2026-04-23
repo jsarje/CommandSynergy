@@ -1,30 +1,48 @@
 using Bunit;
+using Bunit.JSInterop;
 using CommandSynergy.Application.Contracts;
 using CommandSynergy.Application.Decks.Portability;
 using CommandSynergy.Components.Decks;
 using FluentAssertions;
+using MudBlazor;
 using MudBlazor.Services;
 
 namespace CommandSynergy.WebUI.Tests.Components;
 
-public sealed class DeckUtilityPanelTests : BunitContext
+public sealed class DeckUtilityPanelTests : BunitContext, IAsyncLifetime
 {
     public DeckUtilityPanelTests()
     {
         Services.AddMudServices();
+        JSInterop.Mode = JSRuntimeMode.Loose;
+    }
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public new async Task DisposeAsync()
+    {
+        await base.DisposeAsync();
     }
 
     [Fact]
     public void Deck_utility_panel_renders_linked_deck_controls_and_status()
     {
-        var cut = RenderPanel(parameters => parameters
+        Render<MudPopoverProvider>();
+
+        var cut = Render<DeckUtilityPanel>(parameters => parameters
             .Add(component => component.ImportedDecks, [CreateImportedDeck("deck-1", "Isshin Pressure")])
             .Add(component => component.ActiveImportedDeckId, "deck-1")
             .Add(component => component.IsWorkspaceLinkedToSavedDeck, true)
             .Add(component => component.ActiveWorkspaceDeckName, "Isshin Pressure")
             .Add(component => component.LinkedDeckName, "Isshin Pressure")
             .Add(component => component.CanRenameLinkedDeck, true)
-            .Add(component => component.LinkedDeckStatusMessage, "Deck renamed."));
+            .Add(component => component.LinkedDeckStatusMessage, "Deck renamed.")
+            .Add(component => component.NewDeckName, string.Empty)
+            .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>())
+            .Add(component => component.SupportedImportFormats, [new FormatOptionView("moxfield-text", "Moxfield Text")])
+            .Add(component => component.ImportDocumentText, string.Empty)
+            .Add(component => component.SupportedExportFormats, [new FormatOptionView("moxfield-text", "Moxfield Text")])
+            .Add(component => component.SelectedExportFormatId, "moxfield-text"));
 
         cut.Find("[data-testid='workspace-link-status']").TextContent.Should().Contain("Editing Isshin Pressure");
         cut.Find("[data-testid='linked-deck-rename-controls']").Should().NotBeNull();
@@ -37,7 +55,17 @@ public sealed class DeckUtilityPanelTests : BunitContext
     {
         var closeRequestCount = 0;
 
-        var cut = RenderPanel(parameters => parameters
+        Render<MudPopoverProvider>();
+
+        var cut = Render<DeckUtilityPanel>(parameters => parameters
+            .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
+            .Add(component => component.LinkedDeckName, string.Empty)
+            .Add(component => component.NewDeckName, string.Empty)
+            .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>())
+            .Add(component => component.SupportedImportFormats, [new FormatOptionView("moxfield-text", "Moxfield Text")])
+            .Add(component => component.ImportDocumentText, string.Empty)
+            .Add(component => component.SupportedExportFormats, [new FormatOptionView("moxfield-text", "Moxfield Text")])
+            .Add(component => component.SelectedExportFormatId, "moxfield-text")
             .Add(component => component.IsImporting, true)
             .Add(component => component.CloseRequested, () => closeRequestCount++));
 
@@ -46,24 +74,6 @@ public sealed class DeckUtilityPanelTests : BunitContext
         closeRequestCount.Should().Be(0);
         cut.Find("button[aria-label='Close menu']").HasAttribute("disabled").Should().BeTrue();
         cut.Markup.Should().Contain("Importing deck…");
-    }
-
-    private IRenderedComponent<DeckUtilityPanel> RenderPanel(Action<ComponentParameterCollectionBuilder<DeckUtilityPanel>>? configure = null)
-    {
-        return Render<DeckUtilityPanel>(parameters =>
-        {
-            parameters
-                .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
-                .Add(component => component.LinkedDeckName, string.Empty)
-                .Add(component => component.NewDeckName, string.Empty)
-                .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>())
-                .Add(component => component.SupportedImportFormats, [new FormatOptionView("moxfield-text", "Moxfield Text")])
-                .Add(component => component.ImportDocumentText, string.Empty)
-                .Add(component => component.SupportedExportFormats, [new FormatOptionView("moxfield-text", "Moxfield Text")])
-                .Add(component => component.SelectedExportFormatId, "moxfield-text");
-
-            configure?.Invoke(parameters);
-        });
     }
 
     private static ImportedDeckRecord CreateImportedDeck(string deckId, string name) =>

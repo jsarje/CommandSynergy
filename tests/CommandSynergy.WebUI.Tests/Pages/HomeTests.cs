@@ -10,16 +10,24 @@ using CommandSynergy.Components.Pages;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
+using MudBlazor;
 using MudBlazor.Services;
 
 namespace CommandSynergy.WebUI.Tests.Pages;
 
-public sealed class HomeTests : BunitContext
+public sealed class HomeTests : BunitContext, IAsyncLifetime
 {
     public HomeTests()
     {
         Services.AddMudServices();
         JSInterop.Mode = JSRuntimeMode.Loose;
+    }
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public new async Task DisposeAsync()
+    {
+        await base.DisposeAsync();
     }
 
     [Fact]
