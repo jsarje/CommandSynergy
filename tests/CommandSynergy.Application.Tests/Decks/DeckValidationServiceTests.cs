@@ -41,8 +41,14 @@ public sealed class DeckValidationServiceTests
         response.IsValid.Should().BeFalse();
         response.Findings.Should().ContainSingle(finding => finding.Code == "color-identity");
         response.DeckCardCount.Should().Be(100);
-        await gateway.Received(1).GetCardProfilesAsync(Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>());
-        commanderRules.Received(1).Validate(Arg.Any<Deck>(), profiles);
+        await gateway.Received(1).GetCardProfilesAsync(
+            Arg.Is<IEnumerable<string>>(cardIds => cardIds.OrderBy(static cardId => cardId).SequenceEqual(new[] { "commander", "off-color" })),
+            Arg.Any<CancellationToken>());
+        commanderRules.Received(1).Validate(
+            Arg.Is<Deck>(deck => deck.Entries.Count == 2
+                && deck.Entries.Any(entry => entry.CardId == "commander" && entry.IsCommander)
+                && deck.Entries.Any(entry => entry.CardId == "off-color" && entry.Quantity == 99)),
+            profiles);
     }
 
     [Fact]
@@ -71,6 +77,12 @@ public sealed class DeckValidationServiceTests
         });
 
         response.Findings.Should().Contain(finding => finding.Code == "commander-eligibility");
+        await gateway.Received(1).GetCardProfilesAsync(
+            Arg.Is<IEnumerable<string>>(cardIds => cardIds.SequenceEqual(new[] { "commander" })),
+            Arg.Any<CancellationToken>());
+        commanderRules.Received(1).Validate(
+            Arg.Is<Deck>(deck => deck.Entries.Count == 1 && deck.Entries[0].CardId == "commander" && deck.Entries[0].IsCommander),
+            profiles);
     }
 
     private static CardProfile CreateCard(string cardId, IReadOnlyList<string> colors, decimal manaValue, string typeLine) => new()

@@ -22,7 +22,7 @@ public static class ScryfallServiceCollectionExtensions
         var userAgent = configuration[ScryfallUserAgentConfigurationKey] ?? "CommandSynergy/0.1";
 
         services
-            .AddHttpClient<ScryfallClient>(client =>
+            .AddHttpClient<IScryfallClient, ScryfallClient>(client =>
             {
                 client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
                 client.Timeout = TimeSpan.FromSeconds(10);
@@ -30,7 +30,6 @@ public static class ScryfallServiceCollectionExtensions
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             })
             .AddStandardResilienceHandler();
-        services.AddScoped<IScryfallClient>(serviceProvider => serviceProvider.GetRequiredService<ScryfallClient>());
 
         return services;
     }
