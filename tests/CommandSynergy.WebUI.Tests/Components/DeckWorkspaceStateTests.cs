@@ -83,7 +83,10 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
             .Add(component => component.Cards, [CreateDeckCard("sol-ring")])
             .Add(component => component.SearchResults, Array.Empty<WorkspaceCardView>())
             .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
-            .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));        
+            .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));
+
+        cut.Find("[data-testid='workspace-empty']").TextContent.Should().Contain("Pick a commander.");
+        cut.Find("[data-testid='pile-card-sol-ring']").Should().NotBeNull();
     }
 
     [Fact]

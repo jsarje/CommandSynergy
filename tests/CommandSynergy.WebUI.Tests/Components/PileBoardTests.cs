@@ -121,6 +121,38 @@ public sealed class PileBoardTests : BunitContext
         decrementedCardId.Should().Be("shadowborn-apostle");
     }
 
+    [Fact]
+    public void Pile_board_groups_mainboard_cards_by_color_rarity_and_set()
+    {
+        var cut = Render<PileBoard>(parameters => parameters
+            .Add(component => component.Piles, CreatePiles())
+            .Add(component => component.Cards,
+            [
+                CreateCard("sol-ring", DeckWorkspaceViewModel.MainboardPileId, name: "Sol Ring", colors: [], sourceTag: "rare", sourceSetCode: "cmm"),
+                CreateCard("swords-to-plowshares", DeckWorkspaceViewModel.MainboardPileId, name: "Swords to Plowshares", colors: ["W"], sourceTag: "common", sourceSetCode: "2xm"),
+                CreateCard("counterspell", DeckWorkspaceViewModel.MainboardPileId, name: "Counterspell", colors: ["U"], sourceTag: "mythic rare", sourceSetCode: null),
+                CreateCard("anguished-unmaking", DeckWorkspaceViewModel.MainboardPileId, name: "Anguished Unmaking", colors: ["W", "B"], sourceTag: null, sourceSetCode: "soi"),
+            ]));
+
+        cut.Find("[data-testid='mainboard-grouping']").Change("Color");
+        cut.FindAll(".pile-board__group-header h4")
+            .Select(element => element.TextContent.Trim())
+            .Should()
+            .ContainInOrder("Colorless", "White", "Blue", "Multicolor — White / Black");
+
+        cut.Find("[data-testid='mainboard-grouping']").Change("Rarity");
+        cut.FindAll(".pile-board__group-header h4")
+            .Select(element => element.TextContent.Trim())
+            .Should()
+            .ContainInOrder("Common", "Rare", "Mythic", "Unknown rarity");
+
+        cut.Find("[data-testid='mainboard-grouping']").Change("Set");
+        cut.FindAll(".pile-board__group-header h4")
+            .Select(element => element.TextContent.Trim())
+            .Should()
+            .ContainInOrder("Set 2XM", "Set CMM", "Set SOI", "Unknown set");
+    }
+
     private static IReadOnlyList<PileDefinitionContract> CreatePiles() =>
     [
         new PileDefinitionContract { PileId = DeckWorkspaceViewModel.CommandZonePileId, Name = "Command Zone", SortOrder = 0 },
@@ -138,7 +170,9 @@ public sealed class PileBoardTests : BunitContext
         IReadOnlyList<string>? colors = null,
         bool isCommanderEligible = false,
         int quantity = 1,
-        bool allowsMultipleCopies = false) => new()
+        bool allowsMultipleCopies = false,
+        string? sourceTag = null,
+        string? sourceSetCode = null) => new()
     {
         CardId = cardId,
         Name = name ?? (cardId == "isshin-two-heavens-as-one" ? "Isshin, Two Heavens as One" : "Sol Ring"),
@@ -158,6 +192,8 @@ public sealed class PileBoardTests : BunitContext
         AssignedPileId = pileId,
         Quantity = quantity,
         AllowsMultipleCopies = allowsMultipleCopies,
+        SourceTag = sourceTag,
+        SourceSetCode = sourceSetCode,
         CommanderEligibilityBasis = isCommanderEligible ? Domain.Cards.CommanderEligibilityBasis.LegendaryCreature : Domain.Cards.CommanderEligibilityBasis.Unknown,
     };
 }
