@@ -1,0 +1,67 @@
+@using CommandSynergy.Application.Contracts
+
+@if (IsLoading)
+{
+    <div class="analysis-panel analysis-panel--loading" data-testid="bracket-analysis-loading">
+        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+        <p class="analysis-panel__message">Fetching bracket assessment…</p>
+    </div>
+}
+else if (HasError)
+{
+    <div class="analysis-panel analysis-panel--error" data-testid="bracket-analysis-error">
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+            Bracket analysis is temporarily unavailable. Retry sync to refresh the current bracket read.
+        </MudAlert>
+    </div>
+}
+else if (Analysis is null)
+{
+    <div class="analysis-panel analysis-panel--empty" data-testid="bracket-analysis-empty">
+        <p class="analysis-panel__message">Bracket feedback arrives after the first successful sync.</p>
+    </div>
+}
+else
+{
+    <div class="analysis-bracket" data-testid="analysis-bracket">
+        <div class="analysis-bracket__header">
+            <h4 class="analysis-bracket__label">Bracket @Analysis.Bracket.Level</h4>
+            <span class="analysis-bracket__weight"
+                  title="Total bracket weight">@Analysis.Bracket.TotalWeight.ToString("0.##")</span>
+        </div>
+        <p class="analysis-bracket__summary">@Analysis.Bracket.Summary</p>
+
+        @if (Analysis.Bracket.Factors.Count > 0)
+        {
+            <ul class="analysis-factors" data-testid="bracket-factors">
+                @foreach (var factor in Analysis.Bracket.Factors)
+                {
+                    <li class="analysis-factor analysis-factor--@factor.Category">
+                        <span class="analysis-factor__weight">+@factor.Weight.ToString("0.##")</span>
+                        <span class="analysis-factor__explanation">@factor.Explanation</span>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Gets or sets the current analysis response, or null when no analysis is available yet.
+    /// </summary>
+    [Parameter]
+    public DeckAnalysisResponseContract? Analysis { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether a bracket analysis request is currently in progress.
+    /// </summary>
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the bracket analysis is in an error recovery state.
+    /// </summary>
+    [Parameter]
+    public bool HasError { get; set; }
+}

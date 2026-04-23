@@ -74,7 +74,9 @@ public sealed class DeckSignalsPanelTests : BunitContext
 
         cut.Find("[data-testid='workspace-ready']").Should().NotBeNull();
         cut.Find("[data-testid='validation-findings']").TextContent.Should().Contain("Average mana value is climbing above the target.");
-        cut.Find("[data-testid='analysis-panel']").TextContent.Should().Contain("Bracket and synergy");
+        cut.Find("[data-testid='analysis-panel']").TextContent.Should().Contain("Bracket");
+        cut.Find("[data-testid='analysis-panel']").TextContent.Should().Contain("Synergy");
+        cut.Find("[data-testid='analysis-panel']").TextContent.Should().Contain("Power level");
         cut.Markup.Should().Contain("Needs work");
         cut.Markup.Should().Contain("72.4");
     }

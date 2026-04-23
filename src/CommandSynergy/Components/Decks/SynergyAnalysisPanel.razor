@@ -1,0 +1,88 @@
+@using CommandSynergy.Application.Contracts
+
+@if (IsLoading)
+{
+    <div class="analysis-panel analysis-panel--loading" data-testid="synergy-analysis-loading">
+        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+        <p class="analysis-panel__message">Measuring deck synergy…</p>
+    </div>
+}
+else if (HasError)
+{
+    <div class="analysis-panel analysis-panel--error" data-testid="synergy-analysis-error">
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+            Synergy analysis is temporarily unavailable. Retry sync to refresh the current synergy read.
+        </MudAlert>
+    </div>
+}
+else if (Analysis is null)
+{
+    <div class="analysis-panel analysis-panel--empty" data-testid="synergy-analysis-empty">
+        <p class="analysis-panel__message">Synergy feedback arrives after the first successful sync.</p>
+    </div>
+}
+else
+{
+    <div class="analysis-synergy" data-testid="analysis-synergy">
+        <div class="analysis-synergy__header">
+            <h4 class="analysis-synergy__label">Synergy</h4>
+            @if (Analysis.ThemeAnalysis?.IsInsufficient == true)
+            {
+                <span class="analysis-synergy__score analysis-synergy__score--muted"
+                      title="Synergy score is hidden for undersized decks">Need 20 cards</span>
+            }
+            else
+            {
+                <span class="analysis-synergy__score"
+                      title="Synergy score (0–100)">@((Analysis.Synergy.FinalScore == 0m ? Analysis.Synergy.Score : Analysis.Synergy.FinalScore).ToString("0.#"))</span>
+            }
+        </div>
+        @if (Analysis.ThemeAnalysis?.IsInsufficient != true && !string.IsNullOrWhiteSpace(Analysis.Synergy.QualitativeLabel))
+        {
+            <p class="analysis-synergy__label-pill">@Analysis.Synergy.QualitativeLabel</p>
+        }
+        <p class="analysis-synergy__summary">@Analysis.Synergy.Summary</p>
+
+        @if (Analysis.Synergy.CommanderSpecificHits.Count > 0)
+        {
+            <p class="analysis-synergy__hits-label">Commander-specific hits</p>
+            <ul class="analysis-synergy__hits" data-testid="synergy-commander-hits">
+                @foreach (var hit in Analysis.Synergy.CommanderSpecificHits)
+                {
+                    <li class="analysis-synergy__hit">@hit</li>
+                }
+            </ul>
+        }
+
+        @if (Analysis.Synergy.StapleOverloadIndicators.Count > 0)
+        {
+            <p class="analysis-synergy__staples-label">Staple overload indicators</p>
+            <ul class="analysis-synergy__staples" data-testid="synergy-staple-overload">
+                @foreach (var staple in Analysis.Synergy.StapleOverloadIndicators)
+                {
+                    <li class="analysis-synergy__staple">@staple</li>
+                }
+            </ul>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Gets or sets the current analysis response, or null when no analysis is available yet.
+    /// </summary>
+    [Parameter]
+    public DeckAnalysisResponseContract? Analysis { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether a synergy analysis request is currently in progress.
+    /// </summary>
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the synergy analysis is in an error recovery state.
+    /// </summary>
+    [Parameter]
+    public bool HasError { get; set; }
+}
