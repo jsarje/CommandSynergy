@@ -11,6 +11,14 @@
 
                 <button type="button"
                         class="workspace-appbar__action"
+                        aria-label="Open Playtest"
+                        data-testid="open-playtest"
+                        @onclick="OpenPlaytestOverlay">
+                    Playtest
+                </button>
+
+                <button type="button"
+                        class="workspace-appbar__action"
                         aria-expanded="@isUtilityMenuOpen.ToString().ToLowerInvariant()"
                         aria-controls="workspace-utility-drawer"
                         aria-label="Open Deck Library"
@@ -63,6 +71,12 @@
                               ExportFormatChanged="@ExportFormatChanged"
                               ExportRequested="@ExportRequested"
                               CloseRequested="@CloseUtilityMenu" />
+        }
+
+        @if (isPlaytestOpen)
+        {
+            <DeckPlaytestOverlay Cards="@MainboardCards"
+                                 CloseRequested="@ClosePlaytestOverlay" />
         }
 
         @if (isImporting)
@@ -372,11 +386,17 @@
 
     private bool isDeletingImportedDeck;
 
+    private bool isPlaytestOpen;
+
     private bool isUtilityMenuOpen;
 
     private bool isImporting;
 
     private WorkspaceCardView? ActiveCommander => Cards.FirstOrDefault(static card => card.IsCommander);
+
+    private IReadOnlyList<WorkspaceCardView> MainboardCards => Cards
+        .Where(card => string.Equals(card.AssignedPileId, DeckWorkspaceViewModel.MainboardPileId, StringComparison.OrdinalIgnoreCase))
+        .ToArray();
 
     private int TotalDeckCards => Cards.Sum(static card => card.Quantity);
 
@@ -393,6 +413,17 @@
     private void ToggleUtilityMenu()
     {
         isUtilityMenuOpen = !isUtilityMenuOpen;
+    }
+
+    private void OpenPlaytestOverlay()
+    {
+        isPlaytestOpen = true;
+        isUtilityMenuOpen = false;
+    }
+
+    private void ClosePlaytestOverlay()
+    {
+        isPlaytestOpen = false;
     }
 
     private void CloseUtilityMenu()
