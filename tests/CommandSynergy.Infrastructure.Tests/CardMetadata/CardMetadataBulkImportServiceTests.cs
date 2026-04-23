@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using CommandSynergy.Application.Analysis;
 using CommandSynergy.Application.Configuration;
 using CommandSynergy.Domain.Cards;
 using CommandSynergy.Infrastructure.CardMetadata;
@@ -52,7 +53,7 @@ public sealed class CardMetadataBulkImportServiceTests
             var sut = new CardMetadataBulkImportService(
                 metadataStore,
                 scryfallClient,
-                new ScryfallCardMapper(),
+                new ScryfallCardMapper(new ThemeMatchingService()),
                 NullLogger<CardMetadataBulkImportService>.Instance);
 
             var result = await sut.ImportOracleCardsAsync();

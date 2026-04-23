@@ -12,14 +12,6 @@ public sealed class ScryfallCardMapper : IScryfallCardMapper
     private readonly IThemeMatchingService themeMatchingService;
 
     /// <summary>
-    /// Creates a mapper for Scryfall card documents using the default theme matcher.
-    /// </summary>
-    public ScryfallCardMapper()
-        : this(new ThemeMatchingService())
-    {
-    }
-
-    /// <summary>
     /// Creates a mapper for Scryfall card documents.
     /// </summary>
     public ScryfallCardMapper(IThemeMatchingService themeMatchingService)

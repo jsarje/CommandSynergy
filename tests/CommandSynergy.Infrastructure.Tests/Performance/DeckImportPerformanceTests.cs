@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Text;
+using CommandSynergy.Application.Analysis;
 using CommandSynergy.Application.Cards;
 using CommandSynergy.Application.Configuration;
 using CommandSynergy.Application.Contracts;
@@ -62,7 +63,7 @@ public sealed class DeckImportPerformanceTests
                     SearchIndexVersion = "perf-v1",
                 })),
                 scryfallClient,
-                new ScryfallCardMapper(),
+                new ScryfallCardMapper(new ThemeMatchingService()),
                 NullLogger<CardMetadataQueryService>.Instance);
 
             var cardSearchService = new CardSearchService(queryService);
