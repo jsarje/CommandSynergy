@@ -7,18 +7,9 @@ namespace CommandSynergy.Client.Services;
 /// <summary>
 /// Loads and caches search responses for the interactive deck workspace.
 /// </summary>
-public class CardSearchIndexClient : ICardSearchIndexClient
+public class CardSearchIndexClient(HttpClient httpClient) : ICardSearchIndexClient
 {
-    private readonly HttpClient httpClient;
     private readonly Dictionary<string, CardSearchResponseContract> cachedResponses = new(StringComparer.OrdinalIgnoreCase);
-
-    /// <summary>
-    /// Creates a client for the card-search endpoint.
-    /// </summary>
-    public CardSearchIndexClient(HttpClient httpClient)
-    {
-        this.httpClient = httpClient;
-    }
 
     /// <summary>
     /// Searches the current server-backed card index and keeps recent responses in memory.

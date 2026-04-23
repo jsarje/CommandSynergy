@@ -8,22 +8,10 @@ namespace CommandSynergy.Infrastructure.Scryfall;
 /// <summary>
 /// Wraps outbound Scryfall requests behind a typed client with validated inputs.
 /// </summary>
-public sealed class ScryfallClient : IScryfallClient
+public sealed class ScryfallClient(HttpClient httpClient, ILogger<ScryfallClient> logger) : IScryfallClient
 {
     public const string HttpClientName = "Scryfall";
     private const int MaxAutocompleteResults = 12;
-
-    private readonly HttpClient httpClient;
-    private readonly ILogger<ScryfallClient> logger;
-
-    /// <summary>
-    /// Creates a typed client for Scryfall metadata access.
-    /// </summary>
-    public ScryfallClient(HttpClient httpClient, ILogger<ScryfallClient> logger)
-    {
-        this.httpClient = httpClient;
-        this.logger = logger;
-    }
 
     /// <summary>
     /// Searches Scryfall cards using the supplied query string.

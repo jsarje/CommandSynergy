@@ -9,33 +9,16 @@ namespace CommandSynergy.Infrastructure.CardMetadata;
 /// <summary>
 /// Searches the derived card index and loads authoritative card profiles with read-only Scryfall fallback.
 /// </summary>
-public sealed class CardMetadataQueryService : ICardCatalogGateway
+public sealed class CardMetadataQueryService(
+    IParquetCardMetadataStore metadataStore,
+    ISearchIndexSnapshotBuilder searchIndexSnapshotBuilder,
+    IScryfallClient scryfallClient,
+    IScryfallCardMapper scryfallCardMapper,
+    ILogger<CardMetadataQueryService> logger) : ICardCatalogGateway
 {
-    private readonly IParquetCardMetadataStore metadataStore;
-    private readonly ISearchIndexSnapshotBuilder searchIndexSnapshotBuilder;
-    private readonly IScryfallClient scryfallClient;
-    private readonly IScryfallCardMapper scryfallCardMapper;
-    private readonly ILogger<CardMetadataQueryService> logger;
     private readonly object searchIndexLock = new();
 
     private CachedSearchIndex? cachedSearchIndex;
-
-    /// <summary>
-    /// Creates a card catalog gateway backed by local metadata and read-only Scryfall fallback.
-    /// </summary>
-    public CardMetadataQueryService(
-        IParquetCardMetadataStore metadataStore,
-        ISearchIndexSnapshotBuilder searchIndexSnapshotBuilder,
-        IScryfallClient scryfallClient,
-        IScryfallCardMapper scryfallCardMapper,
-        ILogger<CardMetadataQueryService> logger)
-    {
-        this.metadataStore = metadataStore;
-        this.searchIndexSnapshotBuilder = searchIndexSnapshotBuilder;
-        this.scryfallClient = scryfallClient;
-        this.scryfallCardMapper = scryfallCardMapper;
-        this.logger = logger;
-    }
 
     /// <inheritdoc />
     public async Task<IReadOnlyDictionary<string, CardProfile>> GetCardProfilesAsync(IEnumerable<string> cardIds, CancellationToken cancellationToken = default)

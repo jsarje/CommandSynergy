@@ -7,19 +7,9 @@ namespace CommandSynergy.Client.Services;
 /// <summary>
 /// Streams raw localStorage payloads through JS interop to avoid SignalR message size limits.
 /// </summary>
-public sealed class StreamingLocalStorageStringStore : ILocalStorageStringStore
+public sealed class StreamingLocalStorageStringStore(IJSRuntime jsRuntime) : ILocalStorageStringStore
 {
     private const long MaxStreamSize = ImportedDeckLibraryStore.MaxPersistedPayloadLength;
-
-    private readonly IJSRuntime jsRuntime;
-
-    /// <summary>
-    /// Creates a new streaming browser storage adapter.
-    /// </summary>
-    public StreamingLocalStorageStringStore(IJSRuntime jsRuntime)
-    {
-        this.jsRuntime = jsRuntime;
-    }
 
     /// <inheritdoc />
     public async ValueTask<string?> GetItemAsync(string key, CancellationToken cancellationToken = default)

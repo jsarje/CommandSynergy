@@ -9,24 +9,12 @@ namespace CommandSynergy.Application.Analysis;
 /// <summary>
 /// Calculates bracket factors and resolves the resulting Commander bracket.
 /// </summary>
-public sealed class BracketCalculationService : IBracketCalculationService
+public sealed class BracketCalculationService(
+    IBracketEngine bracketEngine,
+    IAnalysisExplanationBuilder explanationBuilder,
+    IOptions<BracketOptions> options) : IBracketCalculationService
 {
-    private readonly IBracketEngine bracketEngine;
-    private readonly IAnalysisExplanationBuilder explanationBuilder;
-    private readonly BracketOptions options;
-
-    /// <summary>
-    /// Creates a bracket-calculation service.
-    /// </summary>
-    public BracketCalculationService(
-        IBracketEngine bracketEngine,
-        IAnalysisExplanationBuilder explanationBuilder,
-        IOptions<BracketOptions> options)
-    {
-        this.bracketEngine = bracketEngine;
-        this.explanationBuilder = explanationBuilder;
-        this.options = options.Value;
-    }
+    private readonly BracketOptions bracketOptions = options.Value;
 
     /// <summary>
     /// Calculates the bracket result for the supplied deck and card profiles.
@@ -51,7 +39,7 @@ public sealed class BracketCalculationService : IBracketCalculationService
             {
                 factors.Add(new BracketFactor(
                     "game-changer",
-                    options.GameChangerWeight,
+                    bracketOptions.GameChangerWeight,
                     $"{profile.Name} is flagged by Scryfall as a game changer.",
                     entry.CardId));
             }
@@ -60,7 +48,7 @@ public sealed class BracketCalculationService : IBracketCalculationService
             {
                 factors.Add(new BracketFactor(
                     "mass-land-denial",
-                    options.MassLandDenialWeight,
+                    bracketOptions.MassLandDenialWeight,
                     $"{profile.Name} is a mass land denial card.",
                     entry.CardId));
             }
@@ -72,16 +60,16 @@ public sealed class BracketCalculationService : IBracketCalculationService
             {
                 factors.Add(new BracketFactor(
                     "acceleration",
-                    options.LowCostAccelerationWeight,
+                    bracketOptions.LowCostAccelerationWeight,
                     $"{profile.Name} adds low-cost acceleration pressure.",
                     entry.CardId));
             }
 
-            if (profile.SaltScore is decimal saltScore && saltScore >= options.HighSaltThreshold)
+            if (profile.SaltScore is decimal saltScore && saltScore >= bracketOptions.HighSaltThreshold)
             {
                 factors.Add(new BracketFactor(
                     "pressure",
-                    options.HighSaltWeight,
+                    bracketOptions.HighSaltWeight,
                     $"{profile.Name} carries a high social-friction signal.",
                     entry.CardId));
             }
@@ -89,9 +77,9 @@ public sealed class BracketCalculationService : IBracketCalculationService
 
         var assessment = bracketEngine.Calculate(
             factors,
-            options.LevelThresholds,
-            options.MinimumBracketLevel,
-            options.MaximumBracketLevel,
+            bracketOptions.LevelThresholds,
+            bracketOptions.MinimumBracketLevel,
+            bracketOptions.MaximumBracketLevel,
             "Bracket analysis pending explanation.");
 
         return assessment with

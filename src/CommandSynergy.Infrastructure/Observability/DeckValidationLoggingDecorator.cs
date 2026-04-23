@@ -7,20 +7,8 @@ namespace CommandSynergy.Infrastructure.Observability;
 /// <summary>
 /// Adds structured logging around deck validation requests.
 /// </summary>
-public sealed class DeckValidationLoggingDecorator : IDeckValidationService
+public sealed class DeckValidationLoggingDecorator(IDeckValidationService inner, ILogger<DeckValidationLoggingDecorator> logger) : IDeckValidationService
 {
-    private readonly IDeckValidationService inner;
-    private readonly ILogger<DeckValidationLoggingDecorator> logger;
-
-    /// <summary>
-    /// Creates a logging decorator for deck validation.
-    /// </summary>
-    public DeckValidationLoggingDecorator(IDeckValidationService inner, ILogger<DeckValidationLoggingDecorator> logger)
-    {
-        this.inner = inner;
-        this.logger = logger;
-    }
-
     /// <inheritdoc />
     public async Task<DeckValidationResponseContract> ValidateAsync(DeckSnapshotContract deckSnapshot, CancellationToken cancellationToken = default)
     {

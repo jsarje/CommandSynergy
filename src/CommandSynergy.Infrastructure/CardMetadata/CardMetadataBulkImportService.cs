@@ -7,28 +7,12 @@ namespace CommandSynergy.Infrastructure.CardMetadata;
 /// <summary>
 /// Imports Scryfall oracle-cards bulk metadata into the local Parquet snapshot.
 /// </summary>
-public sealed class CardMetadataBulkImportService : ICardMetadataBulkImportService
+public sealed class CardMetadataBulkImportService(
+    IParquetCardMetadataStore metadataStore,
+    IScryfallClient scryfallClient,
+    IScryfallCardMapper scryfallCardMapper,
+    ILogger<CardMetadataBulkImportService> logger) : ICardMetadataBulkImportService
 {
-    private readonly IParquetCardMetadataStore metadataStore;
-    private readonly IScryfallClient scryfallClient;
-    private readonly IScryfallCardMapper scryfallCardMapper;
-    private readonly ILogger<CardMetadataBulkImportService> logger;
-
-    /// <summary>
-    /// Creates a bulk importer that refreshes the local Parquet snapshot from Scryfall bulk data.
-    /// </summary>
-    public CardMetadataBulkImportService(
-        IParquetCardMetadataStore metadataStore,
-        IScryfallClient scryfallClient,
-        IScryfallCardMapper scryfallCardMapper,
-        ILogger<CardMetadataBulkImportService> logger)
-    {
-        this.metadataStore = metadataStore;
-        this.scryfallClient = scryfallClient;
-        this.scryfallCardMapper = scryfallCardMapper;
-        this.logger = logger;
-    }
-
     /// <summary>
     /// Downloads the Scryfall oracle-cards bulk feed and replaces the local Parquet snapshot.
     /// </summary>

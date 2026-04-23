@@ -9,22 +9,12 @@ namespace CommandSynergy.Infrastructure.CardMetadata;
 /// <summary>
 /// Loads and persists the authoritative local card metadata snapshot from the configured Parquet location.
 /// </summary>
-public sealed class ParquetCardMetadataStore : IParquetCardMetadataStore
+public sealed class ParquetCardMetadataStore(IOptions<CardMetadataOptions> options, ILogger<ParquetCardMetadataStore> logger) : IParquetCardMetadataStore
 {
-    private readonly CardMetadataOptions options;
-    private readonly ILogger<ParquetCardMetadataStore> logger;
+    private readonly CardMetadataOptions cardMetadataOptions = options.Value;
     private readonly SemaphoreSlim snapshotCacheLock = new(1, 1);
 
     private SnapshotCacheEntry? cachedSnapshot;
-
-    /// <summary>
-    /// Creates a snapshot loader for local Parquet-backed card metadata.
-    /// </summary>
-    public ParquetCardMetadataStore(IOptions<CardMetadataOptions> options, ILogger<ParquetCardMetadataStore> logger)
-    {
-        this.options = options.Value;
-        this.logger = logger;
-    }
 
     /// <summary>
     /// Loads the configured metadata snapshot or returns an empty skeleton when it is unavailable.
@@ -33,7 +23,7 @@ public sealed class ParquetCardMetadataStore : IParquetCardMetadataStore
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var snapshotPath = Path.Combine(options.SnapshotDirectory, options.SnapshotFileName);
+        var snapshotPath = Path.Combine(cardMetadataOptions.SnapshotDirectory, cardMetadataOptions.SnapshotFileName);
         if (TryGetCachedSnapshot(snapshotPath, out var cachedSnapshot))
         {
             return cachedSnapshot;
@@ -47,46 +37,46 @@ public sealed class ParquetCardMetadataStore : IParquetCardMetadataStore
                 return cachedSnapshot;
             }
 
-        if (!File.Exists(snapshotPath))
-        {
-            logger.LogWarning("Card metadata snapshot was not found at {SnapshotPath}", snapshotPath);
-            return CardMetadataSnapshot.Empty(snapshotPath);
-        }
+            if (!File.Exists(snapshotPath))
+            {
+                logger.LogWarning("Card metadata snapshot was not found at {SnapshotPath}", snapshotPath);
+                return CardMetadataSnapshot.Empty(snapshotPath);
+            }
 
-        try
-        {
-            await using var stream = File.OpenRead(snapshotPath);
-            var rows = await ParquetSerializer.DeserializeAsync<ParquetCardMetadataRow>(
-                stream,
-                new ParquetSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                },
-                cancellationToken).ConfigureAwait(false);
+            try
+            {
+                await using var stream = File.OpenRead(snapshotPath);
+                var rows = await ParquetSerializer.DeserializeAsync<ParquetCardMetadataRow>(
+                    stream,
+                    new ParquetSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                    },
+                    cancellationToken).ConfigureAwait(false);
 
-            var snapshot = new CardMetadataSnapshot(
-                Path.GetFileNameWithoutExtension(snapshotPath),
-                snapshotPath,
-                File.GetLastWriteTimeUtc(snapshotPath),
-                rows.Select(MapRecord).ToArray());
+                var snapshot = new CardMetadataSnapshot(
+                    Path.GetFileNameWithoutExtension(snapshotPath),
+                    snapshotPath,
+                    File.GetLastWriteTimeUtc(snapshotPath),
+                    rows.Select(MapRecord).ToArray());
 
-            logger.LogInformation(
-                "Loaded metadata snapshot {SnapshotPath} with {CardCount} cards",
-                snapshotPath,
-                snapshot.Cards.Count);
+                logger.LogInformation(
+                    "Loaded metadata snapshot {SnapshotPath} with {CardCount} cards",
+                    snapshotPath,
+                    snapshot.Cards.Count);
 
-            UpdateSnapshotCache(snapshot);
-            return snapshot;
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception exception)
-        {
-            logger.LogWarning(exception, "Failed to read card metadata snapshot from {SnapshotPath}", snapshotPath);
-            return CardMetadataSnapshot.Empty(snapshotPath);
-        }
+                UpdateSnapshotCache(snapshot);
+                return snapshot;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                logger.LogWarning(exception, "Failed to read card metadata snapshot from {SnapshotPath}", snapshotPath);
+                return CardMetadataSnapshot.Empty(snapshotPath);
+            }
         }
         finally
         {
@@ -102,7 +92,7 @@ public sealed class ParquetCardMetadataStore : IParquetCardMetadataStore
     {
         ArgumentNullException.ThrowIfNull(card);
 
-        var snapshotPath = Path.Combine(options.SnapshotDirectory, options.SnapshotFileName);
+        var snapshotPath = Path.Combine(cardMetadataOptions.SnapshotDirectory, cardMetadataOptions.SnapshotFileName);
         var newRow = MapToRow(card);
 
         // Load existing rows so we can perform an id-keyed merge.
@@ -150,7 +140,7 @@ public sealed class ParquetCardMetadataStore : IParquetCardMetadataStore
     {
         ArgumentNullException.ThrowIfNull(cards);
 
-        var snapshotPath = Path.Combine(options.SnapshotDirectory, options.SnapshotFileName);
+        var snapshotPath = Path.Combine(cardMetadataOptions.SnapshotDirectory, cardMetadataOptions.SnapshotFileName);
         var rows = cards
             .GroupBy(card => card.CardId, StringComparer.OrdinalIgnoreCase)
             .Select(group => MapToRow(group.Last()))

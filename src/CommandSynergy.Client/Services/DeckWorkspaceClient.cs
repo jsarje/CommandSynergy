@@ -8,28 +8,12 @@ namespace CommandSynergy.Client.Services;
 /// <summary>
 /// Synchronizes interactive deck workspace mutations with server-owned validation and analysis endpoints.
 /// </summary>
-public class DeckWorkspaceClient : IDeckWorkspaceClient
+public class DeckWorkspaceClient(
+    HttpClient httpClient,
+    IDeckImportService deckImportService,
+    IDeckExportService deckExportService,
+    IWorkingCopyProjectionService workingCopyProjectionService) : IDeckWorkspaceClient
 {
-    private readonly HttpClient httpClient;
-    private readonly IDeckImportService deckImportService;
-    private readonly IDeckExportService deckExportService;
-    private readonly IWorkingCopyProjectionService workingCopyProjectionService;
-
-    /// <summary>
-    /// Creates a deck workspace endpoint client.
-    /// </summary>
-    public DeckWorkspaceClient(
-        HttpClient httpClient,
-        IDeckImportService deckImportService,
-        IDeckExportService deckExportService,
-        IWorkingCopyProjectionService workingCopyProjectionService)
-    {
-        this.httpClient = httpClient;
-        this.deckImportService = deckImportService;
-        this.deckExportService = deckExportService;
-        this.workingCopyProjectionService = workingCopyProjectionService;
-    }
-
     /// <summary>
     /// Validates the current deck snapshot against commander rules.
     /// </summary>

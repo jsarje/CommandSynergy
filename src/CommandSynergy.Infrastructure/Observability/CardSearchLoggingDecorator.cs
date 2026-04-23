@@ -7,20 +7,8 @@ namespace CommandSynergy.Infrastructure.Observability;
 /// <summary>
 /// Adds structured logging around card search requests.
 /// </summary>
-public sealed class CardSearchLoggingDecorator : ICardSearchService
+public sealed class CardSearchLoggingDecorator(ICardSearchService inner, ILogger<CardSearchLoggingDecorator> logger) : ICardSearchService
 {
-    private readonly ICardSearchService inner;
-    private readonly ILogger<CardSearchLoggingDecorator> logger;
-
-    /// <summary>
-    /// Creates a logging decorator for the card search service.
-    /// </summary>
-    public CardSearchLoggingDecorator(ICardSearchService inner, ILogger<CardSearchLoggingDecorator> logger)
-    {
-        this.inner = inner;
-        this.logger = logger;
-    }
-
     /// <inheritdoc />
     public async Task<CardSearchResponseContract> SearchAsync(CardSearchQueryContract request, CancellationToken cancellationToken = default)
     {
