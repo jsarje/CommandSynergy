@@ -21,6 +21,7 @@ public sealed class HomePageTests : PageTest, IClassFixture<PlaywrightWebApplica
     [Fact]
     public async Task HomePageLoadsTheWorkspaceShell()
     {
+        PlaywrightTestHelpers.SkipIfBrowsersMissing();
         await Page.GotoAsync(factory.RootUri.ToString());
 
         await Expect(Page.GetByRole(AriaRole.Banner)).ToContainTextAsync("Synergy Sphere");
@@ -34,6 +35,7 @@ public sealed class HomePageTests : PageTest, IClassFixture<PlaywrightWebApplica
     [Fact]
     public async Task HomePageOpensTheDeckLibraryDrawer()
     {
+        PlaywrightTestHelpers.SkipIfBrowsersMissing();
         await Page.GotoAsync(factory.RootUri.ToString());
         await Page.GetByRole(AriaRole.Button, new() { Name = "Open Deck Library" }).ClickAsync();
 
