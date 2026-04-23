@@ -318,96 +318,10 @@
                 </div>
             </MudPaper>
 
-            <MudPaper Elevation="0" Class="workspace-panel workspace-panel--status">
-                <div class="workspace-panel__header">
-                    <div>
-                        <p class="workspace-panel__label">Signals</p>
-                        <h2>Deck signal</h2>
-                    </div>
-                    <span class="workspace-panel__badge">@ValidationStatusLabel</span>
-                </div>                
-
-                @if (State.Status == DeckWorkspaceStatus.Loading)
-                {
-                    <div class="workspace-state workspace-state--loading" data-testid="workspace-loading">
-                        <MudProgressCircular Indeterminate="true" Size="Size.Large" />
-                        <p>Loading workspace shell.</p>
-                    </div>
-                }
-                else if (State.Status == DeckWorkspaceStatus.Empty)
-                {
-                    <div class="workspace-state workspace-state--empty" data-testid="workspace-empty">
-                        <h3>Commander needed</h3>
-                        <p>@State.Message</p>
-                    </div>
-                }
-                else if (State.Status == DeckWorkspaceStatus.Recovery)
-                {
-                    <div class="workspace-state workspace-state--recovery" data-testid="workspace-recovery">
-                        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
-                            @State.Message
-                        </MudAlert>
-                        <button type="button" class="workspace-state__retry" @onclick="RetryRequested">Retry sync</button>
-                    </div>
-                }
-                else
-                {
-                    <div class="workspace-state workspace-state--ready" data-testid="workspace-ready">
-                        <div class="workspace-metric-strip">
-                            <div>
-                                <span>Deck cards</span>
-                                <strong>@State.Validation?.DeckCardCount</strong>
-                            </div>        
-                            <div>
-                                <span>Legality</span>
-                                <strong>@(State.Validation?.IsValid == true ? "Ready" : "Needs work")</strong>
-                            </div>                    
-                            <div>
-                                <span>Bracket</span>
-                                <strong>@(Analysis?.Bracket.Level.ToString() ?? "-")</strong>
-                            </div>
-                            <div>
-                                <span>Synergy</span>
-                                <strong>@(Analysis?.Synergy.Score.ToString("0.#") ?? "-")</strong>
-                            </div>
-                            <div>
-                                <span>Power</span>
-                                <strong>@(Analysis?.PowerLevel.Score.ToString("0.#") ?? "-")</strong>
-                            </div>
-                        </div>
-
-                        <section class="workspace-stack">
-                            <div class="workspace-section-heading">
-                                <h3>Validation findings</h3>
-                                <span class="workspace-panel__badge">@State.Findings.Count.ToString("00")</span>
-                            </div>
-
-                            @if (State.Findings.Count == 0)
-                            {
-                                <p class="workspace-panel__empty">No findings yet. Add a commander and a few core cards to unlock the deeper read.</p>
-                            }
-                            else
-                            {
-                                <ul class="workspace-findings" data-testid="validation-findings">
-                                    @foreach (var finding in State.Findings)
-                                    {
-                                        <li class="workspace-finding workspace-finding--@finding.Severity">@finding.Message</li>
-                                    }
-                                </ul>
-                            }
-                        </section>
-
-                        <MudExpansionPanels MultiExpansion="true" Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
-                            <MudExpansionPanel Text="Bracket and synergy" Expanded="true">
-                                <AnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="@(State.Status == DeckWorkspaceStatus.Recovery)" />
-                            </MudExpansionPanel>
-                            <MudExpansionPanel Text="Theme signals">
-                                <ThemeAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="@(State.Status == DeckWorkspaceStatus.Recovery)" />
-                            </MudExpansionPanel>
-                        </MudExpansionPanels>
-                    </div>
-                }
-            </MudPaper>
+            <DeckSignalsPanel State="State"
+                              Analysis="Analysis"
+                              IsRefreshingInsights="IsRefreshingInsights"
+                              RetryRequested="RetryRequested" />
         </section>        
 
         <PileBoard Piles="Piles"
