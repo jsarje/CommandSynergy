@@ -30,6 +30,7 @@ public static class ScryfallServiceCollectionExtensions
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             })
             .AddStandardResilienceHandler();
+        services.AddScoped<IScryfallClient>(serviceProvider => serviceProvider.GetRequiredService<ScryfallClient>());
 
         return services;
     }

@@ -9,7 +9,7 @@ namespace CommandSynergy.Application.Analysis;
 /// <summary>
 /// Calculates a heuristic Commander power-level score for a submitted deck.
 /// </summary>
-public sealed class PowerLevelCalculationService
+public sealed class PowerLevelCalculationService : IPowerLevelCalculationService
 {
     private static readonly HashSet<string> FastMana = new(StringComparer.OrdinalIgnoreCase)
     {

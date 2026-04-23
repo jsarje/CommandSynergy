@@ -8,7 +8,7 @@ namespace CommandSynergy.Client.Services;
 /// <summary>
 /// Synchronizes interactive deck workspace mutations with server-owned validation and analysis endpoints.
 /// </summary>
-public class DeckWorkspaceClient
+public class DeckWorkspaceClient : IDeckWorkspaceClient
 {
     private readonly HttpClient httpClient;
     private readonly IDeckImportService deckImportService;

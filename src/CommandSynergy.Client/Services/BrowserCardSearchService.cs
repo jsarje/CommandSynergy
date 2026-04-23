@@ -5,9 +5,9 @@ namespace CommandSynergy.Client.Services;
 
 public sealed class BrowserCardSearchService : ICardSearchService
 {
-    private readonly CardSearchIndexClient cardSearchIndexClient;
+    private readonly ICardSearchIndexClient cardSearchIndexClient;
 
-    public BrowserCardSearchService(CardSearchIndexClient cardSearchIndexClient)
+    public BrowserCardSearchService(ICardSearchIndexClient cardSearchIndexClient)
     {
         this.cardSearchIndexClient = cardSearchIndexClient;
     }

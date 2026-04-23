@@ -2,12 +2,12 @@ using CommandSynergy.Application.Decks.Portability;
 
 namespace CommandSynergy.Client.Services;
 
-public sealed class ImportedDeckLibraryState
+public sealed class ImportedDeckLibraryState : IImportedDeckLibraryState
 {
-    private readonly ImportedDeckLibraryStore store;
+    private readonly IImportedDeckLibraryStore store;
     private readonly TimeProvider timeProvider;
 
-    public ImportedDeckLibraryState(ImportedDeckLibraryStore store, TimeProvider timeProvider)
+    public ImportedDeckLibraryState(IImportedDeckLibraryStore store, TimeProvider timeProvider)
     {
         this.store = store;
         this.timeProvider = timeProvider;

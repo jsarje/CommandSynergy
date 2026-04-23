@@ -10,12 +10,12 @@ public sealed class DeckImportService : IDeckImportService
     private const int MaxConcurrentCardResolutions = 8;
 
     private readonly ICardSearchService cardSearchService;
-    private readonly DeckFormatDetectionService deckFormatDetectionService;
+    private readonly IDeckFormatDetectionService deckFormatDetectionService;
     private readonly TimeProvider timeProvider;
 
     public DeckImportService(
         ICardSearchService cardSearchService,
-        DeckFormatDetectionService deckFormatDetectionService,
+        IDeckFormatDetectionService deckFormatDetectionService,
         TimeProvider timeProvider)
     {
         this.cardSearchService = cardSearchService;

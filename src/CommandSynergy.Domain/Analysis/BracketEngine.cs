@@ -3,7 +3,7 @@ namespace CommandSynergy.Domain.Analysis;
 /// <summary>
 /// Maps weighted bracket factors to an official bracket level.
 /// </summary>
-public sealed class BracketEngine
+public sealed class BracketEngine : IBracketEngine
 {
     /// <summary>
     /// Calculates a bracket assessment from a set of weighted factors and threshold boundaries.

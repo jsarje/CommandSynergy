@@ -9,7 +9,7 @@ namespace CommandSynergy.Infrastructure.CardMetadata;
 /// <summary>
 /// Loads and persists the authoritative local card metadata snapshot from the configured Parquet location.
 /// </summary>
-public sealed class ParquetCardMetadataStore
+public sealed class ParquetCardMetadataStore : IParquetCardMetadataStore
 {
     private readonly CardMetadataOptions options;
     private readonly ILogger<ParquetCardMetadataStore> logger;

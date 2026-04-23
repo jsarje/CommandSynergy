@@ -7,18 +7,18 @@ namespace CommandSynergy.Application.Analysis;
 /// <summary>
 /// Scores commander-specific synergy against generic staple pressure.
 /// </summary>
-public sealed class SynergyScoringService
+public sealed class SynergyScoringService : ISynergyScoringService
 {
     private const decimal CommanderSpecificThreshold = 0.20m;
     private const decimal CommanderSpecificDelta = 0.10m;
     private const decimal StapleRateThreshold = 0.35m;
 
-    private readonly AnalysisExplanationBuilder explanationBuilder;
+    private readonly IAnalysisExplanationBuilder explanationBuilder;
 
     /// <summary>
     /// Creates a synergy-scoring service.
     /// </summary>
-    public SynergyScoringService(AnalysisExplanationBuilder explanationBuilder)
+    public SynergyScoringService(IAnalysisExplanationBuilder explanationBuilder)
     {
         this.explanationBuilder = explanationBuilder;
     }

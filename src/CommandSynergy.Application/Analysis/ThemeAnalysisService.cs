@@ -8,18 +8,18 @@ namespace CommandSynergy.Application.Analysis;
 /// <summary>
 /// Aggregates deck-level theme analysis and thematic scoring.
 /// </summary>
-public sealed class ThemeAnalysisService
+public sealed class ThemeAnalysisService : IThemeAnalysisService
 {
     private const int MinimumAnalysisCardCount = 20;
     private const decimal OffThemeSignalThreshold = 0.10m;
 
-    private readonly ThemeMatchingService themeMatchingService;
-    private readonly AnalysisExplanationBuilder explanationBuilder;
+    private readonly IThemeMatchingService themeMatchingService;
+    private readonly IAnalysisExplanationBuilder explanationBuilder;
 
     /// <summary>
     /// Creates a theme-analysis service.
     /// </summary>
-    public ThemeAnalysisService(ThemeMatchingService themeMatchingService, AnalysisExplanationBuilder explanationBuilder)
+    public ThemeAnalysisService(IThemeMatchingService themeMatchingService, IAnalysisExplanationBuilder explanationBuilder)
     {
         this.themeMatchingService = themeMatchingService;
         this.explanationBuilder = explanationBuilder;

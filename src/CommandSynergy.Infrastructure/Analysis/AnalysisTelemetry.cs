@@ -5,7 +5,7 @@ namespace CommandSynergy.Infrastructure.Analysis;
 /// <summary>
 /// Records structured telemetry for deck analysis execution.
 /// </summary>
-public sealed class AnalysisTelemetry
+public sealed class AnalysisTelemetry : IAnalysisTelemetry
 {
     private readonly ILogger<AnalysisTelemetry> logger;
 

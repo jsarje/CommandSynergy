@@ -38,12 +38,12 @@ public sealed class DependencyInjectionTests
 
         using var provider = services.BuildServiceProvider();
 
-        provider.GetRequiredService<ScryfallClient>().Should().NotBeNull();
-        provider.GetRequiredService<ParquetCardMetadataStore>().Should().NotBeNull();
-        provider.GetRequiredService<CardMetadataBulkImportService>().Should().NotBeNull();
-        provider.GetRequiredService<SearchIndexSnapshotBuilder>().Should().NotBeNull();
-        provider.GetRequiredService<DeckAnalysisCache>().Should().NotBeNull();
-        provider.GetRequiredService<AnalysisTelemetry>().Should().NotBeNull();
+        provider.GetRequiredService<IScryfallClient>().Should().NotBeNull();
+        provider.GetRequiredService<IParquetCardMetadataStore>().Should().NotBeNull();
+        provider.GetRequiredService<ICardMetadataBulkImportService>().Should().NotBeNull();
+        provider.GetRequiredService<ISearchIndexSnapshotBuilder>().Should().NotBeNull();
+        provider.GetRequiredService<IDeckAnalysisCache>().Should().NotBeNull();
+        provider.GetRequiredService<IAnalysisTelemetry>().Should().NotBeNull();
         provider.GetRequiredService<IDeckAnalysisService>().Should().NotBeNull();
         provider.GetRequiredService<IHttpClientFactory>().CreateClient().Should().NotBeNull();
 

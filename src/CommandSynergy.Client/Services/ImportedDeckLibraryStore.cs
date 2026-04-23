@@ -3,17 +3,17 @@ using CommandSynergy.Application.Decks.Portability;
 
 namespace CommandSynergy.Client.Services;
 
-public sealed class ImportedDeckLibraryStore
+public sealed class ImportedDeckLibraryStore : IImportedDeckLibraryStore
 {
     public const int MaxPersistedPayloadLength = 256 * 1024;
 
     private readonly ILocalStorageStringStore localStorageStringStore;
-    private readonly ImportedDeckLibrarySerializer serializer;
+    private readonly IImportedDeckLibrarySerializer serializer;
     private readonly TimeProvider timeProvider;
 
     public ImportedDeckLibraryStore(
         ILocalStorageStringStore localStorageStringStore,
-        ImportedDeckLibrarySerializer serializer,
+        IImportedDeckLibrarySerializer serializer,
         TimeProvider timeProvider)
     {
         this.localStorageStringStore = localStorageStringStore;

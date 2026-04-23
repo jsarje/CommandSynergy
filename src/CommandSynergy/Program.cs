@@ -32,14 +32,14 @@ builder.Services.AddScoped(static serviceProvider =>
         : "http://localhost/";
     return new HttpClient { BaseAddress = new Uri(baseUri) };
 });
-builder.Services.AddScoped<DeckWorkspaceStateFactory>();
-builder.Services.AddScoped<CardSearchIndexClient>();
-builder.Services.AddScoped<DeckWorkspaceClient>();
+builder.Services.AddScoped<IDeckWorkspaceStateFactory, DeckWorkspaceStateFactory>();
+builder.Services.AddScoped<ICardSearchIndexClient, CardSearchIndexClient>();
+builder.Services.AddScoped<IDeckWorkspaceClient, DeckWorkspaceClient>();
 builder.Services.AddScoped<DeckWorkspaceViewModel>();
 builder.Services.AddScoped<ILocalStorageStringStore, StreamingLocalStorageStringStore>();
-builder.Services.AddScoped<ImportedDeckLibrarySerializer>();
-builder.Services.AddScoped<ImportedDeckLibraryStore>();
-builder.Services.AddScoped<ImportedDeckLibraryState>();
+builder.Services.AddScoped<IImportedDeckLibrarySerializer, ImportedDeckLibrarySerializer>();
+builder.Services.AddScoped<IImportedDeckLibraryStore, ImportedDeckLibraryStore>();
+builder.Services.AddScoped<IImportedDeckLibraryState, ImportedDeckLibraryState>();
 
 var app = builder.Build();
 

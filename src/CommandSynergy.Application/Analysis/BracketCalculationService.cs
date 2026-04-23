@@ -9,18 +9,18 @@ namespace CommandSynergy.Application.Analysis;
 /// <summary>
 /// Calculates bracket factors and resolves the resulting Commander bracket.
 /// </summary>
-public sealed class BracketCalculationService
+public sealed class BracketCalculationService : IBracketCalculationService
 {
-    private readonly BracketEngine bracketEngine;
-    private readonly AnalysisExplanationBuilder explanationBuilder;
+    private readonly IBracketEngine bracketEngine;
+    private readonly IAnalysisExplanationBuilder explanationBuilder;
     private readonly BracketOptions options;
 
     /// <summary>
     /// Creates a bracket-calculation service.
     /// </summary>
     public BracketCalculationService(
-        BracketEngine bracketEngine,
-        AnalysisExplanationBuilder explanationBuilder,
+        IBracketEngine bracketEngine,
+        IAnalysisExplanationBuilder explanationBuilder,
         IOptions<BracketOptions> options)
     {
         this.bracketEngine = bracketEngine;

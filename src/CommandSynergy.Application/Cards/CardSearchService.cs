@@ -6,7 +6,7 @@ namespace CommandSynergy.Application.Cards;
 /// <summary>
 /// Orchestrates search requests against the current card catalog.
 /// </summary>
-public sealed class CardSearchService : ICardSearchService
+public sealed class CardSearchService : ICardSearchCoreService
 {
     private readonly ICardCatalogGateway cardCatalogGateway;
 

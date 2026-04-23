@@ -6,7 +6,7 @@ namespace CommandSynergy.Domain.Rules;
 /// <summary>
 /// Validates commander decks for deck size, singleton rules, color identity, companion restrictions, and multi-face metadata integrity.
 /// </summary>
-public sealed class CommanderRules
+public sealed class CommanderRules : ICommanderRules
 {
     /// <summary>
     /// Validates the supplied deck against commander rules using authoritative card profiles.
