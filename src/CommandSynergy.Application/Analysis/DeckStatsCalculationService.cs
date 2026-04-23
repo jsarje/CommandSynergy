@@ -254,12 +254,24 @@ public sealed partial class DeckStatsCalculationService
             return Math.Max(numericAmount, MinimumManaAmount);
         }
 
+        var matchedAmount = 0;
+        var earliestIndex = int.MaxValue;
+
         foreach (var (word, amount) in NumberWords)
         {
-            if (segment.Contains(word, StringComparison.OrdinalIgnoreCase))
+            var index = segment.IndexOf(word, StringComparison.OrdinalIgnoreCase);
+            if (index < 0 || index >= earliestIndex)
             {
-                return amount;
+                continue;
             }
+
+            earliestIndex = index;
+            matchedAmount = amount;
+        }
+
+        if (matchedAmount > 0)
+        {
+            return matchedAmount;
         }
 
         var tokenCount = ManaSymbolRegex().Matches(segment).Count;
@@ -268,6 +280,11 @@ public sealed partial class DeckStatsCalculationService
 
     private static string GetPrimaryCardType(string typeLine)
     {
+        if (typeLine.Contains("Kindred", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Kindred";
+        }
+
         if (typeLine.Contains("Creature", StringComparison.OrdinalIgnoreCase))
         {
             return "Creature";
@@ -306,11 +323,6 @@ public sealed partial class DeckStatsCalculationService
         if (typeLine.Contains("Battle", StringComparison.OrdinalIgnoreCase))
         {
             return "Battle";
-        }
-
-        if (typeLine.Contains("Kindred", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Kindred";
         }
 
         return "Other";
