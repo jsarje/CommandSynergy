@@ -10,10 +10,6 @@ public sealed class ImportedDeckLibraryStore(
 {
     public const int MaxPersistedPayloadLength = 256 * 1024;
 
-    private readonly ILocalStorageStringStore localStorageStringStore = localStorageStringStore;
-    private readonly IImportedDeckLibrarySerializer serializer = serializer;
-    private readonly TimeProvider timeProvider = timeProvider;
-
     public async Task<ImportedDeckLibraryLoadResult> LoadAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

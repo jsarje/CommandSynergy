@@ -16,8 +16,6 @@ public sealed class DeckAnalysisCache(IDistributedCache distributedCache) : IDec
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
     private const string CacheKeyPrefix = "DeckAnalysis";
 
-    private readonly IDistributedCache distributedCache = distributedCache;
-
     /// <summary>
     /// Tries to get a cached response for the supplied key.
     /// </summary>

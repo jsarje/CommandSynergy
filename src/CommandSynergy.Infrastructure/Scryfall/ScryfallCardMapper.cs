@@ -9,8 +9,6 @@ namespace CommandSynergy.Infrastructure.Scryfall;
 /// </summary>
 public sealed class ScryfallCardMapper(IThemeMatchingService themeMatchingService) : IScryfallCardMapper
 {
-    private readonly IThemeMatchingService themeMatchingService = themeMatchingService;
-
     /// <summary>
     /// Maps a Scryfall document to a compact search result.
     /// </summary>

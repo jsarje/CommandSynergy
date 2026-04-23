@@ -16,11 +16,6 @@ public sealed class CardMetadataQueryService(
     IScryfallCardMapper scryfallCardMapper,
     ILogger<CardMetadataQueryService> logger) : ICardCatalogGateway
 {
-    private readonly IParquetCardMetadataStore metadataStore = metadataStore;
-    private readonly ISearchIndexSnapshotBuilder searchIndexSnapshotBuilder = searchIndexSnapshotBuilder;
-    private readonly IScryfallClient scryfallClient = scryfallClient;
-    private readonly IScryfallCardMapper scryfallCardMapper = scryfallCardMapper;
-    private readonly ILogger<CardMetadataQueryService> logger = logger;
     private readonly object searchIndexLock = new();
 
     private CachedSearchIndex? cachedSearchIndex;

@@ -13,11 +13,6 @@ public sealed class CardMetadataBulkImportService(
     IScryfallCardMapper scryfallCardMapper,
     ILogger<CardMetadataBulkImportService> logger) : ICardMetadataBulkImportService
 {
-    private readonly IParquetCardMetadataStore metadataStore = metadataStore;
-    private readonly IScryfallClient scryfallClient = scryfallClient;
-    private readonly IScryfallCardMapper scryfallCardMapper = scryfallCardMapper;
-    private readonly ILogger<CardMetadataBulkImportService> logger = logger;
-
     /// <summary>
     /// Downloads the Scryfall oracle-cards bulk feed and replaces the local Parquet snapshot.
     /// </summary>

@@ -11,8 +11,6 @@ public sealed class StreamingLocalStorageStringStore(IJSRuntime jsRuntime) : ILo
 {
     private const long MaxStreamSize = ImportedDeckLibraryStore.MaxPersistedPayloadLength;
 
-    private readonly IJSRuntime jsRuntime = jsRuntime;
-
     /// <inheritdoc />
     public async ValueTask<string?> GetItemAsync(string key, CancellationToken cancellationToken = default)
     {

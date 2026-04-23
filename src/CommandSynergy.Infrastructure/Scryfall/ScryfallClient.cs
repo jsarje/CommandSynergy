@@ -13,9 +13,6 @@ public sealed class ScryfallClient(HttpClient httpClient, ILogger<ScryfallClient
     public const string HttpClientName = "Scryfall";
     private const int MaxAutocompleteResults = 12;
 
-    private readonly HttpClient httpClient = httpClient;
-    private readonly ILogger<ScryfallClient> logger = logger;
-
     /// <summary>
     /// Searches Scryfall cards using the supplied query string.
     /// </summary>

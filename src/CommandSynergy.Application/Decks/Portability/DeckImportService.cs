@@ -12,10 +12,6 @@ public sealed class DeckImportService(
     private const int MaxDocumentLength = 64 * 1024;
     private const int MaxConcurrentCardResolutions = 8;
 
-    private readonly ICardSearchService cardSearchService = cardSearchService;
-    private readonly IDeckFormatDetectionService deckFormatDetectionService = deckFormatDetectionService;
-    private readonly TimeProvider timeProvider = timeProvider;
-
     public async Task<DeckImportResultContract> ImportAsync(DeckImportRequestContract request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);

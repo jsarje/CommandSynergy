@@ -13,8 +13,6 @@ public sealed class SynergyScoringService(IAnalysisExplanationBuilder explanatio
     private const decimal CommanderSpecificDelta = 0.10m;
     private const decimal StapleRateThreshold = 0.35m;
 
-    private readonly IAnalysisExplanationBuilder explanationBuilder = explanationBuilder;
-
     /// <summary>
     /// Calculates the synergy result for the supplied deck and card profiles.
     /// </summary>

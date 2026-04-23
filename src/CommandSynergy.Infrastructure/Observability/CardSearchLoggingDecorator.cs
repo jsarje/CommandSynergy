@@ -9,9 +9,6 @@ namespace CommandSynergy.Infrastructure.Observability;
 /// </summary>
 public sealed class CardSearchLoggingDecorator(ICardSearchService inner, ILogger<CardSearchLoggingDecorator> logger) : ICardSearchService
 {
-    private readonly ICardSearchService inner = inner;
-    private readonly ILogger<CardSearchLoggingDecorator> logger = logger;
-
     /// <inheritdoc />
     public async Task<CardSearchResponseContract> SearchAsync(CardSearchQueryContract request, CancellationToken cancellationToken = default)
     {

@@ -10,9 +10,6 @@ namespace CommandSynergy.Application.Decks;
 /// </summary>
 public sealed class DeckValidationService(ICardCatalogGateway cardCatalogGateway, ICommanderRules commanderRules) : IDeckValidationCoreService
 {
-    private readonly ICardCatalogGateway cardCatalogGateway = cardCatalogGateway;
-    private readonly ICommanderRules commanderRules = commanderRules;
-
     /// <inheritdoc />
     public async Task<DeckValidationResponseContract> ValidateAsync(DeckSnapshotContract deckSnapshot, CancellationToken cancellationToken = default)
     {

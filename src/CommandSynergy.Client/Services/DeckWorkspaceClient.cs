@@ -14,11 +14,6 @@ public class DeckWorkspaceClient(
     IDeckExportService deckExportService,
     IWorkingCopyProjectionService workingCopyProjectionService) : IDeckWorkspaceClient
 {
-    private readonly HttpClient httpClient = httpClient;
-    private readonly IDeckImportService deckImportService = deckImportService;
-    private readonly IDeckExportService deckExportService = deckExportService;
-    private readonly IWorkingCopyProjectionService workingCopyProjectionService = workingCopyProjectionService;
-
     /// <summary>
     /// Validates the current deck snapshot against commander rules.
     /// </summary>

@@ -9,9 +9,6 @@ namespace CommandSynergy.Infrastructure.Observability;
 /// </summary>
 public sealed class DeckValidationLoggingDecorator(IDeckValidationService inner, ILogger<DeckValidationLoggingDecorator> logger) : IDeckValidationService
 {
-    private readonly IDeckValidationService inner = inner;
-    private readonly ILogger<DeckValidationLoggingDecorator> logger = logger;
-
     /// <inheritdoc />
     public async Task<DeckValidationResponseContract> ValidateAsync(DeckSnapshotContract deckSnapshot, CancellationToken cancellationToken = default)
     {

@@ -6,8 +6,6 @@ namespace CommandSynergy.Application.Decks.Portability;
 
 public sealed class DeckExportService(IDeckFormatRegistry deckFormatRegistry) : IDeckExportService
 {
-    private readonly IDeckFormatRegistry deckFormatRegistry = deckFormatRegistry;
-
     public Task<DeckExportResultContract> ExportAsync(DeckExportRequestContract request, PortableDeckSnapshot snapshot, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);

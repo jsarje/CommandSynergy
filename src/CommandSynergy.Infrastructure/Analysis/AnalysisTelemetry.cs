@@ -7,8 +7,6 @@ namespace CommandSynergy.Infrastructure.Analysis;
 /// </summary>
 public sealed class AnalysisTelemetry(ILogger<AnalysisTelemetry> logger) : IAnalysisTelemetry
 {
-    private readonly ILogger<AnalysisTelemetry> logger = logger;
-
     /// <summary>
     /// Records a cache hit for a deck analysis request.
     /// </summary>

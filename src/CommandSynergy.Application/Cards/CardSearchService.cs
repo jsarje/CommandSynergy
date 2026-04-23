@@ -8,8 +8,6 @@ namespace CommandSynergy.Application.Cards;
 /// </summary>
 public sealed class CardSearchService(ICardCatalogGateway cardCatalogGateway) : ICardSearchCoreService
 {
-    private readonly ICardCatalogGateway cardCatalogGateway = cardCatalogGateway;
-
     /// <inheritdoc />
     public async Task<CardSearchResponseContract> SearchAsync(CardSearchQueryContract request, CancellationToken cancellationToken = default)
     {

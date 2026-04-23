@@ -13,9 +13,6 @@ public sealed class ThemeAnalysisService(IThemeMatchingService themeMatchingServ
     private const int MinimumAnalysisCardCount = 20;
     private const decimal OffThemeSignalThreshold = 0.10m;
 
-    private readonly IThemeMatchingService themeMatchingService = themeMatchingService;
-    private readonly IAnalysisExplanationBuilder explanationBuilder = explanationBuilder;
-
     /// <summary>
     /// Analyses a deck and computes theme results plus enhanced synergy scoring.
     /// </summary>

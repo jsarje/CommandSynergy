@@ -11,8 +11,7 @@ namespace CommandSynergy.Infrastructure.CardMetadata;
 /// </summary>
 public sealed class ParquetCardMetadataStore(IOptions<CardMetadataOptions> options, ILogger<ParquetCardMetadataStore> logger) : IParquetCardMetadataStore
 {
-    private readonly CardMetadataOptions options = options.Value;
-    private readonly ILogger<ParquetCardMetadataStore> logger = logger;
+    private readonly CardMetadataOptions cardMetadataOptions = options.Value;
     private readonly SemaphoreSlim snapshotCacheLock = new(1, 1);
 
     private SnapshotCacheEntry? cachedSnapshot;
@@ -24,7 +23,7 @@ public sealed class ParquetCardMetadataStore(IOptions<CardMetadataOptions> optio
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var snapshotPath = Path.Combine(options.SnapshotDirectory, options.SnapshotFileName);
+        var snapshotPath = Path.Combine(cardMetadataOptions.SnapshotDirectory, cardMetadataOptions.SnapshotFileName);
         if (TryGetCachedSnapshot(snapshotPath, out var cachedSnapshot))
         {
             return cachedSnapshot;
@@ -93,7 +92,7 @@ public sealed class ParquetCardMetadataStore(IOptions<CardMetadataOptions> optio
     {
         ArgumentNullException.ThrowIfNull(card);
 
-        var snapshotPath = Path.Combine(options.SnapshotDirectory, options.SnapshotFileName);
+        var snapshotPath = Path.Combine(cardMetadataOptions.SnapshotDirectory, cardMetadataOptions.SnapshotFileName);
         var newRow = MapToRow(card);
 
         // Load existing rows so we can perform an id-keyed merge.
@@ -141,7 +140,7 @@ public sealed class ParquetCardMetadataStore(IOptions<CardMetadataOptions> optio
     {
         ArgumentNullException.ThrowIfNull(cards);
 
-        var snapshotPath = Path.Combine(options.SnapshotDirectory, options.SnapshotFileName);
+        var snapshotPath = Path.Combine(cardMetadataOptions.SnapshotDirectory, cardMetadataOptions.SnapshotFileName);
         var rows = cards
             .GroupBy(card => card.CardId, StringComparer.OrdinalIgnoreCase)
             .Select(group => MapToRow(group.Last()))

@@ -9,7 +9,7 @@ namespace CommandSynergy.Infrastructure.CardMetadata;
 /// </summary>
 public sealed class SearchIndexSnapshotBuilder(IOptions<CardMetadataOptions> options) : ISearchIndexSnapshotBuilder
 {
-    private readonly CardMetadataOptions options = options.Value;
+    private readonly CardMetadataOptions cardMetadataOptions = options.Value;
 
     /// <summary>
     /// Produces a compact client search snapshot from the supplied metadata snapshot.
@@ -37,7 +37,7 @@ public sealed class SearchIndexSnapshotBuilder(IOptions<CardMetadataOptions> opt
 
         return new SearchIndexSnapshotContract
         {
-            Version = options.SearchIndexVersion,
+            Version = cardMetadataOptions.SearchIndexVersion,
             GeneratedUtc = DateTimeOffset.UtcNow,
             SourceSnapshotId = snapshot.SnapshotId,
             CardSummaries = summaries,

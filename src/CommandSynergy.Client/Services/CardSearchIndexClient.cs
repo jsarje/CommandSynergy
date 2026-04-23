@@ -9,7 +9,6 @@ namespace CommandSynergy.Client.Services;
 /// </summary>
 public class CardSearchIndexClient(HttpClient httpClient) : ICardSearchIndexClient
 {
-    private readonly HttpClient httpClient = httpClient;
     private readonly Dictionary<string, CardSearchResponseContract> cachedResponses = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
