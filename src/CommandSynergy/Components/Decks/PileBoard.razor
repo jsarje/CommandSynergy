@@ -5,40 +5,7 @@
 <section class="pile-board">
     <div class="pile-board__header">
         <div>
-            <p class="workspace-panel__label">Deck Building Workspace</p>            
-        </div>
-        <div class="pile-board__header-side">            
-            <div class="pile-board__controls" data-testid="mainboard-controls">
-                <label class="pile-board__control">
-                    <span>Group mainboard</span>
-                    <select @bind="selectedGrouping" data-testid="mainboard-grouping">
-                        <option value="@MainboardGrouping.Type">Type</option>
-                        <option value="@MainboardGrouping.ManaCost">Mana cost</option>
-                        <option value="@MainboardGrouping.Color">Color</option>
-                        <option value="@MainboardGrouping.Rarity">Rarity</option>
-                        <option value="@MainboardGrouping.Set">Set</option>
-                        <option value="@MainboardGrouping.None">No grouping</option>
-                    </select>
-                </label>
-
-                <label class="pile-board__control">
-                    <span>Sort cards</span>
-                    <select @bind="selectedSorting" data-testid="mainboard-sorting">
-                        <option value="@MainboardSorting.Name">Name</option>
-                        <option value="@MainboardSorting.ManaCost">Mana cost</option>
-                        <option value="@MainboardSorting.Type">Type</option>
-                        <option value="@MainboardSorting.Color">Color</option>
-                    </select>
-                </label>
-
-                <button type="button"
-                        class="pile-board__compact-toggle"
-                        aria-pressed="@isCompactMode"
-                        data-testid="compact-mode-toggle"
-                        @onclick="ToggleCompactMode">
-                    @(isCompactMode ? "Compact mode on" : "Compact mode off")
-                </button>
-            </div>
+            <p class="workspace-panel__label">Deck Building Workspace</p>
         </div>
     </div>
 
@@ -54,8 +21,45 @@
                     <div>
                         <h3>@lane.Name</h3>
                         <p>@cardsInPile.Sum(static card => card.Quantity) cards</p>
-                    </div>                    
-                </header>                
+                    </div>
+
+                    @if (string.Equals(lane.PileId, DeckWorkspaceViewModel.MainboardPileId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        <div class="pile-board__header-side">
+                            <div class="pile-board__controls" data-testid="mainboard-controls">
+                                <label class="pile-board__control">
+                                    <span>Group mainboard</span>
+                                    <select @bind="selectedGrouping" data-testid="mainboard-grouping">
+                                        <option value="@MainboardGrouping.Type">Type</option>
+                                        <option value="@MainboardGrouping.ManaCost">Mana cost</option>
+                                        <option value="@MainboardGrouping.Color">Color</option>
+                                        <option value="@MainboardGrouping.Rarity">Rarity</option>
+                                        <option value="@MainboardGrouping.Set">Set</option>
+                                        <option value="@MainboardGrouping.None">No grouping</option>
+                                    </select>
+                                </label>
+
+                                <label class="pile-board__control">
+                                    <span>Sort cards</span>
+                                    <select @bind="selectedSorting" data-testid="mainboard-sorting">
+                                        <option value="@MainboardSorting.Name">Name</option>
+                                        <option value="@MainboardSorting.ManaCost">Mana cost</option>
+                                        <option value="@MainboardSorting.Type">Type</option>
+                                        <option value="@MainboardSorting.Color">Color</option>
+                                    </select>
+                                </label>
+
+                                <button type="button"
+                                        class="pile-board__compact-toggle"
+                                        aria-pressed="@isCompactMode"
+                                        data-testid="compact-mode-toggle"
+                                        @onclick="ToggleCompactMode">
+                                    @(isCompactMode ? "Compact mode on" : "Compact mode off")
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </header>
 
                 <div class="pile-board__cards @(IsCommandZone(lane.PileId) ? "pile-board__cards--command" : "pile-board__cards--mainboard")">
                     @if (cardsInPile.Length == 0)
@@ -219,7 +223,7 @@
 
     private static string GetLaneClass(string pileId) => IsCommandZone(pileId)
         ? "pile-board__pile--command"
-        : "pile-board__pile--mainboard";        
+        : "pile-board__pile--mainboard";
 
     private static string GetEmptyMessage(string pileId) => IsCommandZone(pileId)
         ? "Choose a legal commander to activate the command zone."
