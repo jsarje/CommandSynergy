@@ -8,7 +8,7 @@ namespace CommandSynergy.Infrastructure.Scryfall;
 /// <summary>
 /// Wraps outbound Scryfall requests behind a typed client with validated inputs.
 /// </summary>
-public sealed class ScryfallClient
+public sealed class ScryfallClient : IScryfallClient
 {
     public const string HttpClientName = "Scryfall";
     private const int MaxAutocompleteResults = 12;

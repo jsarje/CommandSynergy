@@ -11,7 +11,7 @@ namespace CommandSynergy.Infrastructure.Analysis;
 /// <summary>
 /// Provides shared cache helpers for deck analysis responses.
 /// </summary>
-public sealed class DeckAnalysisCache
+public sealed class DeckAnalysisCache : IDeckAnalysisCache
 {
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
     private const string CacheKeyPrefix = "DeckAnalysis";
@@ -104,19 +104,19 @@ public sealed class DeckAnalysisCache
 /// </summary>
 public sealed class CachedDeckAnalysisService : IDeckAnalysisService
 {
-    private readonly DeckAnalysisService inner;
-    private readonly DeckAnalysisCache cache;
+    private readonly IDeckAnalysisCoreService inner;
+    private readonly IDeckAnalysisCache cache;
     private readonly ICardCatalogGateway cardCatalogGateway;
-    private readonly AnalysisTelemetry telemetry;
+    private readonly IAnalysisTelemetry telemetry;
 
     /// <summary>
     /// Creates a cache-aware deck analysis decorator.
     /// </summary>
     public CachedDeckAnalysisService(
-        DeckAnalysisService inner,
-        DeckAnalysisCache cache,
+        IDeckAnalysisCoreService inner,
+        IDeckAnalysisCache cache,
         ICardCatalogGateway cardCatalogGateway,
-        AnalysisTelemetry telemetry)
+        IAnalysisTelemetry telemetry)
     {
         this.inner = inner;
         this.cache = cache;

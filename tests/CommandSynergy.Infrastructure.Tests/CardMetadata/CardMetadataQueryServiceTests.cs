@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using CommandSynergy.Application.Analysis;
 using CommandSynergy.Application.Configuration;
 using CommandSynergy.Application.Contracts;
 using CommandSynergy.Infrastructure.CardMetadata;
@@ -75,7 +76,7 @@ public sealed class CardMetadataQueryServiceTests
                 metadataStore,
                 searchIndexBuilder,
                 scryfallClient,
-                new ScryfallCardMapper(),
+                new ScryfallCardMapper(new ThemeMatchingService()),
                 NullLogger<CardMetadataQueryService>.Instance);
 
             var response = await sut.GetCardProfilesAsync([ "persistent-petitioners-id" ]);
@@ -129,7 +130,7 @@ public sealed class CardMetadataQueryServiceTests
                 metadataStore,
                 searchIndexBuilder,
                 scryfallClient,
-                new ScryfallCardMapper(),
+                new ScryfallCardMapper(new ThemeMatchingService()),
                 NullLogger<CardMetadataQueryService>.Instance);
 
             var response = await sut.GetCardProfilesAsync([ "824b2d73-2151-4e5e-9f05-8f63e2bdcaa9" ]);
@@ -182,7 +183,7 @@ public sealed class CardMetadataQueryServiceTests
                 metadataStore,
                 searchIndexBuilder,
                 scryfallClient,
-                new ScryfallCardMapper(),
+                new ScryfallCardMapper(new ThemeMatchingService()),
                 NullLogger<CardMetadataQueryService>.Instance);
 
             var response = await sut.SearchAsync(new CardSearchQueryContract

@@ -14,13 +14,13 @@ builder.Services.AddScoped(static serviceProvider => new HttpClient
 {
 	BaseAddress = new Uri(serviceProvider.GetRequiredService<IWebAssemblyHostEnvironment>().BaseAddress),
 });
-builder.Services.AddScoped<CardSearchIndexClient>();
+builder.Services.AddScoped<ICardSearchIndexClient, CardSearchIndexClient>();
 builder.Services.AddScoped<ICardSearchService, BrowserCardSearchService>();
-builder.Services.AddScoped<DeckWorkspaceStateFactory>();
-builder.Services.AddScoped<DeckWorkspaceClient>();
+builder.Services.AddScoped<IDeckWorkspaceStateFactory, DeckWorkspaceStateFactory>();
+builder.Services.AddScoped<IDeckWorkspaceClient, DeckWorkspaceClient>();
 builder.Services.AddScoped<ILocalStorageStringStore, StreamingLocalStorageStringStore>();
-builder.Services.AddScoped<ImportedDeckLibrarySerializer>();
-builder.Services.AddScoped<ImportedDeckLibraryStore>();
-builder.Services.AddScoped<ImportedDeckLibraryState>();
+builder.Services.AddScoped<IImportedDeckLibrarySerializer, ImportedDeckLibrarySerializer>();
+builder.Services.AddScoped<IImportedDeckLibraryStore, ImportedDeckLibraryStore>();
+builder.Services.AddScoped<IImportedDeckLibraryState, ImportedDeckLibraryState>();
 
 await builder.Build().RunAsync();

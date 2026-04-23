@@ -40,17 +40,20 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(CommanderSpellbookOptions.SectionName))
             .ValidateDataAnnotations();
 
-        services.AddSingleton<CommanderRules>();
-        services.AddSingleton<BracketEngine>();
-        services.AddSingleton<AnalysisExplanationBuilder>();
-        services.AddSingleton<ThemeMatchingService>();
+        services.AddSingleton<ICommanderRules, CommanderRules>();
+        services.AddSingleton<IBracketEngine, BracketEngine>();
+        services.AddSingleton<IAnalysisExplanationBuilder, AnalysisExplanationBuilder>();
+        services.AddSingleton<IThemeMatchingService, ThemeMatchingService>();
         services.AddSingleton<TimeProvider>(TimeProvider.System);
-        services.AddScoped<DeckFormatDetectionService>();
+        services.AddScoped<IDeckFormatDetectionService, DeckFormatDetectionService>();
         services.AddScoped<IDeckFormatRegistry, DeckFormatRegistry>();
         services.AddScoped<IDeckImportService, DeckImportService>();
         services.AddScoped<IDeckExportService, DeckExportService>();
         services.AddScoped<IWorkingCopyProjectionService, WorkingCopyProjectionService>();
-        services.AddScoped<ThemeAnalysisService>();
+        services.AddScoped<IBracketCalculationService, BracketCalculationService>();
+        services.AddScoped<IPowerLevelCalculationService, PowerLevelCalculationService>();
+        services.AddScoped<ISynergyScoringService, SynergyScoringService>();
+        services.AddScoped<IThemeAnalysisService, ThemeAnalysisService>();
         services.AddScoped<DeckFormatProfileBase, MoxfieldTextFormatProfile>();
         services.AddScoped<DeckFormatProfileBase, ManaBoxTextFormatProfile>();
         services.AddScoped<DeckFormatProfileBase, GenericPlaintextFormatProfile>();

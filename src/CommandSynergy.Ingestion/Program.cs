@@ -25,7 +25,7 @@ var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Co
 
 try
 {
-    var importer = host.Services.GetRequiredService<CardMetadataBulkImportService>();
+    var importer = host.Services.GetRequiredService<ICardMetadataBulkImportService>();
     var result = await importer.ImportOracleCardsAsync().ConfigureAwait(false);
 
     logger.LogInformation(

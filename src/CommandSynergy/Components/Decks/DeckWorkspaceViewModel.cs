@@ -42,10 +42,10 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         "Templar Knight",
     };
 
-    private readonly DeckWorkspaceStateFactory stateFactory;
-    private readonly CardSearchIndexClient cardSearchIndexClient;
-    private readonly DeckWorkspaceClient deckWorkspaceClient;
-    private readonly ImportedDeckLibraryState importedDeckLibraryState;
+    private readonly IDeckWorkspaceStateFactory stateFactory;
+    private readonly ICardSearchIndexClient cardSearchIndexClient;
+    private readonly IDeckWorkspaceClient deckWorkspaceClient;
+    private readonly IImportedDeckLibraryState importedDeckLibraryState;
     private readonly List<PileDefinitionContract> piles = [];
     private readonly List<DeckEntryState> entries = [];
     private readonly Dictionary<string, WorkspaceCardView> knownCards = new(StringComparer.OrdinalIgnoreCase);
@@ -58,10 +58,10 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     /// Creates a workspace state coordinator.
     /// </summary>
     public DeckWorkspaceViewModel(
-        DeckWorkspaceStateFactory stateFactory,
-        CardSearchIndexClient cardSearchIndexClient,
-        DeckWorkspaceClient deckWorkspaceClient,
-        ImportedDeckLibraryState importedDeckLibraryState)
+        IDeckWorkspaceStateFactory stateFactory,
+        ICardSearchIndexClient cardSearchIndexClient,
+        IDeckWorkspaceClient deckWorkspaceClient,
+        IImportedDeckLibraryState importedDeckLibraryState)
     {
         this.stateFactory = stateFactory;
         this.cardSearchIndexClient = cardSearchIndexClient;

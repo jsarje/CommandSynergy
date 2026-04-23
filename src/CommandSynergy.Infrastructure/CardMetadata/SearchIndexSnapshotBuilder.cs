@@ -7,7 +7,7 @@ namespace CommandSynergy.Infrastructure.CardMetadata;
 /// <summary>
 /// Builds the derived client search artifact from the authoritative metadata snapshot.
 /// </summary>
-public sealed class SearchIndexSnapshotBuilder
+public sealed class SearchIndexSnapshotBuilder : ISearchIndexSnapshotBuilder
 {
     private readonly CardMetadataOptions options;
 

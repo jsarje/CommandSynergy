@@ -22,7 +22,7 @@ public static class ScryfallServiceCollectionExtensions
         var userAgent = configuration[ScryfallUserAgentConfigurationKey] ?? "CommandSynergy/0.1";
 
         services
-            .AddHttpClient<ScryfallClient>(client =>
+            .AddHttpClient<IScryfallClient, ScryfallClient>(client =>
             {
                 client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
                 client.Timeout = TimeSpan.FromSeconds(10);

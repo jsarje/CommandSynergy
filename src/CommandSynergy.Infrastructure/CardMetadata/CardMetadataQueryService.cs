@@ -11,10 +11,10 @@ namespace CommandSynergy.Infrastructure.CardMetadata;
 /// </summary>
 public sealed class CardMetadataQueryService : ICardCatalogGateway
 {
-    private readonly ParquetCardMetadataStore metadataStore;
-    private readonly SearchIndexSnapshotBuilder searchIndexSnapshotBuilder;
-    private readonly ScryfallClient scryfallClient;
-    private readonly ScryfallCardMapper scryfallCardMapper;
+    private readonly IParquetCardMetadataStore metadataStore;
+    private readonly ISearchIndexSnapshotBuilder searchIndexSnapshotBuilder;
+    private readonly IScryfallClient scryfallClient;
+    private readonly IScryfallCardMapper scryfallCardMapper;
     private readonly ILogger<CardMetadataQueryService> logger;
     private readonly object searchIndexLock = new();
 
@@ -24,10 +24,10 @@ public sealed class CardMetadataQueryService : ICardCatalogGateway
     /// Creates a card catalog gateway backed by local metadata and read-only Scryfall fallback.
     /// </summary>
     public CardMetadataQueryService(
-        ParquetCardMetadataStore metadataStore,
-        SearchIndexSnapshotBuilder searchIndexSnapshotBuilder,
-        ScryfallClient scryfallClient,
-        ScryfallCardMapper scryfallCardMapper,
+        IParquetCardMetadataStore metadataStore,
+        ISearchIndexSnapshotBuilder searchIndexSnapshotBuilder,
+        IScryfallClient scryfallClient,
+        IScryfallCardMapper scryfallCardMapper,
         ILogger<CardMetadataQueryService> logger)
     {
         this.metadataStore = metadataStore;

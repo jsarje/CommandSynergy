@@ -6,7 +6,7 @@ namespace CommandSynergy.Application.Analysis;
 /// <summary>
 /// Computes per-card theme signals from card metadata.
 /// </summary>
-public sealed class ThemeMatchingService
+public sealed class ThemeMatchingService : IThemeMatchingService
 {
     /// <summary>
     /// Computes normalized theme signals for a card profile.

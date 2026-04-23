@@ -5,7 +5,7 @@ namespace CommandSynergy.Application.Analysis;
 /// <summary>
 /// Builds user-readable summaries for bracket and synergy results.
 /// </summary>
-public sealed class AnalysisExplanationBuilder
+public sealed class AnalysisExplanationBuilder : IAnalysisExplanationBuilder
 {
     /// <summary>
     /// Builds the bracket explanation for the supplied assessment.

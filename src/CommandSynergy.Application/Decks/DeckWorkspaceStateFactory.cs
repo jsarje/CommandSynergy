@@ -5,7 +5,7 @@ namespace CommandSynergy.Application.Decks;
 /// <summary>
 /// Creates deck-workspace state models for loading, empty, recovery, and validation scenarios.
 /// </summary>
-public sealed class DeckWorkspaceStateFactory
+public sealed class DeckWorkspaceStateFactory : IDeckWorkspaceStateFactory
 {
     /// <summary>
     /// Creates a loading state for the workspace.

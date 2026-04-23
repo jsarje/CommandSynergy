@@ -9,16 +9,16 @@ namespace CommandSynergy.Application.Analysis;
 /// <summary>
 /// Orchestrates authoritative bracket and synergy analysis for a deck snapshot.
 /// </summary>
-public sealed class DeckAnalysisService
+public sealed class DeckAnalysisService : IDeckAnalysisCoreService
 {
     private static readonly DeckStatsCalculationService deckStatsCalculationService = new();
     private readonly ICardCatalogGateway cardCatalogGateway;
     private readonly ICommanderSpellbookClient commanderSpellbookClient;
     private readonly IEdhrecClient edhrecClient;
-    private readonly BracketCalculationService bracketCalculationService;
-    private readonly PowerLevelCalculationService powerLevelCalculationService;
-    private readonly SynergyScoringService synergyScoringService;
-    private readonly ThemeAnalysisService themeAnalysisService;
+    private readonly IBracketCalculationService bracketCalculationService;
+    private readonly IPowerLevelCalculationService powerLevelCalculationService;
+    private readonly ISynergyScoringService synergyScoringService;
+    private readonly IThemeAnalysisService themeAnalysisService;
     private readonly IReadOnlyList<IDeckAdviceService> deckAdviceServices;
 
     /// <summary>
@@ -28,10 +28,10 @@ public sealed class DeckAnalysisService
         ICardCatalogGateway cardCatalogGateway,
         ICommanderSpellbookClient commanderSpellbookClient,
         IEdhrecClient edhrecClient,
-        BracketCalculationService bracketCalculationService,
-        PowerLevelCalculationService powerLevelCalculationService,
-        SynergyScoringService synergyScoringService,
-        ThemeAnalysisService themeAnalysisService,
+        IBracketCalculationService bracketCalculationService,
+        IPowerLevelCalculationService powerLevelCalculationService,
+        ISynergyScoringService synergyScoringService,
+        IThemeAnalysisService themeAnalysisService,
         IEnumerable<IDeckAdviceService> deckAdviceServices)
     {
         this.cardCatalogGateway = cardCatalogGateway;

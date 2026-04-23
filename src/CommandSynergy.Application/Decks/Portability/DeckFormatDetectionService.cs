@@ -3,7 +3,7 @@ using CommandSynergy.Application.Decks.Portability.Formats;
 
 namespace CommandSynergy.Application.Decks.Portability;
 
-public sealed class DeckFormatDetectionService
+public sealed class DeckFormatDetectionService : IDeckFormatDetectionService
 {
     private readonly IDeckFormatRegistry deckFormatRegistry;
 

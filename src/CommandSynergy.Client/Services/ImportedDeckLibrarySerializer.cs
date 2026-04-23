@@ -6,7 +6,7 @@ using CommandSynergy.Application.Decks.Portability;
 
 namespace CommandSynergy.Client.Services;
 
-public sealed class ImportedDeckLibrarySerializer
+public sealed class ImportedDeckLibrarySerializer : IImportedDeckLibrarySerializer
 {
     private const string CompressedPayloadPrefix = "gz:";
 

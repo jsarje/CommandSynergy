@@ -27,32 +27,29 @@ public static class DependencyInjection
         services.AddScryfallClient(configuration);
         services.AddEdhrecClient(configuration);
         services.AddCommanderSpellbookClient(configuration);
-        services.AddSingleton<ParquetCardMetadataStore>();
-        services.AddSingleton<SearchIndexSnapshotBuilder>();
-        services.AddSingleton<ScryfallCardMapper>();
-        services.AddSingleton<CardMetadataBulkImportService>();
-        services.AddSingleton<DeckAnalysisCache>();
-        services.AddSingleton<AnalysisTelemetry>();
-        services.AddScoped<CardSearchService>();
-        services.AddScoped<DeckValidationService>();
-        services.AddScoped<BracketCalculationService>();
-        services.AddScoped<PowerLevelCalculationService>();
-        services.AddScoped<SynergyScoringService>();
-        services.AddScoped<DeckAnalysisService>();
+        services.AddSingleton<IParquetCardMetadataStore, ParquetCardMetadataStore>();
+        services.AddSingleton<ISearchIndexSnapshotBuilder, SearchIndexSnapshotBuilder>();
+        services.AddSingleton<IScryfallCardMapper, ScryfallCardMapper>();
+        services.AddScoped<ICardMetadataBulkImportService, CardMetadataBulkImportService>();
+        services.AddSingleton<IDeckAnalysisCache, DeckAnalysisCache>();
+        services.AddSingleton<IAnalysisTelemetry, AnalysisTelemetry>();
+        services.AddScoped<ICardSearchCoreService, CardSearchService>();
+        services.AddScoped<IDeckValidationCoreService, DeckValidationService>();
+        services.AddScoped<IDeckAnalysisCoreService, DeckAnalysisService>();
         services.AddScoped<ICommanderSpellbookClient, CommanderSpellbookClient>();
         services.AddScoped<IEdhrecClient, EdhrecClient>();
         services.AddScoped<ICardCatalogGateway, CardMetadataQueryService>();
         services.AddScoped<ICardSearchService>(serviceProvider => new CardSearchLoggingDecorator(
-            serviceProvider.GetRequiredService<CardSearchService>(),
+            serviceProvider.GetRequiredService<ICardSearchCoreService>(),
             serviceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<CardSearchLoggingDecorator>>()));
         services.AddScoped<IDeckValidationService>(serviceProvider => new DeckValidationLoggingDecorator(
-            serviceProvider.GetRequiredService<DeckValidationService>(),
+            serviceProvider.GetRequiredService<IDeckValidationCoreService>(),
             serviceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<DeckValidationLoggingDecorator>>()));
         services.AddScoped<IDeckAnalysisService>(serviceProvider => new CachedDeckAnalysisService(
-            serviceProvider.GetRequiredService<DeckAnalysisService>(),
-            serviceProvider.GetRequiredService<DeckAnalysisCache>(),
+            serviceProvider.GetRequiredService<IDeckAnalysisCoreService>(),
+            serviceProvider.GetRequiredService<IDeckAnalysisCache>(),
             serviceProvider.GetRequiredService<ICardCatalogGateway>(),
-            serviceProvider.GetRequiredService<AnalysisTelemetry>()));
+            serviceProvider.GetRequiredService<IAnalysisTelemetry>()));
 
         return services;
     }
