@@ -162,47 +162,45 @@ h1:focus {
 }
 
 .workspace-shell {
-    padding: 2rem 1.5rem 5rem;
+    padding: 1.25rem 1.5rem 5rem;
 }
 
 .workspace-shell__container {
-    width: min(100%, var(--cs-page-width));
-    margin: 0 auto;
+    width: 100%;
     display: grid;
-    gap: 1.5rem;
+    gap: 1.25rem;
 }
 
-.workspace-shell__hero {
+.workspace-appbar,
+.workspace-shell__signals,
+.workspace-shell__search {
     animation: workspace-rise 420ms ease-out both;
 }
 
-.workspace-hero {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.82fr);
-    gap: 1rem;
-    padding: 1.25rem 1.3rem;
+.workspace-appbar {
     border: 1px solid var(--cs-outline-strong);
     border-radius: calc(var(--cs-radius-xl) + 4px);
     background:
         linear-gradient(125deg, rgba(255, 250, 241, 0.82), rgba(249, 243, 231, 0.62)),
         linear-gradient(180deg, rgba(31, 91, 75, 0.08), rgba(255, 255, 255, 0));
     box-shadow: var(--cs-shadow);
-    overflow: hidden;
+    color: inherit;
 }
 
-.workspace-hero::before {
-    content: "";
-    position: absolute;
-    inset: -2rem auto auto 58%;
-    width: 18rem;
-    height: 18rem;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(141, 106, 47, 0.18), transparent 65%);
-    pointer-events: none;
+.workspace-appbar__inner {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
 }
 
-.workspace-shell__eyebrow,
+.workspace-appbar__brand {
+    display: grid;
+    gap: 0.22rem;
+}
+
+.workspace-appbar__eyebrow,
 .workspace-panel__label {
     margin: 0;
     font-size: 0.76rem;
@@ -212,19 +210,18 @@ h1:focus {
     color: var(--cs-forest);
 }
 
-.workspace-shell__hero h1,
+.workspace-appbar__name,
 .workspace-panel h2,
 .pile-board__header h2,
 .workspace-banner h2,
 .workspace-dialog__content h2 {
-    margin: 0.25rem 0 0;
-    line-height: 0.94;
+    margin: 0;
     color: var(--cs-panel-title);
 }
 
-.workspace-shell__hero h1 {
-    font-size: clamp(2.35rem, 4vw, 4rem);
-    max-width: 12ch;
+.workspace-appbar__name {
+    font-size: clamp(1.35rem, 2vw, 1.8rem);
+    line-height: 1;
 }
 
 .workspace-panel h2,
@@ -234,37 +231,27 @@ h1:focus {
     font-size: clamp(1.55rem, 2.4vw, 2.2rem);
 }
 
-.workspace-shell__lede {
-    max-width: 48rem;
-    margin: 0.55rem 0 0;
-    color: var(--cs-muted);
-    font-size: 0.96rem;
-}
-
-.workspace-hero__topline {
-    display: flex;
-    align-items: start;
-    justify-content: space-between;
-    gap: 1rem;
-}
-
-.workspace-menu-button {
+.workspace-appbar__action {
     flex: 0 0 auto;
-    width: 3rem;
-    height: 3rem;
+    min-height: 2.75rem;
+    padding: 0.7rem 1rem;
     border: 1px solid rgba(31, 91, 75, 0.16);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.88);
+    color: var(--cs-panel-title);
+    font: inherit;
+    font-weight: 700;
     box-shadow: 0 8px 18px rgba(22, 30, 24, 0.08);
     transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    cursor: pointer;
 }
 
-.workspace-menu-button:hover {
+.workspace-appbar__action:hover {
     transform: translateY(-1px);
     box-shadow: 0 14px 26px rgba(22, 30, 24, 0.12);
 }
 
-.workspace-menu-button:focus-visible,
+.workspace-appbar__action:focus-visible,
 .workspace-utility-menu__close:focus-visible {
     outline: 3px solid rgba(31, 91, 75, 0.26);
     outline-offset: 2px;
@@ -321,13 +308,6 @@ h1:focus {
     backdrop-filter: blur(18px);
 }
 
-.workspace-hero__metrics {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.9rem;
-    margin-top: 1.5rem;
-}
-
 .workspace-panel,
 .workspace-banner,
 .pile-board__pile {
@@ -338,13 +318,7 @@ h1:focus {
     backdrop-filter: blur(18px);
 }
 
-.workspace-hero__metric {
-    padding: 1rem 1rem 1.1rem;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(248, 241, 228, 0.82));
-}
-
-.workspace-hero__metric span,
-.workspace-hero__status-grid span,
+.workspace-summary-strip span,
 .workspace-metric-strip span,
 .workspace-subheader__label,
 .workspace-search-result__timestamp,
@@ -360,8 +334,7 @@ h1:focus {
     color: var(--cs-muted);
 }
 
-.workspace-hero__metric strong,
-.workspace-hero__status-grid strong,
+.workspace-summary-strip strong,
 .workspace-metric-strip strong,
 .workspace-subheader__value {
     display: block;
@@ -369,13 +342,6 @@ h1:focus {
     color: var(--cs-panel-title);
 }
 
-.workspace-hero__metric strong {
-    font-size: clamp(1.9rem, 3vw, 2.35rem);
-    line-height: 0.95;
-}
-
-.workspace-hero__metric p,
-.workspace-hero__status-card p,
 .workspace-panel__intro,
 .workspace-panel__empty,
 .pile-board__hint,
@@ -390,16 +356,7 @@ h1:focus {
     color: var(--cs-muted);
 }
 
-.workspace-hero__status-card {
-    height: 100%;
-    padding: 1rem;
-    background:
-        linear-gradient(180deg, rgba(31, 91, 75, 0.08), rgba(255, 255, 255, 0)),
-        linear-gradient(145deg, rgba(255, 251, 242, 0.96), rgba(243, 237, 226, 0.88));
-}
-
-.workspace-hero__status-grid,
-.workspace-hero__summary,
+.workspace-summary-strip,
 .workspace-metric-strip,
 .workspace-panel__header,
 .workspace-panel__header-side,
@@ -423,22 +380,14 @@ h1:focus {
     gap: 0.85rem;
 }
 
-.workspace-hero__status-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.65rem;
-    margin-top: 0.8rem;
-}
-
-.workspace-hero__summary {
+.workspace-summary-strip {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.65rem;
     margin-top: 1rem;
 }
 
-.workspace-hero__status-grid > div,
-.workspace-hero__summary > div,
+.workspace-summary-strip > div,
 .workspace-metric-strip > div {
     padding: 0.75rem 0.8rem;
     border-radius: var(--cs-radius-md);
@@ -446,15 +395,9 @@ h1:focus {
     border: 1px solid rgba(31, 91, 75, 0.08);
 }
 
-.workspace-hero__status-grid strong,
+.workspace-summary-strip strong,
 .workspace-metric-strip strong {
     font-size: 1.15rem;
-}
-
-.workspace-shell__summary-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.95fr);
-    gap: 1.5rem;
 }
 
 .workspace-shell__stats-panel {
@@ -466,6 +409,18 @@ h1:focus {
 .pile-board__pile {
     position: relative;
     padding: 1.35rem;
+}
+
+.workspace-panel--search {
+    padding: 1rem 1.2rem;
+}
+
+.workspace-panel--search .workspace-panel__header {
+    margin-bottom: 0.2rem;
+}
+
+.workspace-panel--search .workspace-search-results {
+    margin-top: 0.85rem;
 }
 
 .workspace-utility-drawer .workspace-panel {
@@ -725,6 +680,14 @@ h1:focus {
 
 .workspace-metric-strip {
     flex-wrap: wrap;
+}
+
+.workspace-search--compact {
+    align-items: center;
+}
+
+.workspace-search--compact .workspace-search__field {
+    flex: 1 1 auto;
 }
 
 .workspace-callouts {
@@ -1264,19 +1227,13 @@ h1:focus {
 }
 
 @media (max-width: 1180px) {
-    .workspace-hero,
-    .workspace-shell__summary-grid {
-        grid-template-columns: 1fr;
-    }
-
     .workspace-callouts {
         flex-direction: column;
     }
 }
 
 @media (max-width: 920px) {
-    .workspace-hero__metrics,
-    .workspace-hero__summary,
+    .workspace-summary-strip,
     .pile-board__lanes {
         grid-template-columns: 1fr 1fr;
     }
@@ -1291,8 +1248,7 @@ h1:focus {
         padding: 1.35rem 1rem 4rem;
     }
 
-    .workspace-hero,
-    .workspace-hero__topline,
+    .workspace-appbar__inner,
     .workspace-panel__header,
     .workspace-search,
     .workspace-search-result,
@@ -1318,20 +1274,17 @@ h1:focus {
         justify-content: stretch;
     }
 
-    .workspace-hero__status-grid,
-    .workspace-hero__metrics,
-    .workspace-hero__summary,
+    .workspace-summary-strip,
     .pile-board__lanes {
         grid-template-columns: 1fr;
     }
 
-    .workspace-shell__hero h1 {
-        font-size: clamp(2.15rem, 14vw, 3.1rem);
+    .workspace-appbar {
+        padding-block: 0.35rem;
     }
 
-    .workspace-menu-button {
-        width: 2.75rem;
-        height: 2.75rem;
+    .workspace-appbar__action {
+        width: 100%;
     }
 
     .workspace-utility-drawer-backdrop {
@@ -1350,8 +1303,10 @@ h1:focus {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .workspace-shell__hero,
-    .workspace-menu-button,
+    .workspace-appbar,
+    .workspace-shell__signals,
+    .workspace-shell__search,
+    .workspace-appbar__action,
     .workspace-search__button,
     .workspace-search-result__primary,
     .workspace-search-result__secondary,

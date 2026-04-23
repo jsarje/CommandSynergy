@@ -10,6 +10,17 @@
         <span class="workspace-panel__badge">@ValidationStatusLabel</span>
     </div>
 
+    <div class="workspace-summary-strip" aria-label="Workspace summary" data-testid="workspace-summary">
+        <div>
+            <span>Commander</span>
+            <strong>@CommanderName</strong>
+        </div>
+        <div>
+            <span>Deck Name</span>
+            <strong>@DeckName</strong>
+        </div>        
+    </div>
+
     @if (State.Status == DeckWorkspaceStatus.Loading)
     {
         <div class="workspace-state workspace-state--loading" data-testid="workspace-loading">
@@ -105,6 +116,15 @@
 
     [Parameter]
     public DeckAnalysisResponseContract? Analysis { get; set; }
+
+    [Parameter]
+    public string CommanderName { get; set; } = "Unset";
+
+    [Parameter]
+    public string DeckName { get; set; } = "Unset";
+
+    [Parameter]
+    public int TotalDeckCards { get; set; }
 
     [Parameter]
     public bool IsRefreshingInsights { get; set; }

@@ -70,9 +70,12 @@ public sealed class DeckSignalsPanelTests : BunitContext
                 },
                 findings))
             .Add(component => component.Analysis, CreateAnalysis())
+            .Add(component => component.CommanderName, "Isshin, Two Heavens as One")
+            .Add(component => component.TotalDeckCards, 100)
             .Add(component => component.IsRefreshingInsights, false));
 
         cut.Find("[data-testid='workspace-ready']").Should().NotBeNull();
+        cut.Find("[data-testid='workspace-summary']").TextContent.Should().Contain("Isshin, Two Heavens as One");
         cut.Find("[data-testid='validation-findings']").TextContent.Should().Contain("Average mana value is climbing above the target.");
         cut.Find("[data-testid='analysis-panel']").TextContent.Should().Contain("Bracket");
         cut.Find("[data-testid='analysis-panel']").TextContent.Should().Contain("Synergy");

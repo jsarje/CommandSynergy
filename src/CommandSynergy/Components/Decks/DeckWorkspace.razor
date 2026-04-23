@@ -3,43 +3,22 @@
 
 <div class="workspace-shell">
     <MudContainer MaxWidth="MaxWidth.False" Class="workspace-shell__container">
-        <section class="workspace-shell__hero">
-            <div class="workspace-hero">
-                <div class="workspace-hero__content">
-                    <div class="workspace-hero__topline">
-                        <div>
-                            <p class="workspace-shell__eyebrow">Commander deckbuilding</p>
-                            <h1>Synergy Sphere</h1>
-                            <p class="workspace-shell__lede">@WorkspaceModeSummary</p>
-                        </div>
-
-                        <MudIconButton Icon="@Icons.Material.Rounded.Tune"
-                                       Size="Size.Medium"
-                                       Color="Color.Default"
-                                       Class="workspace-menu-button"
-                                       aria-expanded="@isUtilityMenuOpen.ToString().ToLowerInvariant()"
-                                       aria-controls="workspace-utility-drawer"
-                                       aria-label="Open import and export menu"
-                                       OnClick="@(_ => ToggleUtilityMenu())" />
-                    </div>
-
-                    <div class="workspace-hero__summary" aria-label="Workspace summary">
-                        <div>
-                            <span>Commander</span>
-                            <strong>@(ActiveCommander?.Name ?? "Unset")</strong>
-                        </div>
-                        <div>
-                            <span>Deck cards</span>
-                            <strong>@TotalDeckCards</strong>
-                        </div>
-                        <div>
-                            <span>Status</span>
-                            <strong>@ValidationStatusLabel</strong>
-                        </div>
-                    </div>
+        <MudAppBar Elevation="0" Dense="true" Class="workspace-appbar">
+            <div class="workspace-appbar__inner">
+                <div class="workspace-appbar__brand">                    
+                    <strong class="workspace-appbar__name">Synergy Sphere</strong>
                 </div>
+
+                <button type="button"
+                        class="workspace-appbar__action"
+                        aria-expanded="@isUtilityMenuOpen.ToString().ToLowerInvariant()"
+                        aria-controls="workspace-utility-drawer"
+                        aria-label="Open Deck Library"
+                        @onclick="ToggleUtilityMenu">
+                    Deck Library
+                </button>
             </div>
-        </section>
+        </MudAppBar>
 
         @if (isUtilityMenuOpen)
         {
@@ -253,7 +232,16 @@
             </div>
         }
 
-        <section class="workspace-shell__summary-grid">
+        <section class="workspace-shell__signals">
+            <DeckSignalsPanel State="State"
+                          Analysis="Analysis"
+                          CommanderName="@(ActiveCommander?.Name ?? "Unset")"
+                          DeckName="@(ActiveWorkspaceDeckName ?? NewDeckName ?? "Unset")"
+                          IsRefreshingInsights="IsRefreshingInsights"
+                          RetryRequested="RetryRequested" />
+        </section>
+
+        <section class="workspace-shell__search">
             <MudPaper Elevation="0" Class="workspace-panel workspace-panel--search">
                 <div class="workspace-panel__header">
                     <div>
@@ -268,7 +256,7 @@
                     </div>
                 </div>
 
-                <div class="workspace-search">
+                <div class="workspace-search workspace-search--compact">
                     <MudTextField T="string"
                                   Placeholder="Search commanders, staples, or role players"
                                   Value="@SearchQuery"
@@ -317,11 +305,6 @@
                     }
                 </div>
             </MudPaper>
-
-            <DeckSignalsPanel State="State"
-                              Analysis="Analysis"
-                              IsRefreshingInsights="IsRefreshingInsights"
-                              RetryRequested="RetryRequested" />
         </section>        
 
         <PileBoard Piles="Piles"
@@ -551,12 +534,6 @@
     private WorkspaceCardView? ActiveCommander => Cards.FirstOrDefault(static card => card.IsCommander);
 
     private int TotalDeckCards => Cards.Sum(static card => card.Quantity);
-
-    private string ValidationStatusLabel => State.Validation?.IsValid == true ? "Ready" : "Needs work";
-
-    private string WorkspaceModeSummary => IsWorkspaceLinkedToSavedDeck
-        ? $"Linked to {(string.IsNullOrWhiteSpace(ActiveWorkspaceDeckName) ? "the selected saved deck" : ActiveWorkspaceDeckName)}. Working-copy edits persist automatically."
-        : "Detached working copy. Save it to the library when you want this draft to become a reusable local deck.";
 
     protected override void OnParametersSet()
     {
