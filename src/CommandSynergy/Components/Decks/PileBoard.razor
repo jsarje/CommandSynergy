@@ -266,7 +266,7 @@
     {
         var sortedCards = SortCards(cards);
         return sortedCards
-            .GroupBy(card => selectedGrouping is MainboardGrouping.None ? GetNavigationGroupKey(card) : GetGroupKey(card))
+            .GroupBy(GetEffectiveGroupKey)
             .Select(CreateGroupView)
             .OrderBy(static group => group.SortOrder)
             .ThenBy(static group => group.Label, StringComparer.OrdinalIgnoreCase)
@@ -308,6 +308,10 @@
         MainboardSorting.Color => $"color:{ResolveColorGroup(card)}",
         _ => $"name:{ResolveNameGroup(card)}",
     };
+
+    private string GetEffectiveGroupKey(WorkspaceCardView card) => selectedGrouping is MainboardGrouping.None
+        ? GetNavigationGroupKey(card)
+        : GetGroupKey(card);
 
     private void ToggleCompactMode()
     {
@@ -417,13 +421,19 @@
 
     private static string ResolveNameGroup(WorkspaceCardView card)
     {
-        var firstCharacter = card.Name.Trim().FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(card.Name))
+        {
+            return "#";
+        }
+
+        var firstCharacter = card.Name.Trim()[0];
         return char.IsLetter(firstCharacter)
             ? char.ToUpperInvariant(firstCharacter).ToString()
             : "#";
     }
 
-    // Extract the numeric mana-value suffix for deterministic group ordering.
+    // Extract the numeric mana-value suffix for deterministic group ordering from either raw
+    // numeric group values (derived navigation) or formatted labels such as "Mana value 3".
     private static decimal ParseGroupOrder(string label)
     {
         if (decimal.TryParse(label, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedValue))

@@ -181,7 +181,11 @@ public sealed class PileBoardTests : BunitContext
         cut.Find("[data-testid='mainboard-group-link-name-a']").GetAttribute("href")
             .Should()
             .Be("#mainboard-section-name-a");
-        cut.Find("[data-testid='mainboard-group-jump-name-c'] [data-testid='mainboard-group-link-name-c']").GetAttribute("aria-current")
+
+        var currentGroupJumpMenu = cut.Find("[data-testid='mainboard-group-jump-name-c']");
+        currentGroupJumpMenu.Should().NotBeNull();
+        currentGroupJumpMenu.QuerySelector("[data-testid='mainboard-group-link-name-c']")!
+            .GetAttribute("aria-current")
             .Should()
             .Be("location");
     }
