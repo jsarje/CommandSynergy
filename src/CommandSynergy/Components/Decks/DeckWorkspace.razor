@@ -20,46 +20,60 @@
             </div>
         </MudAppBar>
 
-        <DeckUtilityPanel ImportedDecks="ImportedDecks"
-                          IsHydratingLibrary="IsHydratingLibrary"
-                          ActiveImportedDeckId="ActiveImportedDeckId"
-                          OpenImportedDeckRequested="OpenImportedDeckRequested"
-                          StartNewDeckRequested="StartNewDeckRequested"
-                          IsWorkspaceLinkedToSavedDeck="IsWorkspaceLinkedToSavedDeck"
-                          ActiveWorkspaceDeckName="ActiveWorkspaceDeckName"
-                          LinkedDeckName="LinkedDeckName"
-                          LinkedDeckNameChanged="LinkedDeckNameChanged"
-                          CanRenameLinkedDeck="CanRenameLinkedDeck"
-                          RenameLinkedDeckRequested="RenameLinkedDeckRequested"
-                          LinkedDeckStatusMessage="LinkedDeckStatusMessage"
-                          LinkedDeckStatusHasError="LinkedDeckStatusHasError"
-                          NewDeckName="NewDeckName"
-                          NewDeckNameChanged="NewDeckNameChanged"
-                          CanSaveNewDeck="CanSaveNewDeck"
-                          SaveNewDeckRequested="SaveNewDeckRequested"
-                          LibraryRecoveryMessage="LibraryRecoveryMessage"
-                          ActiveImportedDeckDiagnostics="ActiveImportedDeckDiagnostics"
-                          SupportedImportFormats="SupportedImportFormats"
-                          SelectedImportFormatId="SelectedImportFormatId"
-                          ImportFormatChanged="ImportFormatChanged"
-                          ImportDocumentText="ImportDocumentText"
-                          ImportDocumentTextChanged="ImportDocumentTextChanged"
-                          ImportRequested="ImportRequested"
-                          ImportStatusMessage="ImportStatusMessage"
-                          HasPendingDuplicateImport="HasPendingDuplicateImport"
-                          PendingDuplicateImportName="PendingDuplicateImportName"
-                          PendingDuplicateImportTargetName="PendingDuplicateImportTargetName"
-                          UpdateExistingImportedDeckRequested="UpdateExistingImportedDeckRequested"
-                          ImportDuplicateAsNewDeckRequested="ImportDuplicateAsNewDeckRequested"
-                          ImportedDeckSelected="ImportedDeckSelected"
-                          OpenDeleteImportedDeckRequested="(id) => OpenDeleteImportedDeckDialog(id)"
-                          ExportPreview="ExportPreview"
-                          SupportedExportFormats="SupportedExportFormats"
-                          SelectedExportFormatId="SelectedExportFormatId"
-                          ExportStatusMessage="ExportStatusMessage"
-                          ExportFormatChanged="ExportFormatChanged"
-                          ExportRequested="ExportRequested"
-                          CloseRequested="() => CloseUtilityMenu()" />
+        @if (isUtilityMenuOpen)
+        {
+            <DeckUtilityPanel ImportedDecks="ImportedDecks"
+                              IsHydratingLibrary="IsHydratingLibrary"
+                              IsImporting="@isImporting"
+                              ActiveImportedDeckId="ActiveImportedDeckId"
+                              OpenImportedDeckRequested="OpenImportedDeckRequested"
+                              StartNewDeckRequested="StartNewDeckRequested"
+                              IsWorkspaceLinkedToSavedDeck="IsWorkspaceLinkedToSavedDeck"
+                              ActiveWorkspaceDeckName="ActiveWorkspaceDeckName"
+                              LinkedDeckName="LinkedDeckName"
+                              LinkedDeckNameChanged="LinkedDeckNameChanged"
+                              CanRenameLinkedDeck="CanRenameLinkedDeck"
+                              RenameLinkedDeckRequested="RenameLinkedDeckRequested"
+                              LinkedDeckStatusMessage="LinkedDeckStatusMessage"
+                              LinkedDeckStatusHasError="LinkedDeckStatusHasError"
+                              NewDeckName="NewDeckName"
+                              NewDeckNameChanged="NewDeckNameChanged"
+                              CanSaveNewDeck="CanSaveNewDeck"
+                              SaveNewDeckRequested="SaveNewDeckRequested"
+                              LibraryRecoveryMessage="LibraryRecoveryMessage"
+                              ActiveImportedDeckDiagnostics="ActiveImportedDeckDiagnostics"
+                              SupportedImportFormats="SupportedImportFormats"
+                              SelectedImportFormatId="SelectedImportFormatId"
+                              ImportFormatChanged="ImportFormatChanged"
+                              ImportDocumentText="ImportDocumentText"
+                              ImportDocumentTextChanged="ImportDocumentTextChanged"
+                              ImportRequested="OnImportRequestedAsync"
+                              ImportStatusMessage="ImportStatusMessage"
+                              HasPendingDuplicateImport="HasPendingDuplicateImport"
+                              PendingDuplicateImportName="PendingDuplicateImportName"
+                              PendingDuplicateImportTargetName="PendingDuplicateImportTargetName"
+                              UpdateExistingImportedDeckRequested="OnUpdateExistingImportAsync"
+                              ImportDuplicateAsNewDeckRequested="OnImportDuplicateAsNewAsync"
+                              ImportedDeckSelected="ImportedDeckSelected"
+                              OpenDeleteImportedDeckRequested="(id) => OpenDeleteImportedDeckDialog(id)"
+                              ExportPreview="ExportPreview"
+                              SupportedExportFormats="SupportedExportFormats"
+                              SelectedExportFormatId="SelectedExportFormatId"
+                              ExportStatusMessage="ExportStatusMessage"
+                              ExportFormatChanged="ExportFormatChanged"
+                              ExportRequested="ExportRequested"
+                              CloseRequested="() => CloseUtilityMenu()" />
+        }
+
+        @if (isImporting)
+        {
+            <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.6);z-index:1000">
+                <div style="text-align:center;padding:16px;border-radius:8px;background:rgba(255,255,255,0.9);box-shadow:0 6px 18px rgba(0,0,0,0.08);">
+                    <MudProgressCircular Indeterminate="true" Size="Size.Large" />
+                    <div style="margin-top:8px;font-weight:600">Importing deck…</div>
+                </div>
+            </div>
+        }
 
         <section class="workspace-shell__signals">
             <DeckSignalsPanel State="State"
@@ -91,10 +105,10 @@
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Rounded.Search"
                                   Class="workspace-search__field" />
-                    <button type="button"
+                        <button type="button"
                             class="workspace-search__button"
                             @onclick="SearchRequested"
-                            disabled="@IsBusy">
+                            disabled="@(IsBusy || isImporting)">
                         Search
                     </button>
                 </div>
@@ -114,14 +128,15 @@
                                     <button type="button"
                                             class="workspace-search-result__primary"
                                             data-testid="@($"set-commander-{card.CardId}")"
-                                            disabled="@(!card.IsCommanderEligible)"
+                                            disabled="@(isImporting || !card.IsCommanderEligible)"
                                             title="@(card.IsCommanderEligible ? "Set this card as your commander" : "Only legal commanders can be selected.")"
                                             @onclick="() => CommanderSelected.InvokeAsync(card.CardId)">
                                         Set as commander
                                     </button>
                                     <button type="button"
                                             class="workspace-search-result__secondary"
-                                            @onclick="() => CardAdded.InvokeAsync(card.CardId)">
+                                            @onclick="() => CardAdded.InvokeAsync(card.CardId)"
+                                            disabled="@isImporting">
                                         Add to deck
                                     </button>
                                 </div>
@@ -359,6 +374,8 @@
 
     private bool isUtilityMenuOpen;
 
+    private bool isImporting;
+
     private WorkspaceCardView? ActiveCommander => Cards.FirstOrDefault(static card => card.IsCommander);
 
     private int TotalDeckCards => Cards.Sum(static card => card.Quantity);
@@ -381,6 +398,54 @@
     private void CloseUtilityMenu()
     {
         isUtilityMenuOpen = false;
+    }
+
+    private async Task OnImportRequestedAsync()
+    {
+        if (isImporting)
+            return;
+
+        isImporting = true;
+        try
+        {
+            await ImportRequested.InvokeAsync(null);
+        }
+        finally
+        {
+            isImporting = false;
+        }
+    }
+
+    private async Task OnUpdateExistingImportAsync()
+    {
+        if (isImporting)
+            return;
+
+        isImporting = true;
+        try
+        {
+            await UpdateExistingImportedDeckRequested.InvokeAsync(null);
+        }
+        finally
+        {
+            isImporting = false;
+        }
+    }
+
+    private async Task OnImportDuplicateAsNewAsync()
+    {
+        if (isImporting)
+            return;
+
+        isImporting = true;
+        try
+        {
+            await ImportDuplicateAsNewDeckRequested.InvokeAsync(null);
+        }
+        finally
+        {
+            isImporting = false;
+        }
     }
 
     private void OpenDeleteImportedDeckDialog(string importedDeckId)

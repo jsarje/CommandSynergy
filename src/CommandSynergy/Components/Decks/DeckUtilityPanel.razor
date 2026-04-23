@@ -2,10 +2,11 @@
 @using CommandSynergy.Application.Decks.Portability
 
 <div class="workspace-utility-drawer-backdrop"
-     data-testid="workspace-utility-drawer-backdrop"
-     @onclick="() => CloseRequested.InvokeAsync(null)">
-    <aside class="workspace-utility-drawer"
-           id="workspace-utility-drawer"
+    data-testid="workspace-utility-drawer-backdrop"
+    @onclick="async () => { if (!IsImporting) await CloseRequested.InvokeAsync(null); }">
+        <aside class="workspace-utility-drawer"
+            id="workspace-utility-drawer"
+            style="position:relative;"
            role="dialog"
            aria-modal="true"
            aria-labelledby="workspace-utility-drawer-title"
@@ -19,12 +20,22 @@
             <button type="button"
                     class="workspace-utility-menu__close"
                     aria-label="Close menu"
-                    @onclick="() => CloseRequested.InvokeAsync(null)">
+                    @onclick="async () => { if (!IsImporting) await CloseRequested.InvokeAsync(null); }"
+                    disabled="@IsImporting">
                 Close
             </button>
         </div>
 
         <div class="workspace-utility-menu__content">
+            @if (IsImporting)
+            {
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.7);z-index:20;">
+                    <div style="text-align:center;">
+                        <MudProgressCircular Indeterminate="true" Size="Size.Large" />
+                        <div style="margin-top:8px;font-weight:600">Importing deck…</div>
+                    </div>
+                </div>
+            }
             <MudExpansionPanels MultiExpansion="true" Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--drawer">
                 <MudExpansionPanel Text="@($"Library ({ImportedDecks?.Count ?? 0})")" Expanded="true">
                     <section class="workspace-utility-section">
@@ -42,8 +53,8 @@
                         </div>
 
                         <div class="workspace-search workspace-search--actions">
-                            <button type="button" class="workspace-search__button" @onclick="() => OpenImportedDeckRequested.InvokeAsync(null)" disabled="@string.IsNullOrWhiteSpace(ActiveImportedDeckId)">Open selected deck</button>
-                            <button type="button" class="workspace-search-result__secondary" @onclick="() => StartNewDeckRequested.InvokeAsync(null)">Start fresh deck</button>
+                            <button type="button" class="workspace-search__button" @onclick="() => OpenImportedDeckRequested.InvokeAsync(null)" disabled="@((string.IsNullOrWhiteSpace(ActiveImportedDeckId)) || IsImporting)">Open selected deck</button>
+                            <button type="button" class="workspace-search-result__secondary" @onclick="() => StartNewDeckRequested.InvokeAsync(null)" disabled="@IsImporting">Start fresh deck</button>
                         </div>
 
                         @if (IsWorkspaceLinkedToSavedDeck)
@@ -57,11 +68,12 @@
                                               Label="Saved deck name"
                                               Value="@LinkedDeckName"
                                               ValueChanged="LinkedDeckNameChanged"
-                                              Variant="Variant.Outlined" />
+                                              Variant="Variant.Outlined"
+                                              Disabled="@IsImporting" />
                                 <button type="button"
                                         class="workspace-search__button"
                                         @onclick="() => RenameLinkedDeckRequested.InvokeAsync(null)"
-                                        disabled="@(!CanRenameLinkedDeck)">
+                                        disabled="@(!CanRenameLinkedDeck || IsImporting)">
                                     Rename deck
                                 </button>
                             </div>
@@ -86,11 +98,12 @@
                                               Label="New deck name"
                                               Value="@NewDeckName"
                                               ValueChanged="NewDeckNameChanged"
-                                              Variant="Variant.Outlined" />
+                                              Variant="Variant.Outlined"
+                                              Disabled="@IsImporting" />
                                 <button type="button"
                                         class="workspace-search__button"
                                         @onclick="() => SaveNewDeckRequested.InvokeAsync(null)"
-                                        disabled="@(!CanSaveNewDeck)">
+                                        disabled="@(!CanSaveNewDeck || IsImporting)">
                                     Save to library
                                 </button>
                             </div>
@@ -124,13 +137,15 @@
                                             <button type="button"
                                                     class="workspace-search-result__primary"
                                                     data-testid="@($"select-imported-deck-{importedDeck.ImportedDeckId}")"
-                                                    @onclick="() => ImportedDeckSelected.InvokeAsync(importedDeck.ImportedDeckId)">
+                                                    @onclick="() => ImportedDeckSelected.InvokeAsync(importedDeck.ImportedDeckId)"
+                                                    disabled="@IsImporting">
                                                 @(isActiveDeck ? "Selected" : "Select")
                                             </button>
                                             <button type="button"
                                                     class="workspace-search-result__danger"
                                                     data-testid="@($"delete-imported-deck-{importedDeck.ImportedDeckId}")"
-                                                    @onclick="() => OpenDeleteImportedDeckRequested.InvokeAsync(importedDeck.ImportedDeckId)">
+                                                    @onclick="() => OpenDeleteImportedDeckRequested.InvokeAsync(importedDeck.ImportedDeckId)"
+                                                    disabled="@IsImporting">
                                                 Delete
                                             </button>
                                         </div>
@@ -156,7 +171,7 @@
 
                 <MudExpansionPanel Text="Import a deck">
                     <section class="workspace-utility-section">
-                        <MudSelect T="string" Label="Source format" Value="@SelectedImportFormatId" ValueChanged="ImportFormatChanged">
+                        <MudSelect T="string" Label="Source format" Value="@SelectedImportFormatId" ValueChanged="ImportFormatChanged" Disabled="@IsImporting">
                             @foreach (var option in SupportedImportFormats)
                             {
                                 <MudSelectItem Value="@option.Value">@option.Label</MudSelectItem>
@@ -168,10 +183,11 @@
                                       Lines="10"
                                       Value="@ImportDocumentText"
                                       ValueChanged="ImportDocumentTextChanged"
-                                      Variant="Variant.Outlined" />
+                                      Variant="Variant.Outlined"
+                                      Disabled="@IsImporting" />
 
                         <div class="workspace-search workspace-search--actions">
-                            <button type="button" class="workspace-search__button" @onclick="() => ImportRequested.InvokeAsync(null)">Import deck</button>
+                            <button type="button" class="workspace-search__button" @onclick="() => ImportRequested.InvokeAsync(null)" disabled="@IsImporting">Import deck</button>
                         </div>
 
                         @if (!string.IsNullOrWhiteSpace(ImportStatusMessage))
@@ -188,8 +204,8 @@
                                         <p>Update the existing <strong>@PendingDuplicateImportName</strong> entry or keep both by saving the new import as <strong>@PendingDuplicateImportTargetName</strong>.</p>
                                     </div>
                                     <div class="workspace-search workspace-search--actions">
-                                        <button type="button" class="workspace-search__button" @onclick="() => UpdateExistingImportedDeckRequested.InvokeAsync(null)">Update existing deck</button>
-                                        <button type="button" class="workspace-search-result__secondary" @onclick="() => ImportDuplicateAsNewDeckRequested.InvokeAsync(null)">Import as new deck</button>
+                                        <button type="button" class="workspace-search__button" @onclick="() => UpdateExistingImportedDeckRequested.InvokeAsync(null)" disabled="@IsImporting">Update existing deck</button>
+                                        <button type="button" class="workspace-search-result__secondary" @onclick="() => ImportDuplicateAsNewDeckRequested.InvokeAsync(null)" disabled="@IsImporting">Import as new deck</button>
                                     </div>
                                 </div>
                             </MudAlert>
@@ -216,6 +232,9 @@
 
     [Parameter]
     public bool IsHydratingLibrary { get; set; }
+
+    [Parameter]
+    public bool IsImporting { get; set; }
 
     [Parameter]
     public string? ActiveImportedDeckId { get; set; }
