@@ -19,7 +19,7 @@ public sealed class HomePageTests : PageTest, IClassFixture<PlaywrightWebApplica
     };
 
     [Fact]
-    public async Task Home_page_loads_the_workspace_shell()
+    public async Task HomePageLoadsTheWorkspaceShell()
     {
         await Page.GotoAsync(factory.RootUri.ToString());
 
@@ -27,12 +27,12 @@ public sealed class HomePageTests : PageTest, IClassFixture<PlaywrightWebApplica
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Find cards" })).ToHaveTextAsync("Find cards");
         await Expect(Page.GetByPlaceholder("Search commanders, staples, or role players"))
             .ToHaveValueAsync(string.Empty);
-        await Expect(Page.GetByTestId("search-results"))
+        await Expect(Page.GetByText("Search for a commander or a card name to start building the list."))
             .ToContainTextAsync("Search for a commander or a card name to start building the list.");
     }
 
     [Fact]
-    public async Task Home_page_opens_the_deck_library_drawer()
+    public async Task HomePageOpensTheDeckLibraryDrawer()
     {
         await Page.GotoAsync(factory.RootUri.ToString());
         await Page.GetByRole(AriaRole.Button, new() { Name = "Open Deck Library" }).ClickAsync();
