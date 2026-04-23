@@ -3,15 +3,10 @@
 <MudPaper Elevation="0" Class="workspace-panel workspace-panel--status">
     <div class="workspace-panel__header">
         <div>
-            <p class="workspace-panel__label">Export</p>
-            <h2>Portable plaintext output</h2>
+            <p class="workspace-panel__label">Export</p>            
         </div>
         <span class="workspace-panel__badge">@SelectedFormatId</span>
-    </div>
-
-    <p class="workspace-panel__intro">
-        Generate a shareable decklist preview from the active workspace without leaving the browser or losing the current draft state.
-    </p>
+    </div>    
 
     <MudSelect T="string" Label="Target format" Value="@SelectedFormatId" ValueChanged="ExportFormatChanged">
         @foreach (var option in SupportedFormats)
@@ -31,7 +26,7 @@
 
     @if (ExportPreview is null)
     {
-        <p class="workspace-panel__empty">Generate a local export preview from the active workspace once a commander and deck entries are in place.</p>
+        <p class="workspace-panel__empty">Generate a local export preview from the active workspace.</p>
     }
     else
     {

@@ -8,36 +8,10 @@
                 <div class="workspace-hero__content">
                     <div class="workspace-hero__topline">
                         <div>
-                            <h1>Synergy Sphere</h1>
-                            <p class="workspace-shell__lede">
-                                Build powerful commander decks and place them within brackets and power levels.
-                            </p>
+                            <h1>Synergy Sphere</h1>                            
                         </div>                        
                     </div>
-                </div>
-
-                <aside class="workspace-hero__rail">
-                    <section class="workspace-hero__status-card">
-                        <p class="workspace-panel__label">Working copy</p>
-                        <h2>@(ActiveCommander?.Name ?? "Commander pending")</h2>
-                        <p>@WorkspaceModeSummary</p>
-
-                        <div class="workspace-hero__status-grid">
-                            <div>
-                                <span>Cards</span>
-                                <strong>@TotalDeckCards</strong>
-                            </div>
-                            <div>
-                                <span>Status</span>
-                                <strong>@State.Status</strong>
-                            </div>
-                            <div>
-                                <span>Findings</span>
-                                <strong>@State.Findings.Count</strong>
-                            </div>
-                        </div>
-                    </section>
-                </aside>
+                </div>                
 
                 <div class="workspace-hero__menu-shell">
                     <button type="button"
@@ -68,12 +42,12 @@
                        @onclick:stopPropagation="true">
                     <div class="workspace-utility-menu__header">
                         <div>
-                            <p class="workspace-panel__label">Utilities</p>
-                            <h2 id="workspace-utility-drawer-title">Import, library, and export</h2>
+                            <p class="workspace-panel__label">Deck Management</p>
+                            <h2 id="workspace-utility-drawer-title">Deck library, import, and export</h2>
                         </div>
                         <button type="button"
                                 class="workspace-utility-menu__close"
-                                aria-label="Close import and export menu"
+                                aria-label="Close menu"
                                 @onclick="CloseUtilityMenu">
                             Close
                         </button>
@@ -84,7 +58,7 @@
                             <div class="workspace-panel__header">
                                 <div>
                                     <p class="workspace-panel__label">Import</p>
-                                    <h2>Local deck library</h2>
+                                    <h2>Deck library</h2>
                                 </div>
                                 <div class="workspace-panel__header-side">
                                     <span class="workspace-panel__badge">@ImportedDecks.Count local decks</span>
@@ -93,11 +67,7 @@
                                         <MudProgressCircular Indeterminate="true" Size="Size.Small" />
                                     }
                                 </div>
-                            </div>
-
-                            <p class="workspace-panel__intro">
-                                Keep raw imports inside this browser, reopen saved lists instantly, and branch them into a working copy when you want to tune the shell.
-                            </p>
+                            </div>                            
 
                             <MudSelect T="string" Label="Source format" Value="@SelectedImportFormatId" ValueChanged="ImportFormatChanged">
                                 @foreach (var option in SupportedImportFormats)
@@ -107,7 +77,7 @@
                             </MudSelect>
 
                             <MudTextField T="string"
-                                          Label="Paste deck text"
+                                          Label="Paste deck"
                                           Lines="10"
                                           Value="@ImportDocumentText"
                                           ValueChanged="ImportDocumentTextChanged"
@@ -115,7 +85,7 @@
 
                             <div class="workspace-search">
                                 <button type="button" class="workspace-search__button" @onclick="ImportRequested">Import deck</button>
-                                <button type="button" class="workspace-search__button" @onclick="OpenImportedDeckRequested" disabled="@string.IsNullOrWhiteSpace(ActiveImportedDeckId)">Open working copy</button>
+                                <button type="button" class="workspace-search__button" @onclick="OpenImportedDeckRequested" disabled="@string.IsNullOrWhiteSpace(ActiveImportedDeckId)">Load selected deck</button>
                                 <button type="button" class="workspace-search__button" @onclick="StartNewDeckRequested">New deck</button>
                             </div>
 
@@ -203,7 +173,7 @@
                             <div class="workspace-search-results" data-testid="imported-deck-library">
                                 @if (ImportedDecks.Count == 0)
                                 {
-                                    <p class="workspace-panel__empty">Imported decks stay in this browser only. Paste a supported decklist to start a local library.</p>
+                                    <p class="workspace-panel__empty">Paste a supported decklist to start a local library.</p>
                                 }
                                 else
                                 {
@@ -271,11 +241,9 @@
             <MudPaper Elevation="0" Class="workspace-panel workspace-panel--search">
                 <div class="workspace-panel__header">
                     <div>
-                        <p class="workspace-panel__label">Search</p>
-                        <h2>Draft the shell</h2>
+                        <p class="workspace-panel__label">Search</p>                        
                     </div>
-                    <div class="workspace-panel__header-side">
-                        <span class="workspace-panel__badge">@SearchResults.Count results</span>
+                    <div class="workspace-panel__header-side">                        
                         @if (IsBusy)
                         {
                             <MudProgressCircular Indeterminate="true" Size="Size.Small" />
@@ -284,19 +252,19 @@
                 </div>
 
                 <p class="workspace-panel__intro">
-                    Search for commanders, staples, and glue pieces, then push the strongest candidates directly into the deck or elevate them to the command zone.
+                    Search for cards, commanders, staples, and glue pieces, then add the strongest candidates directly into the deck.
                 </p>
 
                 <div class="workspace-search">
                     <input class="workspace-search__input"
-                           placeholder="Search cards, commanders, or staples"
+                           placeholder="Search cards"
                            value="@SearchQuery"
                            @oninput="HandleSearchQueryInput" />
                     <button type="button"
                             class="workspace-search__button"
                             @onclick="SearchRequested"
                             disabled="@IsBusy">
-                        Search index
+                        Search
                     </button>
                 </div>
 
@@ -308,7 +276,7 @@
                 <div class="workspace-search-results" data-testid="search-results">
                     @if (SearchResults.Count == 0)
                     {
-                        <p class="workspace-panel__empty">Search results land here with quick actions for commander selection and pile staging.</p>
+                        <p class="workspace-panel__empty"></p>
                     }
                     else
                     {
@@ -341,20 +309,15 @@
                 <div class="workspace-panel__header">
                     <div>
                         <p class="workspace-panel__label">Signals</p>
-                        <h2>Validation and bracket pulse</h2>
                     </div>
                     <span class="workspace-panel__badge">@ValidationStatusLabel</span>
-                </div>
-
-                <p class="workspace-panel__intro">
-                    Watch legality, bracket pressure, and synergy drift in one place while the working copy evolves through each lane adjustment.
-                </p>
+                </div>                
 
                 @if (State.Status == DeckWorkspaceStatus.Loading)
                 {
                     <div class="workspace-state workspace-state--loading" data-testid="workspace-loading">
                         <MudProgressCircular Indeterminate="true" Size="Size.Large" />
-                        <p>Loading workspace shell and deck telemetry.</p>
+                        <p>Loading deck telemetry.</p>
                     </div>
                 }
                 else if (State.Status == DeckWorkspaceStatus.Empty)
@@ -405,7 +368,7 @@
                                 <h3>Validation findings</h3>
                                 @if (State.Findings.Count == 0)
                                 {
-                                    <p class="workspace-panel__empty">No findings yet. Add a commander and supporting cards to trigger the rules engine.</p>
+                                    <p class="workspace-panel__empty">No findings yet. Add a commander and supporting cards to trigger analysis.</p>
                                 }
                                 else
                                 {
@@ -433,8 +396,7 @@
         {
             <section class="workspace-banner workspace-banner--commander-needed" data-testid="commander-needed-banner">
                 <div>
-                    <p class="workspace-panel__label">Commander needed</p>
-                    <h2>Keep sorting now, choose the commander when you are ready.</h2>
+                    <p class="workspace-panel__label">Commander needed</p>                    
                     <p>Validation and synergy stay paused until you pick a legal commander from search results or use <strong>Set as commander</strong> on an eligible card already in the deck.</p>
                 </div>
             </section>

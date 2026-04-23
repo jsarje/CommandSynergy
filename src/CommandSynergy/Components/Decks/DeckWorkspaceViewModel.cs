@@ -1181,10 +1181,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         piles.AddRange(
         [
             new PileDefinitionContract { PileId = CommandZonePileId, Name = "Command Zone", SortOrder = 0 },
-            new PileDefinitionContract { PileId = MainboardPileId, Name = "Mainboard", SortOrder = 1 },
-            new PileDefinitionContract { PileId = "engine", Name = "Engine", SortOrder = 2 },
-            new PileDefinitionContract { PileId = "interaction", Name = "Interaction", SortOrder = 3 },
-            new PileDefinitionContract { PileId = "finishers", Name = "Finishers", SortOrder = 4 },
+            new PileDefinitionContract { PileId = MainboardPileId, Name = "Mainboard", SortOrder = 1 },            
         ]);
 
         Piles = piles.OrderBy(static pile => pile.SortOrder).ToArray();
