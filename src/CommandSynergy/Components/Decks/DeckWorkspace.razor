@@ -22,47 +22,47 @@
 
         @if (isUtilityMenuOpen)
         {
-            <DeckUtilityPanel ImportedDecks="ImportedDecks"
-                              IsHydratingLibrary="IsHydratingLibrary"
+            <DeckUtilityPanel ImportedDecks="@ImportedDecks"
+                              IsHydratingLibrary="@IsHydratingLibrary"
                               IsImporting="@isImporting"
-                              ActiveImportedDeckId="ActiveImportedDeckId"
-                              OpenImportedDeckRequested="OpenImportedDeckRequested"
-                              StartNewDeckRequested="StartNewDeckRequested"
-                              IsWorkspaceLinkedToSavedDeck="IsWorkspaceLinkedToSavedDeck"
-                              ActiveWorkspaceDeckName="ActiveWorkspaceDeckName"
-                              LinkedDeckName="LinkedDeckName"
-                              LinkedDeckNameChanged="LinkedDeckNameChanged"
-                              CanRenameLinkedDeck="CanRenameLinkedDeck"
-                              RenameLinkedDeckRequested="RenameLinkedDeckRequested"
-                              LinkedDeckStatusMessage="LinkedDeckStatusMessage"
-                              LinkedDeckStatusHasError="LinkedDeckStatusHasError"
-                              NewDeckName="NewDeckName"
-                              NewDeckNameChanged="NewDeckNameChanged"
-                              CanSaveNewDeck="CanSaveNewDeck"
-                              SaveNewDeckRequested="SaveNewDeckRequested"
-                              LibraryRecoveryMessage="LibraryRecoveryMessage"
-                              ActiveImportedDeckDiagnostics="ActiveImportedDeckDiagnostics"
-                              SupportedImportFormats="SupportedImportFormats"
-                              SelectedImportFormatId="SelectedImportFormatId"
-                              ImportFormatChanged="ImportFormatChanged"
-                              ImportDocumentText="ImportDocumentText"
-                              ImportDocumentTextChanged="ImportDocumentTextChanged"
-                              ImportRequested="OnImportRequestedAsync"
-                              ImportStatusMessage="ImportStatusMessage"
-                              HasPendingDuplicateImport="HasPendingDuplicateImport"
-                              PendingDuplicateImportName="PendingDuplicateImportName"
-                              PendingDuplicateImportTargetName="PendingDuplicateImportTargetName"
-                              UpdateExistingImportedDeckRequested="OnUpdateExistingImportAsync"
-                              ImportDuplicateAsNewDeckRequested="OnImportDuplicateAsNewAsync"
-                              ImportedDeckSelected="ImportedDeckSelected"
-                              OpenDeleteImportedDeckRequested="(id) => OpenDeleteImportedDeckDialog(id)"
-                              ExportPreview="ExportPreview"
-                              SupportedExportFormats="SupportedExportFormats"
-                              SelectedExportFormatId="SelectedExportFormatId"
-                              ExportStatusMessage="ExportStatusMessage"
-                              ExportFormatChanged="ExportFormatChanged"
-                              ExportRequested="ExportRequested"
-                              CloseRequested="() => CloseUtilityMenu()" />
+                              ActiveImportedDeckId="@ActiveImportedDeckId"
+                              OpenImportedDeckRequested="@OnOpenImportedDeckRequestedAsync"
+                              StartNewDeckRequested="@OnStartNewDeckRequestedAsync"
+                              IsWorkspaceLinkedToSavedDeck="@IsWorkspaceLinkedToSavedDeck"
+                              ActiveWorkspaceDeckName="@ActiveWorkspaceDeckName"
+                              LinkedDeckName="@LinkedDeckName"
+                              LinkedDeckNameChanged="@LinkedDeckNameChanged"
+                              CanRenameLinkedDeck="@CanRenameLinkedDeck"
+                              RenameLinkedDeckRequested="@RenameLinkedDeckRequested"
+                              LinkedDeckStatusMessage="@LinkedDeckStatusMessage"
+                              LinkedDeckStatusHasError="@LinkedDeckStatusHasError"
+                              NewDeckName="@NewDeckName"
+                              NewDeckNameChanged="@NewDeckNameChanged"
+                              CanSaveNewDeck="@CanSaveNewDeck"
+                              SaveNewDeckRequested="@SaveNewDeckRequested"
+                              LibraryRecoveryMessage="@LibraryRecoveryMessage"
+                              ActiveImportedDeckDiagnostics="@ActiveImportedDeckDiagnostics"
+                              SupportedImportFormats="@SupportedImportFormats"
+                              SelectedImportFormatId="@SelectedImportFormatId"
+                              ImportFormatChanged="@ImportFormatChanged"
+                              ImportDocumentText="@ImportDocumentText"
+                              ImportDocumentTextChanged="@ImportDocumentTextChanged"
+                              ImportRequested="@OnImportRequestedAsync"
+                              ImportStatusMessage="@ImportStatusMessage"
+                              HasPendingDuplicateImport="@HasPendingDuplicateImport"
+                              PendingDuplicateImportName="@PendingDuplicateImportName"
+                              PendingDuplicateImportTargetName="@PendingDuplicateImportTargetName"
+                              UpdateExistingImportedDeckRequested="@OnUpdateExistingImportAsync"
+                              ImportDuplicateAsNewDeckRequested="@OnImportDuplicateAsNewAsync"
+                              ImportedDeckSelected="@OnImportedDeckSelectedAsync"
+                              OpenDeleteImportedDeckRequested="@OpenDeleteImportedDeckDialog"
+                              ExportPreview="@ExportPreview"
+                              SupportedExportFormats="@SupportedExportFormats"
+                              SelectedExportFormatId="@SelectedExportFormatId"
+                              ExportStatusMessage="@ExportStatusMessage"
+                              ExportFormatChanged="@ExportFormatChanged"
+                              ExportRequested="@ExportRequested"
+                              CloseRequested="@CloseUtilityMenu" />
         }
 
         @if (isImporting)
@@ -446,6 +446,27 @@
         {
             isImporting = false;
         }
+    }
+
+    private async Task OnImportedDeckSelectedAsync(string deckId)
+    {
+        await ImportedDeckSelected.InvokeAsync(deckId);
+        await InvokeAsync(StateHasChanged);
+        CloseUtilityMenu();
+    }
+
+    private async Task OnOpenImportedDeckRequestedAsync()
+    {
+        await OpenImportedDeckRequested.InvokeAsync(null);
+        await InvokeAsync(StateHasChanged);
+        CloseUtilityMenu();
+    }
+
+    private async Task OnStartNewDeckRequestedAsync()
+    {
+        await StartNewDeckRequested.InvokeAsync(null);
+        await InvokeAsync(StateHasChanged);
+        CloseUtilityMenu();
     }
 
     private void OpenDeleteImportedDeckDialog(string importedDeckId)

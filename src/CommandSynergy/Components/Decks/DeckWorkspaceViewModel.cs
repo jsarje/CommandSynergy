@@ -151,7 +151,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
     public string ImportDocumentText { get; private set; } = string.Empty;
 
-    public string? SelectedImportFormatId { get; private set; }
+    public string? SelectedImportFormatId { get; private set; } = string.Empty;
 
     public string SelectedExportFormatId { get; private set; } = "moxfield-text";
 
