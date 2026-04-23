@@ -1,12 +1,13 @@
 @using CommandSynergy.Application.Contracts
 
-<MudPaper Elevation="0" Class="workspace-panel workspace-panel--status">
+<div class="workspace-stack workspace-export-panel">
     <div class="workspace-panel__header">
         <div>
-            <p class="workspace-panel__label">Export</p>            
+            <p class="workspace-panel__label">Export</p>
+            <h2>Share the current list</h2>
         </div>
         <span class="workspace-panel__badge">@SelectedFormatId</span>
-    </div>    
+    </div>
 
     <MudSelect T="string" Label="Target format" Value="@SelectedFormatId" ValueChanged="ExportFormatChanged">
         @foreach (var option in SupportedFormats)
@@ -49,7 +50,7 @@
                       ReadOnly="true"
                       Variant="Variant.Outlined" />
     }
-</MudPaper>
+</div>
 
 @code {
     [Parameter]
