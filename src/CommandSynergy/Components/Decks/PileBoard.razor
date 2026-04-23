@@ -421,12 +421,13 @@
 
     private static string ResolveNameGroup(WorkspaceCardView card)
     {
-        if (string.IsNullOrWhiteSpace(card.Name))
+        var trimmedName = card.Name.Trim();
+        if (trimmedName.Length == 0)
         {
             return "#";
         }
 
-        var firstCharacter = card.Name.Trim()[0];
+        var firstCharacter = trimmedName[0];
         return char.IsLetter(firstCharacter)
             ? char.ToUpperInvariant(firstCharacter).ToString()
             : "#";
@@ -461,8 +462,9 @@
 
     private static CardGroupView CreateGroupView(IGrouping<string, WorkspaceCardView> group)
     {
-        var value = group.Key[(group.Key.IndexOf(':') + 1)..];
-        var (label, sortOrder) = group.Key[..group.Key.IndexOf(':')] switch
+        var separatorIndex = group.Key.IndexOf(':');
+        var value = group.Key[(separatorIndex + 1)..];
+        var (label, sortOrder) = group.Key[..separatorIndex] switch
         {
             "mana" => ($"Mana value {value}", ParseGroupOrder(value)),
             "color" => (value, ResolveColorOrder(value)),

@@ -184,8 +184,9 @@ public sealed class PileBoardTests : BunitContext
 
         var currentGroupJumpMenu = cut.Find("[data-testid='mainboard-group-jump-name-c']");
         currentGroupJumpMenu.Should().NotBeNull();
-        currentGroupJumpMenu.QuerySelector("[data-testid='mainboard-group-link-name-c']")!
-            .GetAttribute("aria-current")
+        var currentGroupLink = currentGroupJumpMenu.QuerySelector("[data-testid='mainboard-group-link-name-c']");
+        currentGroupLink.Should().NotBeNull();
+        currentGroupLink!.GetAttribute("aria-current")
             .Should()
             .Be("location");
     }
