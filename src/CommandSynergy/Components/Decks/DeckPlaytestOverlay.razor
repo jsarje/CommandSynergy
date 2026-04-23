@@ -1,0 +1,387 @@
+<div class="playtest-overlay" data-testid="playtest-overlay">
+    <section class="playtest-overlay__surface"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="playtest-overlay-title">
+        <header class="playtest-overlay__header">
+            <div class="playtest-overlay__header-copy">
+                <p class="workspace-panel__label">Playtest</p>
+                <h2 id="playtest-overlay-title">Goldfish the current mainboard</h2>
+                <p class="playtest-overlay__status">
+                    Shuffle the live mainboard, draw an opening hand, and practice mulligans without leaving the workspace behind.
+                </p>
+            </div>
+
+            <div class="playtest-overlay__header-actions">
+                <button type="button"
+                        class="workspace-appbar__action"
+                        data-testid="restart-playtest"
+                        @onclick="ResetPlaytest"
+                        disabled="@(deckTemplate.Count == 0)">
+                    Shuffle and redraw
+                </button>
+                <button type="button"
+                        class="workspace-utility-menu__close"
+                        aria-label="Back to deck workspace"
+                        @onclick="() => CloseRequested.InvokeAsync(null)">
+                    Back to deck
+                </button>
+            </div>
+        </header>
+
+        <div class="playtest-overlay__summary">
+            <article class="playtest-overlay__metric">
+                <span>Library</span>
+                <strong data-testid="playtest-library-count">@library.Count</strong>
+            </article>
+            <article class="playtest-overlay__metric">
+                <span>Hand</span>
+                <strong data-testid="playtest-hand-count">@hand.Count</strong>
+            </article>
+            <article class="playtest-overlay__metric">
+                <span>Bottomed</span>
+                <strong data-testid="playtest-bottom-count">@bottomedCards.Count</strong>
+            </article>
+            <article class="playtest-overlay__metric">
+                <span>Mulligans</span>
+                <strong data-testid="playtest-mulligan-count">@mulliganCount</strong>
+            </article>
+        </div>
+
+        @if (deckTemplate.Count == 0)
+        {
+            <section class="playtest-overlay__section">
+                <p class="workspace-panel__empty" data-testid="playtest-empty-state">
+                    Add cards to the mainboard to start a playtest.
+                </p>
+            </section>
+        }
+        else
+        {
+            <section class="playtest-overlay__section playtest-overlay__section--controls">
+                <div>
+                    <p class="workspace-panel__label">Current step</p>
+                    @if (phase is PlaytestPhase.ChoosingBottomCards)
+                    {
+                        <p class="playtest-overlay__status" data-testid="playtest-status">
+                            Choose @BottomCardsRemaining more @(BottomCardsRemaining == 1 ? "card" : "cards") from your hand to place on the bottom of the library in your preferred order.
+                        </p>
+                    }
+                    else if (CanTakeMulligan)
+                    {
+                        var remainingMulligans = MaxMulligans - mulliganCount;
+                        <p class="playtest-overlay__status" data-testid="playtest-status">
+                            Opening hand drawn from @deckTemplate.Count live mainboard cards. You can keep drawing or take up to @remainingMulligans more mulligan@(remainingMulligans == 1 ? string.Empty : "s").
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="playtest-overlay__status" data-testid="playtest-status">
+                            Mulligan limit reached for this mainboard size. Continue drawing from the top until the library is empty.
+                        </p>
+                    }
+                </div>
+
+                <div class="playtest-overlay__actions">
+                    <button type="button"
+                            class="workspace-search__button"
+                            data-testid="playtest-draw-card"
+                            @onclick="DrawCard"
+                            disabled="@(!CanDraw)">
+                        Draw from top
+                    </button>
+                    <button type="button"
+                            class="workspace-search-result__secondary"
+                            data-testid="playtest-take-mulligan"
+                            @onclick="TakeMulligan"
+                            disabled="@(!CanTakeMulligan)">
+                        Take mulligan
+                    </button>
+                </div>
+            </section>
+
+            <div class="playtest-overlay__board">
+                <section class="playtest-overlay__section">
+                    <div class="playtest-overlay__section-header">
+                        <div>
+                            <p class="workspace-panel__label">Hand</p>
+                            <h3>Cards in hand</h3>
+                        </div>
+                        <span>@hand.Count cards</span>
+                    </div>
+
+                    <div class="playtest-overlay__cards" data-testid="playtest-hand">
+                        @if (hand.Count == 0)
+                        {
+                            <p class="workspace-panel__empty">No cards in hand.</p>
+                        }
+                        else
+                        {
+                            @foreach (var card in hand)
+                            {
+                                <article class="playtest-card" data-testid="@($"playtest-hand-card-{card.InstanceId}")">
+                                    <div class="playtest-card__body">
+                                        @if (TryGetImageUri(card.Card, out var imageUri))
+                                        {
+                                            <img class="playtest-card__art"
+                                                 src="@imageUri"
+                                                 alt="@($"{card.Card.Name} artwork")"
+                                                 loading="lazy" />
+                                        }
+                                        else
+                                        {
+                                            <div class="playtest-card__art playtest-card__art--placeholder" aria-hidden="true"></div>
+                                        }
+
+                                        <div class="playtest-card__copy">
+                                            <strong>@card.Card.Name</strong>
+                                            <span>@card.Card.TypeLine</span>
+                                            @if (!string.IsNullOrWhiteSpace(card.Card.ManaCost))
+                                            {
+                                                <span>@card.Card.ManaCost</span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    @if (phase is PlaytestPhase.ChoosingBottomCards)
+                                    {
+                                        <button type="button"
+                                                class="workspace-search-result__secondary"
+                                                data-testid="@($"put-on-bottom-{card.InstanceId}")"
+                                                @onclick="() => PutCardOnBottom(card.InstanceId)">
+                                            Put on bottom
+                                        </button>
+                                    }
+                                </article>
+                            }
+                        }
+                    </div>
+                </section>
+
+                <section class="playtest-overlay__section playtest-overlay__section--stack">
+                    <div class="playtest-overlay__section-header">
+                        <div>
+                            <p class="workspace-panel__label">Library</p>
+                            <h3>Deck state</h3>
+                        </div>
+                        <span>@library.Count remaining</span>
+                    </div>
+
+                    <div class="playtest-overlay__stack">
+                        <article class="playtest-overlay__stack-card">
+                            <span>Top of library</span>
+                            <strong>@(library.Count == 0 ? "Empty" : "Unknown card")</strong>
+                            <p>Draw one card at a time from the top until the library runs out.</p>
+                        </article>
+
+                        <article class="playtest-overlay__stack-card">
+                            <span>Starting hand</span>
+                            <strong>@OpeningHandSize cards</strong>
+                            <p>Every new playtest begins by shuffling the live mainboard and drawing up to seven cards.</p>
+                        </article>
+                    </div>
+
+                    <div class="playtest-overlay__section-header">
+                        <div>
+                            <p class="workspace-panel__label">Bottom of library</p>
+                            <h3>Chosen order</h3>
+                        </div>
+                        <span>@bottomedCards.Count cards</span>
+                    </div>
+
+                    <ol class="playtest-overlay__bottom-list" data-testid="playtest-bottom-list">
+                        @if (bottomedCards.Count == 0)
+                        {
+                            <li class="workspace-panel__empty">No cards have been put on the bottom yet.</li>
+                        }
+                        else
+                        {
+                            @for (var index = 0; index < bottomedCards.Count; index++)
+                            {
+                                <li data-testid="@($"playtest-bottom-card-{index + 1}")">
+                                    <strong>@bottomedCards[index].Card.Name</strong>
+                                </li>
+                            }
+                        }
+                    </ol>
+                </section>
+            </div>
+        }
+    </section>
+</div>
+
+@code {
+    [Parameter]
+    public required IReadOnlyList<WorkspaceCardView> Cards { get; set; }
+
+    [Parameter]
+    public EventCallback CloseRequested { get; set; }
+
+    private List<PlaytestCardInstance> deckTemplate = [];
+    private readonly List<PlaytestCardInstance> library = [];
+    private readonly List<PlaytestCardInstance> hand = [];
+    private readonly List<PlaytestCardInstance> bottomedCards = [];
+    private string? lastDeckSignature;
+    private PlaytestPhase phase;
+    private int mulliganCount;
+    private bool hasDrawnSinceHandStart;
+
+    private int OpeningHandSize => Math.Min(7, deckTemplate.Count);
+
+    private int MaxMulligans => Math.Min(7, deckTemplate.Count);
+
+    private int BottomCardsRequired => Math.Min(mulliganCount, deckTemplate.Count);
+
+    private int BottomCardsRemaining => Math.Max(0, BottomCardsRequired - bottomedCards.Count);
+
+    private bool CanDraw => phase is PlaytestPhase.Playing && library.Count > 0;
+
+    private bool CanTakeMulligan => phase is PlaytestPhase.Playing && deckTemplate.Count > 0 && mulliganCount < MaxMulligans && !hasDrawnSinceHandStart;
+
+    protected override void OnParametersSet()
+    {
+        var currentDeckSignature = BuildDeckSignature();
+        if (string.Equals(currentDeckSignature, lastDeckSignature, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        lastDeckSignature = currentDeckSignature;
+        ResetPlaytest();
+    }
+
+    private void ResetPlaytest()
+    {
+        deckTemplate = BuildDeckTemplate();
+        mulliganCount = 0;
+        StartNewHand();
+    }
+
+    private void DrawCard()
+    {
+        if (!CanDraw)
+        {
+            return;
+        }
+
+        hand.Add(library[0]);
+        library.RemoveAt(0);
+        hasDrawnSinceHandStart = true;
+    }
+
+    private void TakeMulligan()
+    {
+        if (!CanTakeMulligan)
+        {
+            return;
+        }
+
+        mulliganCount++;
+        StartNewHand();
+    }
+
+    private void PutCardOnBottom(string instanceId)
+    {
+        if (phase is not PlaytestPhase.ChoosingBottomCards)
+        {
+            return;
+        }
+
+        var selectedCard = hand.FirstOrDefault(card => string.Equals(card.InstanceId, instanceId, StringComparison.Ordinal));
+        if (selectedCard is null)
+        {
+            return;
+        }
+
+        hand.Remove(selectedCard);
+        bottomedCards.Add(selectedCard);
+        library.Add(selectedCard);
+
+        if (BottomCardsRemaining == 0)
+        {
+            phase = PlaytestPhase.Playing;
+        }
+    }
+
+    private void StartNewHand()
+    {
+        hand.Clear();
+        library.Clear();
+        bottomedCards.Clear();
+        hasDrawnSinceHandStart = false;
+
+        if (deckTemplate.Count == 0)
+        {
+            phase = PlaytestPhase.Empty;
+            return;
+        }
+
+        library.AddRange(Shuffle(deckTemplate));
+
+        var startingCardsToDraw = Math.Min(7, library.Count);
+        for (var index = 0; index < startingCardsToDraw; index++)
+        {
+            hand.Add(library[0]);
+            library.RemoveAt(0);
+        }
+
+        phase = BottomCardsRequired > 0 ? PlaytestPhase.ChoosingBottomCards : PlaytestPhase.Playing;
+    }
+
+    private List<PlaytestCardInstance> BuildDeckTemplate()
+    {
+        return Cards
+            .Where(card => string.Equals(card.AssignedPileId, DeckWorkspaceViewModel.MainboardPileId, StringComparison.OrdinalIgnoreCase))
+            .Where(card => card.Quantity > 0)
+            .OrderBy(card => card.Name, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(card => card.CardId, StringComparer.OrdinalIgnoreCase)
+            .SelectMany(card => Enumerable.Range(1, card.Quantity)
+                .Select(copyIndex => new PlaytestCardInstance($"{card.CardId}-{copyIndex}", card)))
+            .ToList();
+    }
+
+    private string BuildDeckSignature()
+    {
+        return string.Join(
+            "|",
+            Cards
+                .Where(card => string.Equals(card.AssignedPileId, DeckWorkspaceViewModel.MainboardPileId, StringComparison.OrdinalIgnoreCase))
+                .Where(card => card.Quantity > 0)
+                .OrderBy(card => card.CardId, StringComparer.OrdinalIgnoreCase)
+                .Select(card => $"{card.CardId}:{card.Quantity}"));
+    }
+
+    private static List<PlaytestCardInstance> Shuffle(IEnumerable<PlaytestCardInstance> cards)
+    {
+        var shuffledCards = cards.ToList();
+        for (var index = shuffledCards.Count - 1; index > 0; index--)
+        {
+            var swapIndex = Random.Shared.Next(index + 1);
+            (shuffledCards[index], shuffledCards[swapIndex]) = (shuffledCards[swapIndex], shuffledCards[index]);
+        }
+
+        return shuffledCards;
+    }
+
+    private static bool TryGetImageUri(WorkspaceCardView card, out string imageUri)
+    {
+        var resolvedImageUri = card.Faces.FirstOrDefault(static face => face.IsPrimaryFace)?.ImageUri ?? card.ImageUri;
+        if (string.IsNullOrWhiteSpace(resolvedImageUri))
+        {
+            imageUri = string.Empty;
+            return false;
+        }
+
+        imageUri = resolvedImageUri;
+        return true;
+    }
+
+    private sealed record PlaytestCardInstance(string InstanceId, WorkspaceCardView Card);
+
+    private enum PlaytestPhase
+    {
+        Empty,
+        Playing,
+        ChoosingBottomCards,
+    }
+}

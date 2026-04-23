@@ -1019,6 +1019,164 @@ h1:focus {
     box-shadow: 0 30px 70px rgba(13, 20, 17, 0.24);
 }
 
+.playtest-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1450;
+    padding: 1rem;
+    background: rgba(16, 24, 20, 0.72);
+    backdrop-filter: blur(10px);
+}
+
+.playtest-overlay__surface {
+    height: 100%;
+    overflow-y: auto;
+    display: grid;
+    gap: 1rem;
+    padding: clamp(1rem, 2vw, 1.5rem);
+    border: 1px solid var(--cs-outline-strong);
+    border-radius: var(--cs-radius-xl);
+    background:
+        linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(247, 241, 232, 0.98)),
+        rgba(255, 251, 244, 0.98);
+    box-shadow: 0 30px 70px rgba(13, 20, 17, 0.32);
+}
+
+.playtest-overlay__header,
+.playtest-overlay__header-actions,
+.playtest-overlay__summary,
+.playtest-overlay__actions,
+.playtest-overlay__section-header,
+.playtest-card__body {
+    display: flex;
+    gap: 1rem;
+}
+
+.playtest-overlay__header,
+.playtest-overlay__section-header {
+    align-items: start;
+    justify-content: space-between;
+}
+
+.playtest-overlay__header-copy,
+.playtest-overlay__section,
+.playtest-overlay__stack,
+.playtest-card__copy,
+.playtest-card {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.playtest-overlay__header-actions,
+.playtest-overlay__actions {
+    flex-wrap: wrap;
+    justify-content: end;
+}
+
+.playtest-overlay__summary,
+.playtest-overlay__board {
+    display: grid;
+    gap: 1rem;
+}
+
+.playtest-overlay__summary {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.playtest-overlay__metric,
+.playtest-overlay__section,
+.playtest-overlay__stack-card,
+.playtest-card {
+    border: 1px solid var(--cs-outline);
+    border-radius: var(--cs-radius-lg);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: var(--cs-shadow-soft);
+}
+
+.playtest-overlay__metric,
+.playtest-overlay__stack-card,
+.playtest-card {
+    padding: 1rem;
+}
+
+.playtest-overlay__metric span,
+.playtest-overlay__stack-card span,
+.playtest-overlay__section-header span,
+.playtest-card__copy span {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cs-muted);
+}
+
+.playtest-overlay__metric strong,
+.playtest-overlay__stack-card strong,
+.playtest-card__copy strong {
+    color: var(--cs-panel-title);
+}
+
+.playtest-overlay__metric strong {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+.playtest-overlay__status,
+.playtest-overlay__stack-card p {
+    margin: 0;
+    color: var(--cs-muted);
+}
+
+.playtest-overlay__section {
+    padding: 1rem;
+}
+
+.playtest-overlay__section--controls {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.playtest-overlay__board {
+    grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.9fr);
+}
+
+.playtest-overlay__cards,
+.playtest-overlay__bottom-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.playtest-overlay__stack-card {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.playtest-overlay__bottom-list {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.playtest-card__body {
+    align-items: center;
+}
+
+.playtest-card__copy {
+    gap: 0.2rem;
+}
+
+.playtest-card__art {
+    width: 4.5rem;
+    aspect-ratio: 63 / 88;
+    border-radius: var(--cs-radius-md);
+    object-fit: cover;
+    background: rgba(31, 91, 75, 0.08);
+}
+
+.playtest-card__art--placeholder {
+    border: 1px dashed rgba(31, 91, 75, 0.24);
+}
+
 .workspace-dialog__content {
     display: grid;
     gap: 0.65rem;
@@ -1427,6 +1585,27 @@ h1:focus {
     .workspace-utility-menu__header {
         grid-template-columns: 1fr;
     }
+
+    .playtest-overlay {
+        padding: 0;
+    }
+
+    .playtest-overlay__surface {
+        border-radius: 0;
+    }
+
+    .playtest-overlay__header,
+    .playtest-overlay__section--controls,
+    .playtest-overlay__summary,
+    .playtest-overlay__board {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .playtest-overlay__header-actions,
+    .playtest-overlay__actions {
+        justify-content: stretch;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1434,6 +1613,7 @@ h1:focus {
     .workspace-shell__signals,
     .workspace-shell__search,
     .workspace-appbar__action,
+    .playtest-overlay__surface,
     .workspace-search__button,
     .workspace-search-result__primary,
     .workspace-search-result__secondary,

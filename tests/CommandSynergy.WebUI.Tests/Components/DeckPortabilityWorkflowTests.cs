@@ -104,6 +104,23 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
         deletedDeckIds.Should().Equal(["deck-1"]);
     }
 
+    [Fact]
+    public void Deck_workspace_opens_and_closes_playtest_overlay_from_the_app_bar()
+    {
+        var cut = RenderWorkspace(cards:
+        [
+            CreateWorkspaceCard("sol-ring", DeckWorkspaceViewModel.MainboardPileId),
+        ]);
+
+        cut.Find("[data-testid='open-playtest']").Click();
+
+        cut.Find("[data-testid='playtest-overlay']").Should().NotBeNull();
+
+        cut.Find("button[aria-label='Back to deck workspace']").Click();
+
+        cut.FindAll("[data-testid='playtest-overlay']").Should().BeEmpty();
+    }
+
     private static void OpenUtilityMenu(IRenderedComponent<DeckWorkspace> cut)
     {
         cut.Find("button[aria-label='Open Deck Library']").Click();
@@ -115,6 +132,7 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
         string? pendingDuplicateImportName = null,
         string? pendingDuplicateImportTargetName = null,
         IReadOnlyList<ImportedDeckRecord>? importedDecks = null,
+        IReadOnlyList<WorkspaceCardView>? cards = null,
         Action<string>? onDeleteImportedDeck = null)
     {
         Render<MudPopoverProvider>();
@@ -127,7 +145,7 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
             .Add(component => component.SupportedImportFormats, [new FormatOptionView("", "Auto-detect")])
             .Add(component => component.SupportedExportFormats, [new FormatOptionView("moxfield-text", "Moxfield Text")])
             .Add(component => component.Piles, CreatePiles())
-            .Add(component => component.Cards, Array.Empty<WorkspaceCardView>())
+            .Add(component => component.Cards, cards ?? Array.Empty<WorkspaceCardView>())
             .Add(component => component.SearchResults, Array.Empty<WorkspaceCardView>())
             .Add(component => component.ImportedDecks, importedDecks ?? Array.Empty<ImportedDeckRecord>())
             .Add(component => component.HasPendingDuplicateImport, hasPendingDuplicateImport)
@@ -166,4 +184,20 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
             Array.Empty<ImportDiagnostic>(),
             Array.Empty<string>(),
             new Dictionary<string, string>());
+
+    private static WorkspaceCardView CreateWorkspaceCard(string cardId, string pileId) => new()
+    {
+        CardId = cardId,
+        Name = "Sol Ring",
+        ManaCost = "{1}",
+        ManaValue = 1m,
+        TypeLine = "Artifact",
+        ColorIdentity = Array.Empty<string>(),
+        Faces =
+        [
+            new WorkspaceCardFaceView("Sol Ring", "{1}", "Artifact", null, true),
+        ],
+        AssignedPileId = pileId,
+        Quantity = 1,
+    };
 }
