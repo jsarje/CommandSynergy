@@ -61,6 +61,11 @@ public sealed class PileBoardTests : BunitContext
         cut.Find("[data-testid='mainboard-grouping']").Change("None");
         cut.Find("[data-testid='mainboard-sorting']").Change("ManaCost");
 
+        cut.FindAll(".pile-board__group-header h4")
+            .Select(element => element.TextContent.Trim())
+            .Should()
+            .ContainInOrder("Mana value 0", "Mana value 1", "Mana value 2");
+
         cut.FindAll("[data-testid^='pile-card-']")
             .Select(element => element.GetAttribute("data-testid"))
             .Should()
@@ -151,6 +156,39 @@ public sealed class PileBoardTests : BunitContext
             .Select(element => element.TextContent.Trim())
             .Should()
             .ContainInOrder("Set 2XM", "Set CMM", "Set SOI", "Unknown set");
+    }
+
+    [Fact]
+    public void Pile_board_derives_jump_navigation_sections_when_mainboard_is_ungrouped()
+    {
+        var cut = Render<PileBoard>(parameters => parameters
+            .Add(component => component.Piles, CreatePiles())
+            .Add(component => component.Cards,
+            [
+                CreateCard("arcane-signet", DeckWorkspaceViewModel.MainboardPileId, name: "Arcane Signet"),
+                CreateCard("brainstorm", DeckWorkspaceViewModel.MainboardPileId, name: "Brainstorm", typeLine: "Instant", colors: ["U"]),
+                CreateCard("command-tower", DeckWorkspaceViewModel.MainboardPileId, name: "Command Tower", manaCost: null, manaValue: 0m, typeLine: "Land"),
+            ]));
+
+        cut.Find("[data-testid='mainboard-grouping']").Change("None");
+        cut.Find("[data-testid='mainboard-sorting']").Change("Name");
+
+        cut.FindAll(".pile-board__group-header h4")
+            .Select(element => element.TextContent.Trim())
+            .Should()
+            .ContainInOrder("A", "B", "C");
+
+        cut.Find("[data-testid='mainboard-group-link-name-a']").GetAttribute("href")
+            .Should()
+            .Be("#mainboard-section-name-a");
+
+        var currentGroupJumpMenu = cut.Find("[data-testid='mainboard-group-jump-name-c']");
+        currentGroupJumpMenu.Should().NotBeNull();
+        var currentGroupLink = currentGroupJumpMenu.QuerySelector("[data-testid='mainboard-group-link-name-c']");
+        currentGroupLink.Should().NotBeNull();
+        currentGroupLink!.GetAttribute("aria-current")
+            .Should()
+            .Be("location");
     }
 
     private static IReadOnlyList<PileDefinitionContract> CreatePiles() =>
