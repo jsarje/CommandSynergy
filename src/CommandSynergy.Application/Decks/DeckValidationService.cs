@@ -8,19 +8,10 @@ namespace CommandSynergy.Application.Decks;
 /// <summary>
 /// Converts deck snapshot contracts into the domain aggregate and validates them with commander rules.
 /// </summary>
-public sealed class DeckValidationService : IDeckValidationCoreService
+public sealed class DeckValidationService(ICardCatalogGateway cardCatalogGateway, ICommanderRules commanderRules) : IDeckValidationCoreService
 {
-    private readonly ICardCatalogGateway cardCatalogGateway;
-    private readonly ICommanderRules commanderRules;
-
-    /// <summary>
-    /// Creates a deck-validation application service.
-    /// </summary>
-    public DeckValidationService(ICardCatalogGateway cardCatalogGateway, ICommanderRules commanderRules)
-    {
-        this.cardCatalogGateway = cardCatalogGateway;
-        this.commanderRules = commanderRules;
-    }
+    private readonly ICardCatalogGateway cardCatalogGateway = cardCatalogGateway;
+    private readonly ICommanderRules commanderRules = commanderRules;
 
     /// <inheritdoc />
     public async Task<DeckValidationResponseContract> ValidateAsync(DeckSnapshotContract deckSnapshot, CancellationToken cancellationToken = default)

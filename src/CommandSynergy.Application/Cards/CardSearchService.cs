@@ -6,17 +6,9 @@ namespace CommandSynergy.Application.Cards;
 /// <summary>
 /// Orchestrates search requests against the current card catalog.
 /// </summary>
-public sealed class CardSearchService : ICardSearchCoreService
+public sealed class CardSearchService(ICardCatalogGateway cardCatalogGateway) : ICardSearchCoreService
 {
-    private readonly ICardCatalogGateway cardCatalogGateway;
-
-    /// <summary>
-    /// Creates a card-search application service.
-    /// </summary>
-    public CardSearchService(ICardCatalogGateway cardCatalogGateway)
-    {
-        this.cardCatalogGateway = cardCatalogGateway;
-    }
+    private readonly ICardCatalogGateway cardCatalogGateway = cardCatalogGateway;
 
     /// <inheritdoc />
     public async Task<CardSearchResponseContract> SearchAsync(CardSearchQueryContract request, CancellationToken cancellationToken = default)

@@ -11,20 +11,12 @@ namespace CommandSynergy.Infrastructure.Analysis;
 /// <summary>
 /// Provides shared cache helpers for deck analysis responses.
 /// </summary>
-public sealed class DeckAnalysisCache : IDeckAnalysisCache
+public sealed class DeckAnalysisCache(IDistributedCache distributedCache) : IDeckAnalysisCache
 {
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
     private const string CacheKeyPrefix = "DeckAnalysis";
 
-    private readonly IDistributedCache distributedCache;
-
-    /// <summary>
-    /// Creates a deck analysis cache helper.
-    /// </summary>
-    public DeckAnalysisCache(IDistributedCache distributedCache)
-    {
-        this.distributedCache = distributedCache;
-    }
+    private readonly IDistributedCache distributedCache = distributedCache;
 
     /// <summary>
     /// Tries to get a cached response for the supplied key.

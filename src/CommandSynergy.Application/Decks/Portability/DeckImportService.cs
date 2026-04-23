@@ -4,24 +4,17 @@ using CommandSynergy.Application.Contracts;
 
 namespace CommandSynergy.Application.Decks.Portability;
 
-public sealed class DeckImportService : IDeckImportService
+public sealed class DeckImportService(
+    ICardSearchService cardSearchService,
+    IDeckFormatDetectionService deckFormatDetectionService,
+    TimeProvider timeProvider) : IDeckImportService
 {
     private const int MaxDocumentLength = 64 * 1024;
     private const int MaxConcurrentCardResolutions = 8;
 
-    private readonly ICardSearchService cardSearchService;
-    private readonly IDeckFormatDetectionService deckFormatDetectionService;
-    private readonly TimeProvider timeProvider;
-
-    public DeckImportService(
-        ICardSearchService cardSearchService,
-        IDeckFormatDetectionService deckFormatDetectionService,
-        TimeProvider timeProvider)
-    {
-        this.cardSearchService = cardSearchService;
-        this.deckFormatDetectionService = deckFormatDetectionService;
-        this.timeProvider = timeProvider;
-    }
+    private readonly ICardSearchService cardSearchService = cardSearchService;
+    private readonly IDeckFormatDetectionService deckFormatDetectionService = deckFormatDetectionService;
+    private readonly TimeProvider timeProvider = timeProvider;
 
     public async Task<DeckImportResultContract> ImportAsync(DeckImportRequestContract request, CancellationToken cancellationToken = default)
     {

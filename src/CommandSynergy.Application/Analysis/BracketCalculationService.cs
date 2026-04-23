@@ -9,24 +9,14 @@ namespace CommandSynergy.Application.Analysis;
 /// <summary>
 /// Calculates bracket factors and resolves the resulting Commander bracket.
 /// </summary>
-public sealed class BracketCalculationService : IBracketCalculationService
+public sealed class BracketCalculationService(
+    IBracketEngine bracketEngine,
+    IAnalysisExplanationBuilder explanationBuilder,
+    IOptions<BracketOptions> options) : IBracketCalculationService
 {
-    private readonly IBracketEngine bracketEngine;
-    private readonly IAnalysisExplanationBuilder explanationBuilder;
-    private readonly BracketOptions options;
-
-    /// <summary>
-    /// Creates a bracket-calculation service.
-    /// </summary>
-    public BracketCalculationService(
-        IBracketEngine bracketEngine,
-        IAnalysisExplanationBuilder explanationBuilder,
-        IOptions<BracketOptions> options)
-    {
-        this.bracketEngine = bracketEngine;
-        this.explanationBuilder = explanationBuilder;
-        this.options = options.Value;
-    }
+    private readonly IBracketEngine bracketEngine = bracketEngine;
+    private readonly IAnalysisExplanationBuilder explanationBuilder = explanationBuilder;
+    private readonly BracketOptions options = options.Value;
 
     /// <summary>
     /// Calculates the bracket result for the supplied deck and card profiles.

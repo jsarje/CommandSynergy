@@ -3,14 +3,9 @@ using CommandSynergy.Application.Contracts;
 
 namespace CommandSynergy.Client.Services;
 
-public sealed class BrowserCardSearchService : ICardSearchService
+public sealed class BrowserCardSearchService(ICardSearchIndexClient cardSearchIndexClient) : ICardSearchService
 {
-    private readonly ICardSearchIndexClient cardSearchIndexClient;
-
-    public BrowserCardSearchService(ICardSearchIndexClient cardSearchIndexClient)
-    {
-        this.cardSearchIndexClient = cardSearchIndexClient;
-    }
+    private readonly ICardSearchIndexClient cardSearchIndexClient = cardSearchIndexClient;
 
     public Task<CardSearchResponseContract> SearchAsync(CardSearchQueryContract request, CancellationToken cancellationToken = default)
     {
