@@ -30,7 +30,7 @@ public static class DependencyInjection
         services.AddSingleton<IParquetCardMetadataStore, ParquetCardMetadataStore>();
         services.AddSingleton<ISearchIndexSnapshotBuilder, SearchIndexSnapshotBuilder>();
         services.AddSingleton<IScryfallCardMapper, ScryfallCardMapper>();
-        services.AddSingleton<ICardMetadataBulkImportService, CardMetadataBulkImportService>();
+        services.AddScoped<ICardMetadataBulkImportService, CardMetadataBulkImportService>();
         services.AddSingleton<IDeckAnalysisCache, DeckAnalysisCache>();
         services.AddSingleton<IAnalysisTelemetry, AnalysisTelemetry>();
         services.AddScoped<ICardSearchCoreService, CardSearchService>();
