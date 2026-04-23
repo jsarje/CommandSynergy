@@ -357,11 +357,11 @@
                             <div>
                                 <span>Deck cards</span>
                                 <strong>@State.Validation?.DeckCardCount</strong>
-                            </div>
+                            </div>        
                             <div>
                                 <span>Legality</span>
                                 <strong>@(State.Validation?.IsValid == true ? "Ready" : "Needs work")</strong>
-                            </div>
+                            </div>                    
                             <div>
                                 <span>Bracket</span>
                                 <strong>@(Analysis?.Bracket.Level.ToString() ?? "-")</strong>
@@ -369,6 +369,10 @@
                             <div>
                                 <span>Synergy</span>
                                 <strong>@(Analysis?.Synergy.Score.ToString("0.#") ?? "-")</strong>
+                            </div>
+                            <div>
+                                <span>Power</span>
+                                <strong>@(Analysis?.PowerLevel.Score.ToString("0.#") ?? "-")</strong>
                             </div>
                         </div>
 
