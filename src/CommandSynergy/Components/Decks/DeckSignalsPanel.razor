@@ -68,6 +68,10 @@
                     <span>Power</span>
                     <strong>@(Analysis?.PowerLevel.Score.ToString("0.#") ?? "-")</strong>
                 </div>
+                <div>
+                    <span>Commander Theme</span>
+                    <strong>@(Analysis?.ThemeAnalysis?.CommanderAlignment?.CommanderTopTheme ?? "-")</strong>
+                </div>
             </div>            
 
             <MudExpansionPanels MultiExpansion="true" Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
