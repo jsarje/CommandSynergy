@@ -75,16 +75,45 @@
                     }
                     else
                     {
-                        @foreach (var group in GetMainboardGroups(cardsInPile))
+                        var groups = GetMainboardGroups(cardsInPile);
+
+                        @foreach (var group in groups)
                         {
-                            <section class="pile-board__group" data-testid="mainboard-group-@group.TestId">
-                                @if (selectedGrouping is not MainboardGrouping.None)
-                                {
-                                    <header class="pile-board__group-header">
+                            <section id="@GetGroupAnchorId(group)"
+                                     class="pile-board__group"
+                                     data-testid="mainboard-group-@group.TestId">
+                                <header class="pile-board__group-header">
+                                    @if (groups.Count > 1)
+                                    {
+                                        <details class="pile-board__group-jump"
+                                                 data-testid="mainboard-group-jump-@group.TestId">
+                                            <summary class="pile-board__group-jump-summary"
+                                                     data-testid="mainboard-group-current-@group.TestId">
+                                                <h4>@group.Label</h4>
+                                                <span class="pile-board__group-jump-affordance">Jump to</span>
+                                            </summary>
+
+                                            <nav class="pile-board__group-jump-menu"
+                                                 aria-label="Jump to another mainboard section">
+                                                @foreach (var targetGroup in groups)
+                                                {
+                                                    <a href="#@GetGroupAnchorId(targetGroup)"
+                                                       class="pile-board__group-jump-link"
+                                                       data-testid="mainboard-group-link-@targetGroup.TestId"
+                                                       aria-current="@(targetGroup.TestId == group.TestId ? "location" : null)">
+                                                        @targetGroup.Label
+                                                    </a>
+                                                }
+                                            </nav>
+                                        </details>
+                                    }
+                                    else
+                                    {
                                         <h4>@group.Label</h4>
-                                        <span>@group.TotalQuantity cards</span>
-                                    </header>
-                                }
+                                    }
+
+                                    <span>@group.TotalQuantity cards</span>
+                                </header>
 
                                 <div class="pile-board__group-cards @(isCompactMode ? "pile-board__group-cards--compact" : string.Empty)">
                                     @foreach (var card in group.Cards)
@@ -236,18 +265,10 @@
     private IReadOnlyList<CardGroupView> GetMainboardGroups(IReadOnlyList<WorkspaceCardView> cards)
     {
         var sortedCards = SortCards(cards);
-        if (selectedGrouping is MainboardGrouping.None)
-        {
-            return [new CardGroupView("All cards", "all-cards", sortedCards)];
-        }
-
         return sortedCards
-            .GroupBy(GetGroupKey)
-            .Select(group => new CardGroupView(
-                GetGroupLabel(group.Key),
-                ToTestId(group.Key),
-                group.ToArray()))
-            .OrderBy(GetGroupOrder)
+            .GroupBy(card => selectedGrouping is MainboardGrouping.None ? GetNavigationGroupKey(card) : GetGroupKey(card))
+            .Select(CreateGroupView)
+            .OrderBy(static group => group.SortOrder)
             .ThenBy(static group => group.Label, StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
@@ -280,26 +301,12 @@
         _ => $"type:{ResolveTypeGroup(card)}",
     };
 
-    private string GetGroupLabel(string groupKey)
+    private string GetNavigationGroupKey(WorkspaceCardView card) => selectedSorting switch
     {
-        var value = groupKey[(groupKey.IndexOf(':') + 1)..];
-        return selectedGrouping switch
-        {
-            MainboardGrouping.ManaCost => $"Mana value {value}",
-            MainboardGrouping.Color => value,
-            MainboardGrouping.Rarity => value,
-            MainboardGrouping.Set => value,
-            _ => value,
-        };
-    }
-
-    private decimal GetGroupOrder(CardGroupView group) => selectedGrouping switch
-    {
-        MainboardGrouping.ManaCost => ParseGroupOrder(group.Label),
-        MainboardGrouping.Color => ResolveColorOrder(group.Label),
-        MainboardGrouping.Rarity => ResolveRarityOrder(group.Label),
-        MainboardGrouping.Set => string.Equals(group.Label, UnknownSetLabel, StringComparison.OrdinalIgnoreCase) ? int.MaxValue : 0,
-        _ => GetTypeOrder(group.Label),
+        MainboardSorting.ManaCost => $"mana:{card.ManaValue:0.##}",
+        MainboardSorting.Type => $"type:{ResolveTypeGroup(card)}",
+        MainboardSorting.Color => $"color:{ResolveColorGroup(card)}",
+        _ => $"name:{ResolveNameGroup(card)}",
     };
 
     private void ToggleCompactMode()
@@ -408,9 +415,22 @@
         ? UnknownSetLabel
         : $"Set {card.SourceSetCode.Trim().ToUpperInvariant()}";
 
-    // Extract the numeric mana-value suffix from labels such as "Mana value 3" for deterministic group ordering.
+    private static string ResolveNameGroup(WorkspaceCardView card)
+    {
+        var firstCharacter = card.Name.Trim().FirstOrDefault();
+        return char.IsLetter(firstCharacter)
+            ? char.ToUpperInvariant(firstCharacter).ToString()
+            : "#";
+    }
+
+    // Extract the numeric mana-value suffix for deterministic group ordering.
     private static decimal ParseGroupOrder(string label)
     {
+        if (decimal.TryParse(label, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedValue))
+        {
+            return parsedValue;
+        }
+
         var lastSpaceIndex = label.LastIndexOf(' ');
         return lastSpaceIndex > -1 && decimal.TryParse(label[(lastSpaceIndex + 1)..], NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
             ? parsed
@@ -427,7 +447,25 @@
             .Trim('-');
     }
 
-    private sealed record CardGroupView(string Label, string TestId, IReadOnlyList<WorkspaceCardView> Cards)
+    private static string GetGroupAnchorId(CardGroupView group) => $"mainboard-section-{group.TestId}";
+
+    private static CardGroupView CreateGroupView(IGrouping<string, WorkspaceCardView> group)
+    {
+        var value = group.Key[(group.Key.IndexOf(':') + 1)..];
+        var (label, sortOrder) = group.Key[..group.Key.IndexOf(':')] switch
+        {
+            "mana" => ($"Mana value {value}", ParseGroupOrder(value)),
+            "color" => (value, ResolveColorOrder(value)),
+            "rarity" => (value, ResolveRarityOrder(value)),
+            "set" => (value, string.Equals(value, UnknownSetLabel, StringComparison.OrdinalIgnoreCase) ? int.MaxValue : 0),
+            "name" => (value, string.Equals(value, "#", StringComparison.Ordinal) ? -1 : 0),
+            _ => (value, GetTypeOrder(value)),
+        };
+
+        return new CardGroupView(label, ToTestId(group.Key), group.ToArray(), sortOrder);
+    }
+
+    private sealed record CardGroupView(string Label, string TestId, IReadOnlyList<WorkspaceCardView> Cards, decimal SortOrder)
     {
         public int TotalQuantity => Cards.Sum(static card => card.Quantity);
     }
