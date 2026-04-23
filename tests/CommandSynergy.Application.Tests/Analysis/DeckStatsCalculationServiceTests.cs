@@ -27,21 +27,21 @@ public sealed class DeckStatsCalculationServiceTests
         var result = sut.Calculate(deck, profiles);
 
         result.ManaValueHistogram.Should().HaveCount(9);
-        Slice(result.ManaValueHistogram, "2").Value.Should().Be(2m);
-        Slice(result.ManaValueHistogram, "4").Value.Should().Be(1m);
-        Slice(result.ManaValueHistogram, "8+").Value.Should().Be(1m);
-        Slice(result.ManaValueHistogram, "2").Share.Should().Be(0.5m);
-        Slice(result.ManaValueHistogram, "0").Value.Should().Be(0m);
+        GetSliceByLabel(result.ManaValueHistogram, "2").Value.Should().Be(2m);
+        GetSliceByLabel(result.ManaValueHistogram, "4").Value.Should().Be(1m);
+        GetSliceByLabel(result.ManaValueHistogram, "8+").Value.Should().Be(1m);
+        GetSliceByLabel(result.ManaValueHistogram, "2").Share.Should().Be(0.5m);
+        GetSliceByLabel(result.ManaValueHistogram, "0").Value.Should().Be(0m);
 
-        Slice(result.ManaCostDistribution, "White").Value.Should().Be(3m);
-        Slice(result.ManaCostDistribution, "Blue").Value.Should().Be(2m);
-        Slice(result.ManaCostDistribution, "Green").Value.Should().Be(1m);
-        Slice(result.ManaCostDistribution, "Colorless").Value.Should().Be(10m);
+        GetSliceByLabel(result.ManaCostDistribution, "White").Value.Should().Be(3m);
+        GetSliceByLabel(result.ManaCostDistribution, "Blue").Value.Should().Be(2m);
+        GetSliceByLabel(result.ManaCostDistribution, "Green").Value.Should().Be(1m);
+        GetSliceByLabel(result.ManaCostDistribution, "Colorless").Value.Should().Be(10m);
 
         result.ManaCurve.SpellCount.Should().Be(3);
         result.ManaCurve.AverageManaValue.Should().Be(4m);
-        Slice(result.ManaCurve.Buckets, "2").Value.Should().Be(2m);
-        Slice(result.ManaCurve.Buckets, "8+").Value.Should().Be(1m);
+        GetSliceByLabel(result.ManaCurve.Buckets, "2").Value.Should().Be(2m);
+        GetSliceByLabel(result.ManaCurve.Buckets, "8+").Value.Should().Be(1m);
     }
 
     [Fact]
@@ -62,10 +62,10 @@ public sealed class DeckStatsCalculationServiceTests
 
         var result = sut.Calculate(deck, profiles);
 
-        Slice(result.ManaGenerationDistribution, "Any").Value.Should().Be(5m);
-        Slice(result.ManaGenerationDistribution, "Colorless").Value.Should().Be(2m);
-        Slice(result.ManaGenerationDistribution, "Green").Value.Should().Be(2m);
-        Slice(result.ManaGenerationDistribution, "White").Value.Should().Be(1m);
+        GetSliceByLabel(result.ManaGenerationDistribution, "Any").Value.Should().Be(5m);
+        GetSliceByLabel(result.ManaGenerationDistribution, "Colorless").Value.Should().Be(2m);
+        GetSliceByLabel(result.ManaGenerationDistribution, "Green").Value.Should().Be(2m);
+        GetSliceByLabel(result.ManaGenerationDistribution, "White").Value.Should().Be(1m);
         result.ManaGenerationDistribution.Should().NotContain(slice => slice.Label == "Blue");
     }
 
@@ -98,16 +98,16 @@ public sealed class DeckStatsCalculationServiceTests
 
         var result = sut.Calculate(deck, profiles);
 
-        Slice(result.CardTypeDistribution, "Creature").Value.Should().Be(1m);
-        Slice(result.CardTypeDistribution, "Artifact").Value.Should().Be(1m);
-        Slice(result.CardTypeDistribution, "Enchantment").Value.Should().Be(1m);
-        Slice(result.CardTypeDistribution, "Instant").Value.Should().Be(1m);
-        Slice(result.CardTypeDistribution, "Sorcery").Value.Should().Be(1m);
-        Slice(result.CardTypeDistribution, "Planeswalker").Value.Should().Be(1m);
-        Slice(result.CardTypeDistribution, "Land").Value.Should().Be(1m);
-        Slice(result.CardTypeDistribution, "Battle").Value.Should().Be(1m);
-        Slice(result.CardTypeDistribution, "Kindred").Value.Should().Be(1m);
-        Slice(result.CardTypeDistribution, "Other").Value.Should().Be(1m);
+        GetSliceByLabel(result.CardTypeDistribution, "Creature").Value.Should().Be(1m);
+        GetSliceByLabel(result.CardTypeDistribution, "Artifact").Value.Should().Be(1m);
+        GetSliceByLabel(result.CardTypeDistribution, "Enchantment").Value.Should().Be(1m);
+        GetSliceByLabel(result.CardTypeDistribution, "Instant").Value.Should().Be(1m);
+        GetSliceByLabel(result.CardTypeDistribution, "Sorcery").Value.Should().Be(1m);
+        GetSliceByLabel(result.CardTypeDistribution, "Planeswalker").Value.Should().Be(1m);
+        GetSliceByLabel(result.CardTypeDistribution, "Land").Value.Should().Be(1m);
+        GetSliceByLabel(result.CardTypeDistribution, "Battle").Value.Should().Be(1m);
+        GetSliceByLabel(result.CardTypeDistribution, "Kindred").Value.Should().Be(1m);
+        GetSliceByLabel(result.CardTypeDistribution, "Other").Value.Should().Be(1m);
         result.CardTypeDistribution.Should().HaveCount(10);
     }
 
@@ -144,7 +144,7 @@ public sealed class DeckStatsCalculationServiceTests
         FaceProfiles = [ new CardFaceProfile("0", name, manaCost, typeLine, oracleText, null, true) ],
     };
 
-    private static Application.Contracts.DeckStatSliceContract Slice(
+    private static Application.Contracts.DeckStatSliceContract GetSliceByLabel(
         IReadOnlyList<Application.Contracts.DeckStatSliceContract> slices,
         string label) => slices.Single(slice => slice.Label == label);
 }

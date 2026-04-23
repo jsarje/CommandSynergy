@@ -254,20 +254,24 @@ public sealed partial class DeckStatsCalculationService
             return Math.Max(numericAmount, MinimumManaAmount);
         }
 
-        var wordMatch = NumberWords
-            .Select(pair => new
-            {
-                pair.Key,
-                pair.Value,
-                Index = segment.IndexOf(pair.Key, StringComparison.OrdinalIgnoreCase),
-            })
-            .Where(match => match.Index >= 0)
-            .OrderBy(match => match.Index)
-            .FirstOrDefault();
+        var matchedAmount = 0;
+        var earliestIndex = int.MaxValue;
 
-        if (wordMatch is not null)
+        foreach (var (word, amount) in NumberWords)
         {
-            return wordMatch.Value;
+            var index = segment.IndexOf(word, StringComparison.OrdinalIgnoreCase);
+            if (index < 0 || index >= earliestIndex)
+            {
+                continue;
+            }
+
+            earliestIndex = index;
+            matchedAmount = amount;
+        }
+
+        if (matchedAmount > 0)
+        {
+            return matchedAmount;
         }
 
         var tokenCount = ManaSymbolRegex().Matches(segment).Count;
