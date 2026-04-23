@@ -84,6 +84,30 @@ public sealed class DeckSignalsPanelTests : BunitContext
         cut.Markup.Should().Contain("72.4");
     }
 
+    [Fact]
+    public void Deck_signals_panel_prioritizes_library_restore_state_over_analysis_refresh()
+    {
+        var cut = Render<DeckSignalsPanel>(parameters => parameters
+            .Add(component => component.State, new DeckWorkspaceState(
+                DeckWorkspaceStatus.Ready,
+                null,
+                new DeckValidationResponseContract
+                {
+                    IsValid = true,
+                    DeckCardCount = 100,
+                    Findings = Array.Empty<ValidationFindingContract>(),
+                },
+                Array.Empty<ValidationFindingContract>()))
+            .Add(component => component.Analysis, CreateAnalysis())
+            .Add(component => component.IsRefreshingInsights, false)
+            .Add(component => component.IsHydratingLibrary, true)
+            .Add(component => component.IsAutoOpeningDeck, true));
+
+        cut.Find("[data-testid='library-hydrate-indicator']").TextContent.Should().Contain("Restoring library");
+        cut.Find("[data-testid='library-hydrate-banner']").TextContent.Should().Contain("Restoring saved deck");
+        cut.FindAll("[data-testid='analysis-refresh-banner']").Should().BeEmpty();
+    }
+
     private static DeckAnalysisResponseContract CreateAnalysis() => new()
     {
         Bracket = new BracketAssessmentContract
