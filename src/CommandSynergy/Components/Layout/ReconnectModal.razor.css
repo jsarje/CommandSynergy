@@ -110,6 +110,12 @@
         transform: translateY(0);
     }
 
+    #components-reconnect-modal button:focus-visible {
+        outline: 2px solid #fffaf1;
+        outline-offset: 3px;
+        box-shadow: 0 0 0 4px rgba(139, 63, 41, 0.45);
+    }
+
 .components-rejoining-animation {
     position: relative;
     width: 80px;

@@ -49,6 +49,7 @@
                                 <button type="button"
                                         class="pile-board__compact-toggle"
                                         aria-pressed="@isCompactMode"
+                                        aria-label="@(isCompactMode ? "Cards are compact. Expand cards" : "Cards are expanded. Compact cards")"
                                         data-testid="compact-mode-toggle"
                                         @onclick="ToggleCompactMode">
                                     @(isCompactMode ? "Expand cards" : "Compact cards")
