@@ -26,7 +26,7 @@ public sealed class DeckSignalsPanelTests : BunitContext
             .Add(component => component.Analysis, null)
             .Add(component => component.IsRefreshingInsights, false));
 
-        cut.Find("[data-testid='workspace-loading']").TextContent.Should().Contain("Loading workspace shell");
+        cut.Find("[data-testid='workspace-loading']").TextContent.Should().Contain("Loading workspace");
     }
 
     [Fact]

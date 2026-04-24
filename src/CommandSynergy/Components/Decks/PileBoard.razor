@@ -4,9 +4,6 @@
 
 <section class="pile-board">
     <div class="pile-board__header">
-        <div>
-            <p class="workspace-panel__label">Deck Building Workspace</p>
-        </div>
     </div>
 
     <div class="pile-board__lanes">
@@ -54,7 +51,7 @@
                                         aria-pressed="@isCompactMode"
                                         data-testid="compact-mode-toggle"
                                         @onclick="ToggleCompactMode">
-                                    @(isCompactMode ? "Compact mode on" : "Compact mode off")
+                                    @(isCompactMode ? "Expand cards" : "Compact cards")
                                 </button>
                             </div>
                         </div>

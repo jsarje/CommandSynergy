@@ -5,7 +5,7 @@
     <div class="workspace-panel__header">
         <div>
             <p class="workspace-panel__label">Signals</p>
-            <h2>Deck signal</h2>
+            <h2>Deck signals</h2>
         </div>
         <div class="workspace-panel__header-side workspace-panel__header-side--status">
                 @if (IsHydratingLibrary || IsAutoOpeningDeck)
@@ -62,14 +62,14 @@
     {
         <div class="workspace-state workspace-state--loading" data-testid="workspace-loading">
             <MudProgressCircular Indeterminate="true" Size="Size.Large" />
-            <p>Loading workspace shell.</p>
+            <p>Loading workspace</p>
         </div>
     }
     else if (State.Status == DeckWorkspaceStatus.Empty)
     {
         <div class="workspace-state workspace-state--empty" data-testid="workspace-empty">
-            <h3>Commander needed</h3>
-            <p>@State.Message</p>
+            <h3>Start with a commander</h3>
+            <p>Search for a legendary creature or planeswalker to lock in your color identity and unlock deck analysis.</p>
         </div>
     }
     else if (State.Status == DeckWorkspaceStatus.Recovery)
@@ -106,7 +106,7 @@
                     <strong>@(Analysis?.PowerLevel.Score.ToString("0.#") ?? "-")</strong>
                 </div>
                 <div>
-                    <span>Commander Theme</span>
+                    <span>Top Theme</span>
                     <strong>@(Analysis?.ThemeAnalysis?.CommanderAlignment?.CommanderTopTheme ?? "-")</strong>
                 </div>
             </div>            

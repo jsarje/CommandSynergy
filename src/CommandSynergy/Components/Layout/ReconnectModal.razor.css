@@ -90,18 +90,24 @@
 
 #components-reconnect-modal button {
     border: 0;
-    background-color: #6b9ed2;
-    color: white;
-    padding: 4px 24px;
-    border-radius: 4px;
+    background: linear-gradient(135deg, #8b3f29, #a7623b);
+    color: #fffaf1;
+    padding: 0.6rem 1.25rem;
+    border-radius: 999px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(139, 63, 41, 0.22);
+    transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
     #components-reconnect-modal button:hover {
-        background-color: #3b6ea2;
+        transform: translateY(-1px);
+        box-shadow: 0 14px 26px rgba(139, 63, 41, 0.3);
     }
 
     #components-reconnect-modal button:active {
-        background-color: #6b9ed2;
+        transform: translateY(0);
     }
 
 .components-rejoining-animation {

@@ -29,10 +29,10 @@
         <div class="workspace-utility-menu__content">
             @if (IsImporting)
             {
-                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.7);z-index:20;">
-                    <div style="text-align:center;">
+                <div class="workspace-utility-section__overlay">
+                    <div class="workspace-import-overlay__card">
                         <MudProgressCircular Indeterminate="true" Size="Size.Large" />
-                        <div style="margin-top:8px;font-weight:600">Importing deck…</div>
+                        <span class="workspace-import-overlay__label">Importing deck…</span>
                     </div>
                 </div>
             }
@@ -42,7 +42,7 @@
                         <div class="workspace-panel__header">
                             <div>
                                 <p class="workspace-panel__label">Library</p>
-                                <h2>Saved working copies</h2>
+                                <h2>Your saved decks</h2>
                             </div>
                             <div class="workspace-panel__header-side">
                                 @if (IsHydratingLibrary)
@@ -130,7 +130,6 @@
                                                 <strong>@importedDeck.Name</strong>
                                                 <span class="workspace-search-result__meta">@(isActiveDeck ? "Active" : importedDeck.SourceFormatId)</span>
                                             </div>
-                                            <p>@importedDeck.SourceFormatId</p>
                                             <span class="workspace-search-result__timestamp">Imported @importedDeck.ImportedAtUtc.ToLocalTime().ToString("MMM d, yyyy")</span>
                                         </div>
                                         <div class="workspace-search-result__actions">
