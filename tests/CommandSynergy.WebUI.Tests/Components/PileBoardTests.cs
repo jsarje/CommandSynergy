@@ -21,6 +21,7 @@ public sealed class PileBoardTests : BunitContext
             .Add(component => component.Cards, [CreateCard("sol-ring", DeckWorkspaceViewModel.MainboardPileId)]));
 
         cut.FindAll("[data-testid^='pile-lane-']").Should().HaveCount(2);
+        cut.Find(".pile-board__header").TextContent.Should().Contain("Command zone and mainboard");
         cut.Markup.Should().NotContain("Interaction");
         cut.FindAll("button[data-testid^='move-']").Should().BeEmpty();
         cut.Find("[data-testid='pile-card-sol-ring']").HasAttribute("draggable").Should().BeFalse();

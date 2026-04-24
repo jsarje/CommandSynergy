@@ -52,6 +52,21 @@
                             </div>
                         </div>
 
+                        <div class="workspace-utility-library-summary" data-testid="workspace-library-summary">
+                            <div>
+                                <span>Saved decks</span>
+                                <strong>@(ImportedDecks?.Count ?? 0)</strong>
+                            </div>
+                            <div>
+                                <span>Selected</span>
+                                <strong>@(string.IsNullOrWhiteSpace(ActiveImportedDeckId) ? "None" : "1 active")</strong>
+                            </div>
+                            <div>
+                                <span>Working copy</span>
+                                <strong>@(IsWorkspaceLinkedToSavedDeck ? "Linked" : "Detached")</strong>
+                            </div>
+                        </div>
+
                         <div class="workspace-search workspace-search--actions">
                             <button type="button" class="workspace-search__button" @onclick="() => OpenImportedDeckRequested.InvokeAsync(null)" disabled="@((string.IsNullOrWhiteSpace(ActiveImportedDeckId)) || IsImporting)">Open selected deck</button>
                             <button type="button" class="workspace-search-result__secondary" @onclick="() => StartNewDeckRequested.InvokeAsync(null)" disabled="@IsImporting">Start fresh deck</button>

@@ -5,8 +5,12 @@
     <MudContainer MaxWidth="MaxWidth.False" Class="workspace-shell__container">
         <MudAppBar Elevation="0" Dense="true" Fixed="false" Class="workspace-appbar">
             <div class="workspace-appbar__inner">
-                <div class="workspace-appbar__brand">                    
-                    <p class="workspace-appbar__brand-sub">Synergy Sphere</p>                    
+                <div class="workspace-appbar__brand">
+                    <p class="workspace-appbar__eyebrow">CommandSynergy</p>
+                    <h1 class="workspace-appbar__name">Synergy Sphere</h1>
+                    <p class="workspace-appbar__brand-sub">
+                        @GetDeckTitle() · @GetCommanderTitle()
+                    </p>
                 </div>
 
                 <button type="button"
@@ -101,6 +105,7 @@
                           Analysis="Analysis"
                           CommanderName="@(ActiveCommander?.Name ?? "Unset")"
                           DeckName="@(ActiveWorkspaceDeckName ?? NewDeckName ?? "Unset")"
+                          TotalDeckCards="@TotalDeckCards"
                           IsRefreshingInsights="IsRefreshingInsights"
                           IsHydratingLibrary="IsHydratingLibrary"
                           IsAutoOpeningDeck="IsAutoOpeningDeck"
@@ -536,4 +541,12 @@
             isDeletingImportedDeck = false;
         }
     }
+
+    private string GetDeckTitle() => string.IsNullOrWhiteSpace(ActiveWorkspaceDeckName)
+        ? "Unsaved working copy"
+        : ActiveWorkspaceDeckName;
+
+    private string GetCommanderTitle() => ActiveCommander is null
+        ? "Commander unset"
+        : $"Commander: {ActiveCommander.Name}";
 }

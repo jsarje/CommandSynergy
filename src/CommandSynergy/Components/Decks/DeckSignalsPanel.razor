@@ -35,8 +35,35 @@
         <div>
             <span>Deck Name</span>
             <strong>@DeckName</strong>
-        </div>        
+        </div>
+        <div>
+            <span>Deck Status</span>
+            <strong>@GetStateHeadline()</strong>
+        </div>
     </div>
+
+    <section class="workspace-briefing" aria-label="Deck briefing" data-testid="workspace-briefing">
+        <div class="workspace-briefing__copy">
+            <p class="workspace-panel__label">Deck briefing</p>
+            <h3>@GetStateHeadline()</h3>
+            <p class="workspace-panel__intro">@GetStateSummary()</p>
+        </div>
+
+        <div class="workspace-briefing__metrics">
+            <div>
+                <span>Cards logged</span>
+                <strong>@TotalDeckCards</strong>
+            </div>
+            <div>
+                <span>Validation</span>
+                <strong>@ValidationStatusLabel</strong>
+            </div>
+            <div>
+                <span>Next move</span>
+                <strong>@GetNextActionLabel()</strong>
+            </div>
+        </div>
+    </section>
 
     @if (IsRefreshingInsights)
     {
@@ -183,4 +210,37 @@
     private bool IsRecoveryState => State.Status == DeckWorkspaceStatus.Recovery;
 
     private string ValidationStatusLabel => State.Validation?.IsValid == true ? "Ready" : "Needs work";
+
+    private string GetStateHeadline() => State.Status switch
+    {
+        DeckWorkspaceStatus.Loading => "Preparing workspace",
+        DeckWorkspaceStatus.Empty => "Choose a commander",
+        DeckWorkspaceStatus.Recovery => "Sync needs attention",
+        _ when IsHydratingLibrary || IsAutoOpeningDeck => "Restoring saved deck",
+        _ when IsRefreshingInsights => "Refreshing analysis",
+        _ when State.Validation?.IsValid == true => "Deck is analysis-ready",
+        _ => "Deck needs validation work",
+    };
+
+    private string GetStateSummary() => State.Status switch
+    {
+        DeckWorkspaceStatus.Loading => "Loading the active working copy and preparing validation data.",
+        DeckWorkspaceStatus.Empty => "Lock in a legal commander first so color identity, validation, and deck analysis have a stable frame of reference.",
+        DeckWorkspaceStatus.Recovery => State.Message ?? "A sync problem interrupted the latest analysis pass.",
+        _ when IsHydratingLibrary || IsAutoOpeningDeck => "Your last saved deck is being restored into the working copy and queued for validation.",
+        _ when IsRefreshingInsights => "Fresh bracket, synergy, power, and theme reads are running against the current list.",
+        _ when State.Validation?.IsValid == true => "Core checks are passing, so you can tune card quality, role balance, and thematic clarity.",
+        _ => "Resolve the current findings to unlock a cleaner read on bracket, synergy, power, and themes.",
+    };
+
+    private string GetNextActionLabel() => State.Status switch
+    {
+        DeckWorkspaceStatus.Loading => "Wait for setup",
+        DeckWorkspaceStatus.Empty => "Set commander",
+        DeckWorkspaceStatus.Recovery => "Retry sync",
+        _ when IsHydratingLibrary || IsAutoOpeningDeck => "Keep restoring",
+        _ when IsRefreshingInsights => "Review current read",
+        _ when State.Validation?.IsValid == true => "Tune the 99",
+        _ => "Fix findings",
+    };
 }
