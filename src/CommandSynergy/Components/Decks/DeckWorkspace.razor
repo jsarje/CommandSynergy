@@ -1,5 +1,6 @@
 @using CommandSynergy.Application.Contracts
 @using CommandSynergy.Application.Decks.Portability
+@using System.Globalization
 
 <div class="workspace-shell">
     <MudContainer MaxWidth="MaxWidth.False" Class="workspace-shell__container">
@@ -139,6 +140,146 @@
                     </button>
                 </div>
 
+                @if (ActiveCommander is null)
+                {
+                    <section class="workspace-recommendations workspace-recommendations--inactive"
+                             data-testid="recommendations-disabled">
+                        <p class="workspace-panel__label">Recommended</p>
+                        <p class="workspace-panel__empty">Set a commander to unlock deck suggestions and rerolls.</p>
+                    </section>
+                }
+                else
+                {
+                    <section class="workspace-recommendations" data-testid="recommendations-enabled">
+                        <div class="workspace-section-heading">
+                            <div>
+                                <p class="workspace-panel__label">Recommended</p>
+                                <h3>Deck suggestions</h3>
+                            </div>
+                            <div class="workspace-recommendations__actions">
+                                @if (IsRefreshingSuggestions)
+                                {
+                                    <span class="workspace-panel__activity">
+                                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="workspace-panel__activity-spinner" />
+                                        Loading
+                                    </span>
+                                }
+
+                                <button type="button"
+                                        class="workspace-search-result__secondary"
+                                        data-testid="reroll-suggestions"
+                                        disabled="@(IsBusy || isImporting || IsRefreshingSuggestions)"
+                                        @onclick="() => SuggestionRerollRequested.InvokeAsync()">
+                                    Reroll
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="workspace-recommendation-filters">
+                            <label class="workspace-recommendation-filters__field">
+                                <span>Card Type</span>
+                                <select class="workspace-recommendation-filters__input"
+                                        value="@SuggestionCardTypeFilter"
+                                        data-testid="suggestion-card-type-filter"
+                                        @onchange="OnSuggestionCardTypeChanged">
+                                    @foreach (var option in SuggestionTypeOptions)
+                                    {
+                                        <option value="@option.Value">@option.Label</option>
+                                    }
+                                </select>
+                            </label>
+
+                            <label class="workspace-recommendation-filters__field">
+                                <span>Mana Value</span>
+                                <input class="workspace-recommendation-filters__input"
+                                       type="number"
+                                       min="0"
+                                       step="1"
+                                       value="@SuggestionManaValueFilter"
+                                       data-testid="suggestion-mana-value-filter"
+                                       @onchange="OnSuggestionManaValueChanged" />
+                            </label>
+
+                            <label class="workspace-recommendation-filters__field">
+                                <span>Budget (€)</span>
+                                <input class="workspace-recommendation-filters__input"
+                                       type="number"
+                                       min="0"
+                                       step="0.01"
+                                       value="@SuggestionBudgetEurFilter"
+                                       data-testid="suggestion-budget-filter"
+                                       @onchange="OnSuggestionBudgetChanged" />
+                            </label>
+                        </div>
+
+                        <fieldset class="workspace-recommendation-colors">
+                            <legend>Color Identity</legend>
+                            @foreach (var color in suggestionColors)
+                            {
+                                <label class="workspace-recommendation-colors__option">
+                                    <input type="checkbox"
+                                           value="@color"
+                                           checked="@SuggestionColorIdentityFilter.Contains(color, StringComparer.OrdinalIgnoreCase)"
+                                           data-testid="@($"suggestion-color-{color}")"
+                                           @onchange="eventArgs => OnSuggestionColorChanged(color, eventArgs)" />
+                                    <span>@ResolveColorName(color)</span>
+                                </label>
+                            }
+                        </fieldset>
+
+                        <div class="workspace-recommendations__actions workspace-recommendations__actions--filters">
+                            <button type="button"
+                                    class="workspace-search-result__primary"
+                                    data-testid="apply-suggestion-filters"
+                                    disabled="@(IsBusy || isImporting || IsRefreshingSuggestions)"
+                                    @onclick="() => TargetedSuggestionsRequested.InvokeAsync()">
+                                Apply filters
+                            </button>
+                            <button type="button"
+                                    class="workspace-search-result__secondary"
+                                    data-testid="magic-suggestions"
+                                    disabled="@(IsBusy || isImporting || IsRefreshingSuggestions)"
+                                    @onclick="() => MagicSuggestionsRequested.InvokeAsync()">
+                                Magic suggestions
+                            </button>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(SuggestionsStatusMessage))
+                        {
+                            <p class="workspace-panel__empty" data-testid="suggestions-status">@SuggestionsStatusMessage</p>
+                        }
+
+                        <div class="workspace-search-results workspace-search-results--recommended" data-testid="recommended-results">
+                            @foreach (var suggestion in SuggestedCards.Take(3))
+                            {
+                                <article class="workspace-search-result workspace-search-result--recommended">
+                                    <div class="workspace-search-result__recommendation-meta">
+                                        <span class="workspace-search-result__meta">Recommended</span>
+                                        <span class="workspace-search-result__meta">Blend @suggestion.CombinedScore.ToString("0.#")</span>
+                                        <span class="workspace-search-result__meta">Theme @suggestion.ThemeScore.ToString("0.#")</span>
+                                        @if (suggestion.EdhrecScore is not null)
+                                        {
+                                            <span class="workspace-search-result__meta">EDHREC @suggestion.EdhrecScore.Value.ToString("0.#")</span>
+                                        }
+                                    </div>
+
+                                    <CommanderCard Card="suggestion.Card" />
+
+                                    <div class="workspace-search-result__actions">
+                                        <button type="button"
+                                                class="workspace-search-result__primary"
+                                                data-testid="@($"add-suggested-{suggestion.Card.CardId}")"
+                                                disabled="@isImporting"
+                                                @onclick="() => CardAdded.InvokeAsync(suggestion.Card.CardId)">
+                                            Add to Mainboard
+                                        </button>
+                                    </div>
+                                </article>
+                            }
+                        </div>
+                    </section>
+                }
+
                 <div class="workspace-search-results" data-testid="search-results">
                     @if (SearchResults.Count == 0)
                     {
@@ -255,6 +396,30 @@
 
     [Parameter]
     public required IReadOnlyList<WorkspaceCardView> SearchResults { get; set; }
+
+    [Parameter]
+    public required IReadOnlyList<DeckSuggestionView> SuggestedCards { get; set; }
+
+    [Parameter]
+    public bool IsRefreshingSuggestions { get; set; }
+
+    [Parameter]
+    public string? SuggestionsStatusMessage { get; set; }
+
+    [Parameter]
+    public required IReadOnlyList<FormatOptionView> SuggestionTypeOptions { get; set; }
+
+    [Parameter]
+    public required string SuggestionCardTypeFilter { get; set; }
+
+    [Parameter]
+    public int? SuggestionManaValueFilter { get; set; }
+
+    [Parameter]
+    public decimal? SuggestionBudgetEurFilter { get; set; }
+
+    [Parameter]
+    public required IReadOnlyList<string> SuggestionColorIdentityFilter { get; set; }
 
     [Parameter]
     public required IReadOnlyList<FormatOptionView> SupportedImportFormats { get; set; }
@@ -374,6 +539,27 @@
     public EventCallback SearchRequested { get; set; }
 
     [Parameter]
+    public EventCallback MagicSuggestionsRequested { get; set; }
+
+    [Parameter]
+    public EventCallback TargetedSuggestionsRequested { get; set; }
+
+    [Parameter]
+    public EventCallback SuggestionRerollRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> SuggestionCardTypeFilterChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<int?> SuggestionManaValueFilterChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<decimal?> SuggestionBudgetEurFilterChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<IReadOnlyList<string>> SuggestionColorIdentityFilterChanged { get; set; }
+
+    [Parameter]
     public EventCallback RetryRequested { get; set; }
 
     [Parameter]
@@ -404,6 +590,8 @@
 
     private bool isImporting;
 
+    private static readonly string[] suggestionColors = ["W", "U", "B", "R", "G"];
+
     private WorkspaceCardView? ActiveCommander => Cards.FirstOrDefault(static card => card.IsCommander);
 
     private IReadOnlyList<WorkspaceCardView> MainboardCards => Cards
@@ -433,10 +621,56 @@
         isUtilityMenuOpen = false;
     }
 
+    private Task OnSuggestionCardTypeChanged(ChangeEventArgs eventArgs) =>
+        SuggestionCardTypeFilterChanged.InvokeAsync(eventArgs.Value?.ToString());
+
+    private Task OnSuggestionManaValueChanged(ChangeEventArgs eventArgs)
+    {
+        var value = eventArgs.Value?.ToString();
+        return SuggestionManaValueFilterChanged.InvokeAsync(
+            int.TryParse(value, out var parsedValue)
+                ? parsedValue
+                : null);
+    }
+
+    private Task OnSuggestionBudgetChanged(ChangeEventArgs eventArgs)
+    {
+        var value = eventArgs.Value?.ToString();
+        return SuggestionBudgetEurFilterChanged.InvokeAsync(
+            decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedValue)
+                ? parsedValue
+                : null);
+    }
+
+    private Task OnSuggestionColorChanged(string color, ChangeEventArgs eventArgs)
+    {
+        var selectedColors = SuggestionColorIdentityFilter.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (eventArgs.Value is bool isChecked && isChecked)
+        {
+            selectedColors.Add(color);
+        }
+        else
+        {
+            selectedColors.Remove(color);
+        }
+
+        return SuggestionColorIdentityFilterChanged.InvokeAsync(selectedColors.OrderBy(static value => value, StringComparer.OrdinalIgnoreCase).ToArray());
+    }
+
     private void ClosePlaytestOverlay()
     {
         isPlaytestOpen = false;
     }
+
+    private static string ResolveColorName(string color) => color.Trim().ToUpperInvariant() switch
+    {
+        "W" => "White",
+        "U" => "Blue",
+        "B" => "Black",
+        "R" => "Red",
+        "G" => "Green",
+        _ => color,
+    };
 
     private void CloseUtilityMenu()
     {

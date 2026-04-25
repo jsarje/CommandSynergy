@@ -33,6 +33,15 @@ public sealed class CommanderCardTests : BunitContext
     }
 
     [Fact]
+    public void Commander_card_renders_price_badge_when_available()
+    {
+        var cut = Render<CommanderCard>(parameters => parameters
+            .Add(component => component.Card, CreateSingleFaceCard() with { EurPrice = 4.25m }));
+
+        cut.Find("[data-testid='price-badge-swords-to-plowshares']").TextContent.Should().Contain("€4.25");
+    }
+
+    [Fact]
     public void Commander_card_renders_face_toggle_for_multi_face_cards()
     {
         var cut = Render<CommanderCard>(parameters => parameters

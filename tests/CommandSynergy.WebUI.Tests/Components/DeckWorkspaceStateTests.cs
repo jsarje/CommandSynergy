@@ -40,6 +40,10 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
             .Add(component => component.Piles, CreatePiles())
             .Add(component => component.Cards, Array.Empty<WorkspaceCardView>())
             .Add(component => component.SearchResults, Array.Empty<WorkspaceCardView>())
+            .Add(component => component.SuggestedCards, Array.Empty<DeckSuggestionView>())
+            .Add(component => component.SuggestionTypeOptions, [new FormatOptionView("", "Any type")])
+            .Add(component => component.SuggestionCardTypeFilter, string.Empty)
+            .Add(component => component.SuggestionColorIdentityFilter, Array.Empty<string>())
             .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
             .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));
 
@@ -61,6 +65,10 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
             .Add(component => component.Piles, CreatePiles())
             .Add(component => component.Cards, Array.Empty<WorkspaceCardView>())
             .Add(component => component.SearchResults, Array.Empty<WorkspaceCardView>())
+            .Add(component => component.SuggestedCards, Array.Empty<DeckSuggestionView>())
+            .Add(component => component.SuggestionTypeOptions, [new FormatOptionView("", "Any type")])
+            .Add(component => component.SuggestionCardTypeFilter, string.Empty)
+            .Add(component => component.SuggestionColorIdentityFilter, Array.Empty<string>())
             .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
             .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));
 
@@ -82,6 +90,10 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
             .Add(component => component.Piles, CreatePiles())
             .Add(component => component.Cards, [CreateDeckCard("sol-ring")])
             .Add(component => component.SearchResults, Array.Empty<WorkspaceCardView>())
+            .Add(component => component.SuggestedCards, Array.Empty<DeckSuggestionView>())
+            .Add(component => component.SuggestionTypeOptions, [new FormatOptionView("", "Any type")])
+            .Add(component => component.SuggestionCardTypeFilter, string.Empty)
+            .Add(component => component.SuggestionColorIdentityFilter, Array.Empty<string>())
             .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
             .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));
 
@@ -104,6 +116,10 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
             .Add(component => component.Piles, CreatePiles())
             .Add(component => component.Cards, Array.Empty<WorkspaceCardView>())
             .Add(component => component.SearchResults, Array.Empty<WorkspaceCardView>())
+            .Add(component => component.SuggestedCards, Array.Empty<DeckSuggestionView>())
+            .Add(component => component.SuggestionTypeOptions, [new FormatOptionView("", "Any type")])
+            .Add(component => component.SuggestionCardTypeFilter, string.Empty)
+            .Add(component => component.SuggestionColorIdentityFilter, Array.Empty<string>())
             .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
             .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));
 
@@ -126,10 +142,47 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
             .Add(component => component.Piles, CreatePiles())
             .Add(component => component.Cards, Array.Empty<WorkspaceCardView>())
             .Add(component => component.SearchResults, [CreateSearchResult("lightning-bolt", CommanderEligibilityBasis.Unknown)])
+            .Add(component => component.SuggestedCards, Array.Empty<DeckSuggestionView>())
+            .Add(component => component.SuggestionTypeOptions, [new FormatOptionView("", "Any type")])
+            .Add(component => component.SuggestionCardTypeFilter, string.Empty)
+            .Add(component => component.SuggestionColorIdentityFilter, Array.Empty<string>())
             .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
             .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));
 
         cut.Find("[data-testid='set-commander-lightning-bolt']").HasAttribute("disabled").Should().BeTrue();
+    }
+
+    [Fact]
+    public void Deck_workspace_renders_recommendations_when_commander_and_suggestions_are_present()
+    {
+        Render<MudPopoverProvider>();
+
+        var cut = Render<DeckWorkspace>(parameters => parameters
+            .Add(component => component.State, new DeckWorkspaceState(DeckWorkspaceStatus.Ready, null, null, Array.Empty<ValidationFindingContract>()))
+            .Add(component => component.SearchQuery, string.Empty)
+            .Add(component => component.ImportDocumentText, string.Empty)
+            .Add(component => component.SelectedExportFormatId, "moxfield-text")
+            .Add(component => component.SupportedImportFormats, [new FormatOptionView("", "Auto-detect")])
+            .Add(component => component.SupportedExportFormats, [new FormatOptionView("moxfield-text", "Moxfield Text")])
+            .Add(component => component.Piles, CreatePiles())
+            .Add(component => component.Cards, [CreateCommanderCard("isshin-two-heavens-as-one")])
+            .Add(component => component.SearchResults, Array.Empty<WorkspaceCardView>())
+            .Add(component => component.SuggestedCards,
+            [
+                new DeckSuggestionView(CreateSuggestedCard("suggestion-a"), 92m, 88m, 80m),
+                new DeckSuggestionView(CreateSuggestedCard("suggestion-b"), 91m, 87m, 79m),
+                new DeckSuggestionView(CreateSuggestedCard("suggestion-c"), 90m, 86m, 78m),
+            ])
+            .Add(component => component.SuggestionTypeOptions, [new FormatOptionView("", "Any type"), new FormatOptionView("Creature", "Creature")])
+            .Add(component => component.SuggestionCardTypeFilter, string.Empty)
+            .Add(component => component.SuggestionColorIdentityFilter, Array.Empty<string>())
+            .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
+            .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));
+
+        cut.Find("[data-testid='recommendations-enabled']").TextContent.Should().Contain("Deck suggestions");
+        cut.FindAll(".workspace-search-result--recommended").Should().HaveCount(3);
+        cut.Markup.Should().Contain("Add to Mainboard");
+        cut.Markup.Should().Contain("Recommended");
     }
 
     private static IReadOnlyList<PileDefinitionContract> CreatePiles() =>
@@ -160,6 +213,34 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
         Faces = [new WorkspaceCardFaceView("Sol Ring", "{1}", "Artifact", null, true)],
         AssignedPileId = DeckWorkspaceViewModel.MainboardPileId,
         Quantity = 1,
+        CommanderEligibilityBasis = CommanderEligibilityBasis.Unknown,
+    };
+
+    private static WorkspaceCardView CreateCommanderCard(string cardId) => new()
+    {
+        CardId = cardId,
+        Name = "Isshin, Two Heavens as One",
+        ManaCost = "{R}{W}{B}",
+        TypeLine = "Legendary Creature",
+        ColorIdentity = ["R", "W", "B"],
+        Faces = [new WorkspaceCardFaceView("Isshin, Two Heavens as One", "{R}{W}{B}", "Legendary Creature", null, true)],
+        AssignedPileId = DeckWorkspaceViewModel.CommandZonePileId,
+        Quantity = 1,
+        IsCommander = true,
+        CommanderEligibilityBasis = CommanderEligibilityBasis.LegendaryCreature,
+    };
+
+    private static WorkspaceCardView CreateSuggestedCard(string cardId) => new()
+    {
+        CardId = cardId,
+        Name = $"Suggested {cardId}",
+        ManaCost = "{2}{W}",
+        ManaValue = 3m,
+        TypeLine = "Creature",
+        ColorIdentity = ["W"],
+        Faces = [new WorkspaceCardFaceView($"Suggested {cardId}", "{2}{W}", "Creature", null, true)],
+        Quantity = 1,
+        EurPrice = 2.5m,
         CommanderEligibilityBasis = CommanderEligibilityBasis.Unknown,
     };
 }

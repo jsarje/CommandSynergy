@@ -19,6 +19,11 @@ public interface ICardCatalogGateway
     Task<IReadOnlyDictionary<string, CardProfile>> GetCardProfilesAsync(IEnumerable<string> cardIds, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Loads the legal commander card pool used for recommendation queries.
+    /// </summary>
+    Task<IReadOnlyList<CardProfile>> GetCommanderLegalCardProfilesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the current search snapshot version when available.
     /// </summary>
     Task<string?> GetSnapshotVersionAsync(CancellationToken cancellationToken = default);

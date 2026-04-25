@@ -67,6 +67,7 @@ app.MapRazorComponents<App>()
 app.MapCardSearchEndpoints();
 app.MapDeckValidationEndpoints();
 app.MapDeckAnalysisEndpoints();
+app.MapDeckSuggestionEndpoints();
 
 app.Run();
 

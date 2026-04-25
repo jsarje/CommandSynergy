@@ -54,6 +54,7 @@ public static class DependencyInjection
         services.AddScoped<IPowerLevelCalculationService, PowerLevelCalculationService>();
         services.AddScoped<ISynergyScoringService, SynergyScoringService>();
         services.AddScoped<IThemeAnalysisService, ThemeAnalysisService>();
+        services.AddScoped<IDeckSuggestionService, DeckSuggestionService>();
         services.AddScoped<DeckFormatProfileBase, MoxfieldTextFormatProfile>();
         services.AddScoped<DeckFormatProfileBase, ManaBoxTextFormatProfile>();
         services.AddScoped<DeckFormatProfileBase, GenericPlaintextFormatProfile>();

@@ -33,35 +33,7 @@ public sealed class CardMetadataQueryService(
             .Where(card => requestedIds.Contains(card.CardId, StringComparer.OrdinalIgnoreCase))
             .ToDictionary(
                 card => card.CardId,
-                card => new CardProfile
-                {
-                    CardId = card.CardId,
-                    OracleId = card.OracleId,
-                    Name = card.Name,
-                    ManaCost = card.ManaCost,
-                    ManaValue = card.ManaValue,
-                    TypeLine = card.TypeLine,
-                    OracleText = card.OracleText,
-                    Keywords = Array.Empty<string>(),
-                    ColorIdentity = card.ColorIdentity,
-                    ImageUri = card.ImageUri,
-                    EurPrice = card.EurPrice,
-                    SaltScore = card.SaltScore,
-                    PlayRateByCommander = card.PlayRateByCommander ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
-                    ThemeSignals = card.ThemeSignals ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
-                    GenericColorStapleRate = card.GenericColorStapleRate,
-                    IsGameChanger = card.IsGameChanger,
-                    IsMassLandDenial = card.IsMassLandDenial,
-                    IsLegalInCommander = card.IsLegalInCommander,
-                    AllowsMultipleCopies = card.AllowsMultipleCopies,
-                    CompanionRequirementCode = card.CompanionRequirementCode,
-                    CommanderEligibilityBasis = card.CommanderEligibilityBasis,
-                    MetadataSource = card.MetadataSource,
-                    LastSyncedUtc = card.LastSyncedUtc,
-                    FaceProfiles = card.HasMultipleFaces
-                        ? new[] { new CardFaceProfile("0", card.Name, card.ManaCost, card.TypeLine, null, card.ImageUri, true), new CardFaceProfile("1", card.Name + " Back", null, card.TypeLine, null, card.ImageUri, false) }
-                        : new[] { new CardFaceProfile("0", card.Name, card.ManaCost, card.TypeLine, null, card.ImageUri, true) },
-                },
+                MapCardProfile,
                 StringComparer.OrdinalIgnoreCase);
 
         logger.LogDebug(
@@ -86,6 +58,16 @@ public sealed class CardMetadataQueryService(
         }
 
         return fromSnapshot;
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<CardProfile>> GetCommanderLegalCardProfilesAsync(CancellationToken cancellationToken = default)
+    {
+        var snapshot = await metadataStore.LoadSnapshotAsync(cancellationToken).ConfigureAwait(false);
+        return snapshot.Cards
+            .Where(static card => card.IsLegalInCommander)
+            .Select(MapCardProfile)
+            .ToArray();
     }
 
     /// <inheritdoc />
@@ -188,6 +170,36 @@ public sealed class CardMetadataQueryService(
             return currentCache;
         }
     }
+
+    private static CardProfile MapCardProfile(CardMetadataRecord card) => new()
+    {
+        CardId = card.CardId,
+        OracleId = card.OracleId,
+        Name = card.Name,
+        ManaCost = card.ManaCost,
+        ManaValue = card.ManaValue,
+        TypeLine = card.TypeLine,
+        OracleText = card.OracleText,
+        Keywords = Array.Empty<string>(),
+        ColorIdentity = card.ColorIdentity,
+        ImageUri = card.ImageUri,
+        EurPrice = card.EurPrice,
+        SaltScore = card.SaltScore,
+        PlayRateByCommander = card.PlayRateByCommander ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
+        ThemeSignals = card.ThemeSignals ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
+        GenericColorStapleRate = card.GenericColorStapleRate,
+        IsGameChanger = card.IsGameChanger,
+        IsMassLandDenial = card.IsMassLandDenial,
+        IsLegalInCommander = card.IsLegalInCommander,
+        AllowsMultipleCopies = card.AllowsMultipleCopies,
+        CompanionRequirementCode = card.CompanionRequirementCode,
+        CommanderEligibilityBasis = card.CommanderEligibilityBasis,
+        MetadataSource = card.MetadataSource,
+        LastSyncedUtc = card.LastSyncedUtc,
+        FaceProfiles = card.HasMultipleFaces
+            ? new[] { new CardFaceProfile("0", card.Name, card.ManaCost, card.TypeLine, null, card.ImageUri, true), new CardFaceProfile("1", card.Name + " Back", null, card.TypeLine, null, card.ImageUri, false) }
+            : new[] { new CardFaceProfile("0", card.Name, card.ManaCost, card.TypeLine, null, card.ImageUri, true) },
+    };
 
     private sealed record CachedSearchIndex(
         string SnapshotPath,

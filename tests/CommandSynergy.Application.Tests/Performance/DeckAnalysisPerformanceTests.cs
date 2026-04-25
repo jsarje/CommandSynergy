@@ -87,6 +87,9 @@ public sealed class DeckAnalysisPerformanceTests
         public Task<IReadOnlyDictionary<string, CardProfile>> GetCardProfilesAsync(IEnumerable<string> cardIds, CancellationToken cancellationToken = default) =>
             Task.FromResult(cardProfiles);
 
+        public Task<IReadOnlyList<CardProfile>> GetCommanderLegalCardProfilesAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult((IReadOnlyList<CardProfile>)cardProfiles.Values.ToArray());
+
         public Task<IReadOnlyList<CardSearchResultContract>> SearchAsync(CardSearchQueryContract request, CancellationToken cancellationToken = default) =>
             Task.FromResult((IReadOnlyList<CardSearchResultContract>)Array.Empty<CardSearchResultContract>());
 

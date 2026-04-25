@@ -20,6 +20,7 @@ public sealed class ScryfallCardMapper(IThemeMatchingService themeMatchingServic
         TypeLine = document.TypeLine ?? string.Empty,
         ColorIdentity = document.ColorIdentity,
         ImageUri = document.ImageUri,
+        EurPrice = document.EurPrice,
         HasMultipleFaces = document.CardFaces.Count > 1,
         CommanderEligibilityBasis = DetermineEligibilityBasis(document),
     };

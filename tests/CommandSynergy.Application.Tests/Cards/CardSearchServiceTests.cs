@@ -43,6 +43,9 @@ public sealed class CardSearchServiceTests
         public Task<IReadOnlyDictionary<string, CardProfile>> GetCardProfilesAsync(IEnumerable<string> cardIds, CancellationToken cancellationToken = default) =>
             Task.FromResult((IReadOnlyDictionary<string, CardProfile>)new Dictionary<string, CardProfile>());
 
+        public Task<IReadOnlyList<CardProfile>> GetCommanderLegalCardProfilesAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult((IReadOnlyList<CardProfile>)Array.Empty<CardProfile>());
+
         public Task<IReadOnlyList<CardSearchResultContract>> SearchAsync(CardSearchQueryContract request, CancellationToken cancellationToken = default) =>
             Task.FromResult(results);
 
