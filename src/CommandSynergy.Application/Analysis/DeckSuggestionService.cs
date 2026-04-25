@@ -87,12 +87,16 @@ public sealed class DeckSuggestionService(
     {
         var candidateSignals = ResolveSignals(profile);
         var themeScore = CalculateThemeScore(candidateSignals, commanderSignals, themeWeights);
+        // EDHREC synergy values land on a -1..1 scale, so shift them into the
+        // same 0..100 range used by local theme scoring before blending.
         decimal? edhrecScore = edhrecInsights.IsAvailable && edhrecInsights.SynergyByCardId.TryGetValue(profile.CardId, out var synergy)
             ? decimal.Round(Math.Clamp((synergy + 1m) * 50m, 0m, 100m), 1, MidpointRounding.AwayFromZero)
             : null;
         var combinedScore = decimal.Round(
             edhrecScore is null
                 ? themeScore
+                // Keep the local deck-shape analysis slightly dominant so live
+                // deck composition changes stay ahead of static popularity data.
                 : Math.Clamp((themeScore * 0.6m) + (edhrecScore.Value * 0.4m), 0m, 100m),
             1,
             MidpointRounding.AwayFromZero);
@@ -120,6 +124,8 @@ public sealed class DeckSuggestionService(
                 continue;
             }
 
+            // Commanders define the deck's intended lane, so weight that signal
+            // above individual support cards when building suggestion themes.
             var entryWeight = entry.IsCommander ? 3m : Math.Max(entry.Quantity, 1);
             var signals = ResolveSignals(profile);
             if (signals.Count == 0)
@@ -170,6 +176,8 @@ public sealed class DeckSuggestionService(
                 ? pair.Value * signal
                 : 0m);
 
+        // Favor the evolving deck-wide theme map while still reserving room for
+        // direct commander-plan alignment in the final internal score.
         return decimal.Round(
             Math.Clamp((deckOverlap * 70m) + (commanderOverlap * 30m), 0m, 100m),
             1,

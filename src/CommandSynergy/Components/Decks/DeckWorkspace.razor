@@ -255,11 +255,20 @@
                                 <article class="workspace-search-result workspace-search-result--recommended">
                                     <div class="workspace-search-result__recommendation-meta">
                                         <span class="workspace-search-result__meta">Recommended</span>
-                                        <span class="workspace-search-result__meta">Blend @suggestion.CombinedScore.ToString("0.#")</span>
-                                        <span class="workspace-search-result__meta">Theme @suggestion.ThemeScore.ToString("0.#")</span>
+                                        <span class="workspace-search-result__meta"
+                                              aria-label="@($"Combined blend score {suggestion.CombinedScore.ToString("0.#")}")">
+                                            Blend @suggestion.CombinedScore.ToString("0.#")
+                                        </span>
+                                        <span class="workspace-search-result__meta"
+                                              aria-label="@($"Theme match score {suggestion.ThemeScore.ToString("0.#")}")">
+                                            Theme @suggestion.ThemeScore.ToString("0.#")
+                                        </span>
                                         @if (suggestion.EdhrecScore is not null)
                                         {
-                                            <span class="workspace-search-result__meta">EDHREC @suggestion.EdhrecScore.Value.ToString("0.#")</span>
+                                            <span class="workspace-search-result__meta"
+                                                  aria-label="@($"EDHREC score {suggestion.EdhrecScore.Value.ToString("0.#")}")">
+                                                EDHREC @suggestion.EdhrecScore.Value.ToString("0.#")
+                                            </span>
                                         }
                                     </div>
 
