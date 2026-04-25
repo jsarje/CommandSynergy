@@ -53,6 +53,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     private readonly IReadOnlyList<FormatOptionView> supportedImportFormats;
     private readonly IReadOnlyList<FormatOptionView> supportedExportFormats;
     private readonly IReadOnlyList<FormatOptionView> suggestionTypeOptions;
+    private bool hasRequestedSuggestions;
     private bool useTargetedSuggestionFilters;
     private ImportedDeckRecord? pendingImportedDeck;
     private CancellationTokenSource? refreshCancellationTokenSource;
@@ -430,7 +431,6 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         LinkedDeckName = deck.Name;
         ResetSuggestionSession(clearFilters: false);
         await RefreshInsightsAsync(CancellationToken.None).ConfigureAwait(false);
-        await RefreshSuggestionsAsync(CancellationToken.None).ConfigureAwait(false);
         ImportStatusMessage = $"Opened '{deck.Name}' as a working copy in the workspace.";
     }
 
@@ -790,7 +790,6 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         }
 
         await RefreshInsightsAsync(CancellationToken.None).ConfigureAwait(false);
-        await RefreshSuggestionsAsync(CancellationToken.None).ConfigureAwait(false);
         await PersistActiveImportedDeckAsync().ConfigureAwait(false);
     }
 
@@ -801,6 +800,8 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     {
         var card = GetKnownCard(cardId);
         knownCards[cardId] = card;
+        var refreshSuggestionsAfterAdd = hasRequestedSuggestions
+            && SuggestedCards.Any(suggestion => string.Equals(suggestion.Card.CardId, cardId, StringComparison.OrdinalIgnoreCase));
 
         if (string.IsNullOrWhiteSpace(GetCommanderCardId()))
         {
@@ -850,7 +851,14 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         RefreshDerivedCards();
         await PersistActiveImportedDeckAsync().ConfigureAwait(false);
         await ScheduleRefreshAsync().ConfigureAwait(false);
-        await RefreshSuggestionsAsync(CancellationToken.None).ConfigureAwait(false);
+
+        if (refreshSuggestionsAfterAdd)
+        {
+            await RefreshSuggestionsAsync(CancellationToken.None).ConfigureAwait(false);
+            return;
+        }
+
+        InvalidateSuggestions("Deck changed. Request suggestions again when you want a fresh batch.");
     }
 
     /// <summary>
@@ -884,7 +892,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
         await PersistActiveImportedDeckAsync().ConfigureAwait(false);
         await ScheduleRefreshAsync().ConfigureAwait(false);
-        await RefreshSuggestionsAsync(CancellationToken.None).ConfigureAwait(false);
+        InvalidateSuggestions("Deck changed. Request suggestions again when you want a fresh batch.");
     }
 
     /// <summary>
@@ -917,7 +925,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
 
         await PersistActiveImportedDeckAsync().ConfigureAwait(false);
         await ScheduleRefreshAsync().ConfigureAwait(false);
-        await RefreshSuggestionsAsync(CancellationToken.None).ConfigureAwait(false);
+        InvalidateSuggestions("Deck changed. Request suggestions again when you want a fresh batch.");
     }
 
     /// <summary>
@@ -935,7 +943,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         RefreshDerivedCards();
         await PersistActiveImportedDeckAsync().ConfigureAwait(false);
         await ScheduleRefreshAsync().ConfigureAwait(false);
-        await RefreshSuggestionsAsync(CancellationToken.None).ConfigureAwait(false);
+        InvalidateSuggestions("Deck changed. Request suggestions again when you want a fresh batch.");
     }
 
     /// <summary>
@@ -955,7 +963,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         }
         await PersistActiveImportedDeckAsync().ConfigureAwait(false);
         await ScheduleRefreshAsync().ConfigureAwait(false);
-        await RefreshSuggestionsAsync(CancellationToken.None).ConfigureAwait(false);
+        InvalidateSuggestions("Deck changed. Request suggestions again when you want a fresh batch.");
     }
 
     private async Task RefreshSuggestionsAsync(CancellationToken cancellationToken)
@@ -971,6 +979,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         {
             IsRefreshingSuggestions = true;
             SuggestionsStatusMessage = null;
+            hasRequestedSuggestions = true;
 
             var response = await deckWorkspaceClient.GetSuggestionsAsync(new DeckSuggestionsRequestContract
             {
@@ -1040,11 +1049,25 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         useTargetedSuggestionFilters = false;
     }
 
+    private void InvalidateSuggestions(string message)
+    {
+        if (!hasRequestedSuggestions)
+        {
+            return;
+        }
+
+        SuggestedCards = Array.Empty<DeckSuggestionView>();
+        SuggestionsStatusMessage = message;
+        IsRefreshingSuggestions = false;
+        hasRequestedSuggestions = false;
+    }
+
     private void ClearSuggestions()
     {
         SuggestedCards = Array.Empty<DeckSuggestionView>();
         SuggestionsStatusMessage = null;
         IsRefreshingSuggestions = false;
+        hasRequestedSuggestions = false;
     }
 
     private async Task PersistActiveImportedDeckAsync()
@@ -1090,7 +1113,6 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         }
 
         await RefreshInsightsAsync(CancellationToken.None).ConfigureAwait(false);
-        await RefreshSuggestionsAsync(CancellationToken.None).ConfigureAwait(false);
     }
 
     /// <summary>

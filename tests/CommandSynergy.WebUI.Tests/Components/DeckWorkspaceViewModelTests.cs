@@ -174,7 +174,7 @@ public sealed class DeckWorkspaceViewModelTests
     }
 
     [Fact]
-    public async Task SetCommanderAsync_loads_initial_suggestions_and_reroll_skips_seen_cards()
+    public async Task Suggestions_load_only_after_explicit_request_and_reroll_skips_seen_cards()
     {
         var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
         var libraryState = CreateLibraryState(timeProvider);
@@ -190,6 +190,10 @@ public sealed class DeckWorkspaceViewModelTests
         await sut.UpdateSearchQueryAsync("Isshin");
         await sut.SearchAsync();
         await sut.SetCommanderAsync("isshin-two-heavens-as-one");
+
+        sut.SuggestedCards.Should().BeEmpty();
+
+        await sut.LoadMagicSuggestionsAsync();
 
         sut.SuggestedCards.Select(static suggestion => suggestion.Card.CardId).Should().Equal("suggestion-a", "suggestion-b", "suggestion-c");
 
@@ -199,7 +203,7 @@ public sealed class DeckWorkspaceViewModelTests
     }
 
     [Fact]
-    public async Task AddCardAsync_refreshes_suggestions_to_remove_added_card_from_future_pools()
+    public async Task AddCardAsync_from_suggestion_refreshes_suggestions_to_remove_added_card_from_future_pools()
     {
         var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
         var libraryState = CreateLibraryState(timeProvider);
@@ -215,6 +219,7 @@ public sealed class DeckWorkspaceViewModelTests
         await sut.UpdateSearchQueryAsync("Isshin");
         await sut.SearchAsync();
         await sut.SetCommanderAsync("isshin-two-heavens-as-one");
+        await sut.LoadMagicSuggestionsAsync();
 
         sut.SuggestedCards.Select(static suggestion => suggestion.Card.CardId).Should().Equal("suggestion-a", "suggestion-b", "suggestion-c");
 

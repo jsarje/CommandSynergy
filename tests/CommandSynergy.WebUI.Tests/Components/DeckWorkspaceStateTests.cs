@@ -153,7 +153,7 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
     }
 
     [Fact]
-    public void Deck_workspace_renders_recommendations_when_commander_and_suggestions_are_present()
+    public void Deck_workspace_keeps_recommendations_closed_until_explicitly_opened()
     {
         Render<MudPopoverProvider>();
 
@@ -179,8 +179,13 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
             .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
             .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));
 
-        cut.Find("[data-testid='recommendations-enabled']").TextContent.Should().Contain("Deck suggestions");
-        cut.FindAll(".workspace-search-result--recommended").Should().HaveCount(3);
+        cut.Find("[data-testid='toggle-suggestions']").TextContent.Should().Contain("Open suggestions");
+        cut.FindAll(".workspace-search-result--recommended").Should().BeEmpty();
+
+        cut.Find("[data-testid='toggle-suggestions']").Click();
+
+        cut.Find("[data-testid='recommendations-enabled']").Should().NotBeNull();
+        cut.Find("[data-testid='recommended-results']").Should().NotBeNull();
         cut.Markup.Should().Contain("Add to Mainboard");
         cut.Markup.Should().Contain("Recommended");
     }

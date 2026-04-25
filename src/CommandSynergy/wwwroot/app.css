@@ -571,6 +571,24 @@ h1:focus {
     background: linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(255, 255, 255, 0.72));
 }
 
+.workspace-search-results--recommended {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+}
+
+.workspace-search-results--recommended .workspace-search-result--recommended {
+    display: grid;
+    gap: 0.9rem;
+    align-content: start;
+    height: 100%;
+}
+
+@media (max-width: 1080px) {
+    .workspace-search-results--recommended {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 .workspace-utility-drawer .workspace-panel {
     padding: 1.1rem;
 }
@@ -1694,10 +1712,15 @@ h1:focus {
         padding: 1.35rem 1rem 4rem;
     }
 
+    .workspace-search-results--recommended {
+        grid-template-columns: 1fr;
+    }
+
     .workspace-appbar__inner,
     .workspace-panel__header,
     .workspace-search,
     .workspace-recommendation-filters,
+    .workspace-search-results--recommended,
     .workspace-search-result,
     .workspace-search-result__actions,
     .workspace-dialog__actions,
