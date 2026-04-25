@@ -87,16 +87,17 @@ public sealed class DeckSuggestionService(
     {
         var candidateSignals = ResolveSignals(profile);
         var themeScore = CalculateThemeScore(candidateSignals, commanderSignals, themeWeights);
-        // EDHREC synergy values land on a -1..1 scale, so shift them into the
-        // same 0..100 range used by local theme scoring before blending.
+        // EDHREC exposes synergy as a centered decimal where lower values can
+        // dip below zero, so shift that signal into the same 0..100 band used
+        // by local theme scoring before blending the two sources.
         decimal? edhrecScore = edhrecInsights.IsAvailable && edhrecInsights.SynergyByCardId.TryGetValue(profile.CardId, out var synergy)
             ? decimal.Round(Math.Clamp((synergy + 1m) * 50m, 0m, 100m), 1, MidpointRounding.AwayFromZero)
             : null;
         var combinedScore = decimal.Round(
             edhrecScore is null
                 ? themeScore
-                // Keep the local deck-shape analysis slightly dominant so live
-                // deck composition changes stay ahead of static popularity data.
+                // Keep the local deck-shape analysis dominant so live deck
+                // composition changes stay ahead of static popularity data.
                 : Math.Clamp((themeScore * 0.6m) + (edhrecScore.Value * 0.4m), 0m, 100m),
             1,
             MidpointRounding.AwayFromZero);
