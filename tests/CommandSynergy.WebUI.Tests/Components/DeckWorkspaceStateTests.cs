@@ -43,7 +43,7 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
             .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
             .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));
 
-        cut.Find("[data-testid='workspace-loading']").TextContent.Should().Contain("Loading workspace shell");
+        cut.Find("[data-testid='workspace-loading']").TextContent.Should().Contain("Loading workspace");
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
             .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
             .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));
 
-        cut.Find("[data-testid='workspace-empty']").TextContent.Should().Contain("Pick a commander.");
+        cut.Find("[data-testid='workspace-empty']").TextContent.Should().Contain("Start with a commander");
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
             .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
             .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));
 
-        cut.Find("[data-testid='workspace-empty']").TextContent.Should().Contain("Pick a commander.");
+        cut.Find("[data-testid='workspace-empty']").TextContent.Should().Contain("Start with a commander");
         cut.Find("[data-testid='pile-card-sol-ring']").Should().NotBeNull();
     }
 

@@ -4,8 +4,10 @@
 
 <section class="pile-board">
     <div class="pile-board__header">
-        <div>
-            <p class="workspace-panel__label">Deck Building Workspace</p>
+        <div class="pile-board__header-copy">
+            <p class="workspace-panel__label">Deck table</p>
+            <h2>Command zone and mainboard</h2>
+            <p class="pile-board__hint">Use grouping to read the deck by role, mana, or color. Switch to compact mode when you want a faster scan of the full 99.</p>
         </div>
     </div>
 
@@ -52,9 +54,10 @@
                                 <button type="button"
                                         class="pile-board__compact-toggle"
                                         aria-pressed="@isCompactMode"
+                                        aria-label="@(isCompactMode ? "Cards are compact. Expand cards" : "Cards are expanded. Compact cards")"
                                         data-testid="compact-mode-toggle"
                                         @onclick="ToggleCompactMode">
-                                    @(isCompactMode ? "Compact mode on" : "Compact mode off")
+                                    @(isCompactMode ? "Expand cards" : "Compact cards")
                                 </button>
                             </div>
                         </div>

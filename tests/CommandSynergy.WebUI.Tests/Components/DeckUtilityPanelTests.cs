@@ -45,6 +45,8 @@ public sealed class DeckUtilityPanelTests : BunitContext, IAsyncLifetime
             .Add(component => component.SelectedExportFormatId, "moxfield-text"));
 
         cut.Find("[data-testid='workspace-link-status']").TextContent.Should().Contain("Editing Isshin Pressure");
+        cut.Find("[data-testid='workspace-library-summary']").TextContent.Should().Contain("Saved decks");
+        cut.Find("[data-testid='workspace-library-summary']").TextContent.Should().Contain("Linked");
         cut.Find("[data-testid='linked-deck-rename-controls']").Should().NotBeNull();
         cut.Find("[data-testid='linked-deck-rename-status']").TextContent.Should().Contain("Deck renamed.");
         cut.FindAll("[data-testid='new-deck-save-controls']").Should().BeEmpty();

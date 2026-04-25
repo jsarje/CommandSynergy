@@ -26,7 +26,7 @@ public sealed class DeckSignalsPanelTests : BunitContext
             .Add(component => component.Analysis, null)
             .Add(component => component.IsRefreshingInsights, false));
 
-        cut.Find("[data-testid='workspace-loading']").TextContent.Should().Contain("Loading workspace shell");
+        cut.Find("[data-testid='workspace-loading']").TextContent.Should().Contain("Loading workspace");
     }
 
     [Fact]
@@ -76,6 +76,8 @@ public sealed class DeckSignalsPanelTests : BunitContext
 
         cut.Find("[data-testid='workspace-ready']").Should().NotBeNull();
         cut.Find("[data-testid='workspace-summary']").TextContent.Should().Contain("Isshin, Two Heavens as One");
+        cut.Find("[data-testid='workspace-briefing']").TextContent.Should().Contain("Deck needs validation work");
+        cut.Find("[data-testid='workspace-briefing']").TextContent.Should().Contain("Fix findings");
         cut.Find("[data-testid='validation-findings']").TextContent.Should().Contain("Average mana value is climbing above the target.");
         cut.Find("[data-testid='analysis-panel']").TextContent.Should().Contain("Bracket");
         cut.Find("[data-testid='analysis-panel']").TextContent.Should().Contain("Synergy");
@@ -105,6 +107,7 @@ public sealed class DeckSignalsPanelTests : BunitContext
 
         cut.Find("[data-testid='library-hydrate-indicator']").TextContent.Should().Contain("Restoring library");
         cut.Find("[data-testid='library-hydrate-banner']").TextContent.Should().Contain("Restoring saved deck");
+        cut.Find("[data-testid='workspace-briefing']").TextContent.Should().Contain("Restoring saved deck");
         cut.FindAll("[data-testid='analysis-refresh-banner']").Should().BeEmpty();
     }
 

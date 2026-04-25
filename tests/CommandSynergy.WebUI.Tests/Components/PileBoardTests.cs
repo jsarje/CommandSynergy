@@ -21,6 +21,7 @@ public sealed class PileBoardTests : BunitContext
             .Add(component => component.Cards, [CreateCard("sol-ring", DeckWorkspaceViewModel.MainboardPileId)]));
 
         cut.FindAll("[data-testid^='pile-lane-']").Should().HaveCount(2);
+        cut.Find(".pile-board__header").TextContent.Should().Contain("Command zone and mainboard");
         cut.Markup.Should().NotContain("Interaction");
         cut.FindAll("button[data-testid^='move-']").Should().BeEmpty();
         cut.Find("[data-testid='pile-card-sol-ring']").HasAttribute("draggable").Should().BeFalse();
@@ -115,7 +116,7 @@ public sealed class PileBoardTests : BunitContext
         cut.Find("[data-testid='commander-card-shadowborn-apostle']").ClassList.Should().Contain("commander-card--compact");
         cut.Find(".pile-board__group-cards").ClassList.Should().Contain("pile-board__group-cards--compact");
         cut.Find("[data-testid='quantity-shadowborn-apostle']").ParentElement!.ClassList.Should().Contain("pile-board__actions");
-        cut.Find("[data-testid='compact-mode-toggle']").TextContent.Should().Contain("Compact mode on");
+        cut.Find("[data-testid='compact-mode-toggle']").TextContent.Should().Contain("Expand cards");
         cut.Find("[data-testid='quantity-shadowborn-apostle']").TextContent.Should().Contain("3 copies");
         cut.FindAll("[data-testid='increment-sol-ring']").Should().BeEmpty();
 

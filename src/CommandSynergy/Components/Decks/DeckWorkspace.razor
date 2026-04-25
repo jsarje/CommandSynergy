@@ -3,10 +3,14 @@
 
 <div class="workspace-shell">
     <MudContainer MaxWidth="MaxWidth.False" Class="workspace-shell__container">
-        <MudAppBar Elevation="0" Dense="true" Class="workspace-appbar">
+        <MudAppBar Elevation="0" Dense="true" Fixed="false" Class="workspace-appbar">
             <div class="workspace-appbar__inner">
-                <div class="workspace-appbar__brand">                    
-                    <strong class="workspace-appbar__name">Synergy Sphere</strong>
+                <div class="workspace-appbar__brand">
+                    <p class="workspace-appbar__eyebrow">CommandSynergy</p>
+                    <h1 class="workspace-appbar__name">Synergy Sphere</h1>
+                    <p class="workspace-appbar__brand-sub">
+                        @GetDeckTitle() · @GetCommanderTitle()
+                    </p>
                 </div>
 
                 <button type="button"
@@ -16,6 +20,13 @@
                         @onclick="OpenPlaytestOverlay">
                     Playtest
                 </button>
+
+                @if (TotalDeckCards > 0)
+                {
+                    <span class="workspace-appbar__deck-count" aria-label="@TotalDeckCards cards in deck">
+                        @TotalDeckCards cards
+                    </span>
+                }
 
                 <button type="button"
                         class="workspace-appbar__action"
@@ -81,10 +92,10 @@
 
         @if (isImporting)
         {
-            <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.6);z-index:1000">
-                <div style="text-align:center;padding:16px;border-radius:8px;background:rgba(255,255,255,0.9);box-shadow:0 6px 18px rgba(0,0,0,0.08);">
+            <div class="workspace-import-overlay">
+                <div class="workspace-import-overlay__card">
                     <MudProgressCircular Indeterminate="true" Size="Size.Large" />
-                    <div style="margin-top:8px;font-weight:600">Importing deck…</div>
+                    <span class="workspace-import-overlay__label">Importing deck…</span>
                 </div>
             </div>
         }
@@ -94,6 +105,7 @@
                           Analysis="Analysis"
                           CommanderName="@(ActiveCommander?.Name ?? "Unset")"
                           DeckName="@(ActiveWorkspaceDeckName ?? NewDeckName ?? "Unset")"
+                          TotalDeckCards="@TotalDeckCards"
                           IsRefreshingInsights="IsRefreshingInsights"
                           IsHydratingLibrary="IsHydratingLibrary"
                           IsAutoOpeningDeck="IsAutoOpeningDeck"
@@ -529,4 +541,12 @@
             isDeletingImportedDeck = false;
         }
     }
+
+    private string GetDeckTitle() => string.IsNullOrWhiteSpace(ActiveWorkspaceDeckName)
+        ? "Unsaved working copy"
+        : ActiveWorkspaceDeckName;
+
+    private string GetCommanderTitle() => ActiveCommander is null
+        ? "Commander unset"
+        : $"Commander: {ActiveCommander.Name}";
 }
