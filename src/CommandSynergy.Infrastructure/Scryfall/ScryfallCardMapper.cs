@@ -52,6 +52,7 @@ public sealed class ScryfallCardMapper(IThemeMatchingService themeMatchingServic
             OracleText = document.OracleText,
             Keywords = document.Keywords,
             ColorIdentity = document.ColorIdentity,
+            EurPrice = document.EurPrice,
             FaceProfiles = document.CardFaces.Select((face, index) => new CardFaceProfile(
                 face.FaceId ?? index.ToString(),
                 face.Name ?? document.Name,
@@ -82,6 +83,7 @@ public sealed class ScryfallCardMapper(IThemeMatchingService themeMatchingServic
             ColorIdentity = provisionalProfile.ColorIdentity,
             FaceProfiles = provisionalProfile.FaceProfiles,
             ImageUri = provisionalProfile.ImageUri,
+            EurPrice = provisionalProfile.EurPrice,
             PlayRateByCommander = provisionalProfile.PlayRateByCommander,
             ThemeSignals = themeMatchingService.ComputeThemeSignals(provisionalProfile),
             GenericColorStapleRate = provisionalProfile.GenericColorStapleRate,

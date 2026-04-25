@@ -346,9 +346,35 @@ public sealed record ScryfallCardDocument
     [JsonPropertyName("legalities")]
     public ScryfallLegalities? Legalities { get; init; }
 
+    [JsonPropertyName("prices")]
+    public ScryfallCardPrices? Prices { get; init; }
+
     public string? ImageUri => ImageUris?.Normal ?? CardFaces.FirstOrDefault()?.ImageUri;
 
     public string? CommanderLegality => Legalities?.Commander;
+
+    public decimal? EurPrice => TryParsePrice(Prices?.Eur);
+
+    private static decimal? TryParsePrice(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return decimal.TryParse(value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var parsedPrice)
+            ? parsedPrice
+            : null;
+    }
+}
+
+/// <summary>
+/// Represents the subset of Scryfall pricing metadata required by the application.
+/// </summary>
+public sealed record ScryfallCardPrices
+{
+    [JsonPropertyName("eur")]
+    public string? Eur { get; init; }
 }
 
 /// <summary>
