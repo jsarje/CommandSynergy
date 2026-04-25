@@ -27,6 +27,8 @@ public sealed class CardProfile
 
     public string? ImageUri { get; init; }
 
+    public decimal? EurPrice { get; init; }
+
     public decimal? SaltScore { get; init; }
 
     public IReadOnlyDictionary<string, decimal> PlayRateByCommander { get; init; } = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);

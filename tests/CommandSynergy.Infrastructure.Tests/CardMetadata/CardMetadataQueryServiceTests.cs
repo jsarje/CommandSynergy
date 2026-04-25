@@ -36,6 +36,7 @@ public sealed class CardMetadataQueryServiceTests
                     ManaValue = 2,
                     SaltScore = 0.4m,
                     ImageUri = "https://example.test/persistent-petitioners.jpg",
+                    EurPrice = 1.25m,
                     HasMultipleFaces = false,
                     OracleText = "A deck can have any number of cards named Persistent Petitioners.",
                     PlayRateByCommander = new Dictionary<string, decimal>
@@ -88,6 +89,7 @@ public sealed class CardMetadataQueryServiceTests
             response["persistent-petitioners-id"].PlayRateByCommander.Should().ContainKey("persistent-petitioners-oracle");
             response["persistent-petitioners-id"].GenericColorStapleRate.Should().Be(0.18m);
             response["persistent-petitioners-id"].IsMassLandDenial.Should().BeTrue();
+            response["persistent-petitioners-id"].EurPrice.Should().Be(1.25m);
         }
         finally
         {
@@ -236,6 +238,7 @@ public sealed class CardMetadataQueryServiceTests
                           "cmc": 4,
                           "color_identity": ["B", "G", "U", "W"],
                           "image_uris": { "normal": "https://example.test/atraxa.jpg" },
+                            "prices": { "eur": "3.50" },
                           "card_faces": [],
                           "legalities": { "commander": "legal" }
                         }
@@ -254,6 +257,7 @@ public sealed class CardMetadataQueryServiceTests
                       "cmc": 1,
                       "color_identity": [],
                       "image_uris": { "normal": "https://example.test/sol-ring.jpg" },
+                       "prices": { "eur": "2.10" },
                       "card_faces": [],
                       "legalities": { "commander": "legal" }
                     }
@@ -288,6 +292,8 @@ public sealed class CardMetadataQueryServiceTests
         public decimal? SaltScore { get; init; }
 
         public string? ImageUri { get; init; }
+
+        public decimal? EurPrice { get; init; }
 
         public bool HasMultipleFaces { get; init; }
 

@@ -45,6 +45,7 @@ public sealed class CardMetadataQueryService(
                     Keywords = Array.Empty<string>(),
                     ColorIdentity = card.ColorIdentity,
                     ImageUri = card.ImageUri,
+                    EurPrice = card.EurPrice,
                     SaltScore = card.SaltScore,
                     PlayRateByCommander = card.PlayRateByCommander ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
                     ThemeSignals = card.ThemeSignals ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),

@@ -272,6 +272,7 @@ public sealed class ParquetCardMetadataStore(IOptions<CardMetadataOptions> optio
         row.CompanionRequirementCode,
         (CommanderEligibilityBasis)row.CommanderEligibilityBasis,
         (CardMetadataSource)row.MetadataSource,
+        row.EurPrice,
         row.LastSyncedUtcTicks.HasValue ? new DateTimeOffset(row.LastSyncedUtcTicks.Value, TimeSpan.Zero) : null);
 
     private static ParquetCardMetadataRow MapToRow(CardProfile card) => new()
@@ -285,6 +286,7 @@ public sealed class ParquetCardMetadataStore(IOptions<CardMetadataOptions> optio
         ManaValue = card.ManaValue,
         SaltScore = card.SaltScore,
         ImageUri = card.ImageUri,
+        EurPrice = card.EurPrice,
         HasMultipleFaces = card.HasMultipleFaces,
         OracleText = card.OracleText,
         PlayRateByCommander = card.PlayRateByCommander.Count > 0
@@ -324,6 +326,8 @@ public sealed class ParquetCardMetadataStore(IOptions<CardMetadataOptions> optio
         public decimal? SaltScore { get; init; }
 
         public string? ImageUri { get; init; }
+
+        public decimal? EurPrice { get; init; }
 
         public bool HasMultipleFaces { get; init; }
 
@@ -392,4 +396,5 @@ public sealed record CardMetadataRecord(
     string? CompanionRequirementCode = null,
     CommanderEligibilityBasis CommanderEligibilityBasis = CommanderEligibilityBasis.Unknown,
     CardMetadataSource MetadataSource = CardMetadataSource.Unknown,
+    decimal? EurPrice = null,
     DateTimeOffset? LastSyncedUtc = null);
