@@ -131,6 +131,7 @@
                                   Variant="Variant.Outlined"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Rounded.Search"
+                                  OnKeyDown="HandleSearchKeyDown"
                                   Class="workspace-search__field" />
                         <button type="button"
                             class="workspace-search__button"
@@ -319,14 +320,17 @@
                             <article class="workspace-search-result">
                                 <CommanderCard Card="card" />
                                 <div class="workspace-search-result__actions">
-                                    <button type="button"
-                                            class="workspace-search-result__primary"
-                                            data-testid="@($"set-commander-{card.CardId}")"
-                                            disabled="@(isImporting || !card.IsCommanderEligible)"
-                                            title="@(card.IsCommanderEligible ? "Set this card as your commander" : "Only legal commanders can be selected.")"
-                                            @onclick="() => CommanderSelected.InvokeAsync(card.CardId)">
-                                        Set as commander
-                                    </button>
+                                    @if (ActiveCommander is null)
+                                    {
+                                        <button type="button"
+                                                class="workspace-search-result__primary"
+                                                data-testid="@($"set-commander-{card.CardId}")"
+                                                disabled="@(isImporting || !card.IsCommanderEligible)"                                            
+                                                title="@(card.IsCommanderEligible ? "Set this card as your commander" : "Only legal commanders can be selected.")"
+                                                @onclick="() => CommanderSelected.InvokeAsync(card.CardId)">
+                                            Set as commander
+                                        </button>
+                                    }
                                     <button type="button"
                                             class="workspace-search-result__secondary"
                                             @onclick="() => CardAdded.InvokeAsync(card.CardId)"
@@ -343,7 +347,7 @@
 
         <PileBoard Piles="Piles"
                    Cards="Cards"
-                   CommanderSelectionEnabled="@true"
+                   CommanderSelectionEnabled="@(ActiveCommander is null)"
                    SetCommanderRequested="CommanderSelected"
                    IncrementRequested="CardIncrementRequested"
                    DecrementRequested="CardDecrementRequested"
@@ -829,4 +833,12 @@
     private string GetCommanderTitle() => ActiveCommander is null
         ? "Commander unset"
         : $"Commander: {ActiveCommander.Name}";
+
+    private void HandleSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            SearchRequested.InvokeAsync(null);
+        }
+    }
 }
