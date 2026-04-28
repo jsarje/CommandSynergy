@@ -102,6 +102,8 @@
                     Flip face
                 </button>
             }
+
+            @FooterActions
         </div>
     </footer>
 </article>
@@ -112,6 +114,9 @@
 
     [Parameter]
     public bool IsCompact { get; set; }
+
+    [Parameter]
+    public RenderFragment? FooterActions { get; set; }
 
     private WorkspaceCardFaceView frontFace => Card.Faces.First(static face => face.IsPrimaryFace);
 

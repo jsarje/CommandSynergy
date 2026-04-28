@@ -1,6 +1,7 @@
 @using CommandSynergy.Application.Contracts
 @using CommandSynergy.Components.Cards
 @using System.Globalization
+@using MudBlazor
 
 <section class="pile-board">
     <div class="pile-board__header">
@@ -191,59 +192,62 @@
         builder.OpenComponent<CommanderCard>(sequence++);
         builder.AddAttribute(sequence++, "Card", card);
         builder.AddAttribute(sequence++, "IsCompact", isMainboard && isCompactMode);
+        builder.AddAttribute(sequence++, "FooterActions", (RenderFragment)(footerBuilder =>
+        {
+            var footerSequence = 0;
+
+            if (isMainboard && !card.IsCommander && card.AllowsMultipleCopies)
+            {
+                footerBuilder.OpenElement(footerSequence++, "button");
+                footerBuilder.AddAttribute(footerSequence++, "type", "button");
+                footerBuilder.AddAttribute(footerSequence++, "class", "pile-board__quantity-button");
+                footerBuilder.AddAttribute(footerSequence++, "data-testid", $"decrement-{card.CardId}");
+                footerBuilder.AddAttribute(footerSequence++, "disabled", card.Quantity <= 1);
+                footerBuilder.AddAttribute(footerSequence++, "onclick", EventCallback.Factory.Create(this, () => DecrementRequested.InvokeAsync(card.CardId)));
+                footerBuilder.AddContent(footerSequence++, "−1");
+                footerBuilder.CloseElement();
+
+                footerBuilder.OpenElement(footerSequence++, "span");
+                footerBuilder.AddAttribute(footerSequence++, "class", "pile-board__quantity");
+                footerBuilder.AddAttribute(footerSequence++, "data-testid", $"quantity-{card.CardId}");
+                footerBuilder.AddContent(footerSequence++, $"{card.Quantity} copies");
+                footerBuilder.CloseElement();
+
+                footerBuilder.OpenElement(footerSequence++, "button");
+                footerBuilder.AddAttribute(footerSequence++, "type", "button");
+                footerBuilder.AddAttribute(footerSequence++, "class", "pile-board__quantity-button");
+                footerBuilder.AddAttribute(footerSequence++, "data-testid", $"increment-{card.CardId}");
+                footerBuilder.AddAttribute(footerSequence++, "onclick", EventCallback.Factory.Create(this, () => IncrementRequested.InvokeAsync(card.CardId)));
+                footerBuilder.AddContent(footerSequence++, "+1");
+                footerBuilder.CloseElement();
+            }
+
+            if (CommanderSelectionEnabled && !card.IsCommander)
+            {
+                footerBuilder.OpenElement(footerSequence++, "button");
+                footerBuilder.AddAttribute(footerSequence++, "type", "button");
+                footerBuilder.AddAttribute(footerSequence++, "class", "pile-board__move-button");
+                footerBuilder.AddAttribute(footerSequence++, "data-testid", $"set-commander-from-pile-{card.CardId}");
+                footerBuilder.AddAttribute(footerSequence++, "disabled", !card.IsCommanderEligible);
+                footerBuilder.AddAttribute(footerSequence++, "title", card.IsCommanderEligible ? "Set this card as your commander" : "Only legal commanders can be selected.");
+                footerBuilder.AddAttribute(footerSequence++, "onclick", EventCallback.Factory.Create(this, () => SetCommanderRequested.InvokeAsync(card.CardId)));
+                footerBuilder.AddContent(footerSequence++, "Set as commander");
+                footerBuilder.CloseElement();
+            }
+
+            footerBuilder.OpenElement(footerSequence++, "button");
+            footerBuilder.AddAttribute(footerSequence++, "type", "button");
+            footerBuilder.AddAttribute(footerSequence++, "class", "pile-board__remove-button");
+            footerBuilder.AddAttribute(footerSequence++, "data-testid", $"remove-{card.CardId}");
+            footerBuilder.AddAttribute(footerSequence++, "title", $"Remove {card.Name}");
+            footerBuilder.AddAttribute(footerSequence++, "aria-label", $"Remove {card.Name}");
+            footerBuilder.AddAttribute(footerSequence++, "onclick", EventCallback.Factory.Create(this, () => RemoveRequested.InvokeAsync(card.CardId)));
+            footerBuilder.OpenComponent<MudIcon>(footerSequence++);
+            footerBuilder.AddAttribute(footerSequence++, "Icon", Icons.Material.Rounded.Delete);
+            footerBuilder.CloseComponent();
+            footerBuilder.CloseElement();
+        }));
         builder.CloseComponent();
-
-        builder.OpenElement(sequence++, "div");
-        builder.AddAttribute(sequence++, "class", "pile-board__actions");
-
-        if (isMainboard && !card.IsCommander && card.AllowsMultipleCopies)
-        {
-            builder.OpenElement(sequence++, "button");
-            builder.AddAttribute(sequence++, "type", "button");
-            builder.AddAttribute(sequence++, "class", "pile-board__quantity-button");
-            builder.AddAttribute(sequence++, "data-testid", $"decrement-{card.CardId}");
-            builder.AddAttribute(sequence++, "disabled", card.Quantity <= 1);
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => DecrementRequested.InvokeAsync(card.CardId)));
-            builder.AddContent(sequence++, "−1");
-            builder.CloseElement();
-
-            builder.OpenElement(sequence++, "span");
-            builder.AddAttribute(sequence++, "class", "pile-board__quantity");
-            builder.AddAttribute(sequence++, "data-testid", $"quantity-{card.CardId}");
-            builder.AddContent(sequence++, $"{card.Quantity} copies");
-            builder.CloseElement();
-
-            builder.OpenElement(sequence++, "button");
-            builder.AddAttribute(sequence++, "type", "button");
-            builder.AddAttribute(sequence++, "class", "pile-board__quantity-button");
-            builder.AddAttribute(sequence++, "data-testid", $"increment-{card.CardId}");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => IncrementRequested.InvokeAsync(card.CardId)));
-            builder.AddContent(sequence++, "+1");
-            builder.CloseElement();
-        }
-
-        if (CommanderSelectionEnabled && !card.IsCommander)
-        {
-            builder.OpenElement(sequence++, "button");
-            builder.AddAttribute(sequence++, "type", "button");
-            builder.AddAttribute(sequence++, "class", "pile-board__move-button");
-            builder.AddAttribute(sequence++, "data-testid", $"set-commander-from-pile-{card.CardId}");
-            builder.AddAttribute(sequence++, "disabled", !card.IsCommanderEligible);
-            builder.AddAttribute(sequence++, "title", card.IsCommanderEligible ? "Set this card as your commander" : "Only legal commanders can be selected.");
-            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => SetCommanderRequested.InvokeAsync(card.CardId)));
-            builder.AddContent(sequence++, "Set as commander");
-            builder.CloseElement();
-        }
-
-        builder.OpenElement(sequence++, "button");
-        builder.AddAttribute(sequence++, "type", "button");
-        builder.AddAttribute(sequence++, "class", "pile-board__remove-button");
-        builder.AddAttribute(sequence++, "data-testid", $"remove-{card.CardId}");
-        builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => RemoveRequested.InvokeAsync(card.CardId)));
-        builder.AddContent(sequence++, "Remove");
-        builder.CloseElement();
-
-        builder.CloseElement();
         builder.CloseElement();
     };
 
