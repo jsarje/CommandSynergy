@@ -20,6 +20,14 @@ public sealed class BracketCalculationService(
     private const decimal SynergyWeight = 1.0m;
     private const decimal OptimizationWeight = 3.0m;
     private const decimal LateGameTwoCardComboManaThreshold = 7.0m;
+    private const decimal MeaningfulSynergyThreshold = 60.0m;
+    private const decimal HighlyOptimizedSynergyThreshold = 80.0m;
+    private const int MinimumInfiniteCombosForBracketFive = 3;
+    private const int MinimumGameChangersWithMassLandDenialForBracketFive = 3;
+    private const int MinimumInfiniteCombosWithMassLandDenialForBracketFive = 1;
+    private const int MinimumGameChangersWithComboDensityForBracketFive = 5;
+    private const int MinimumTwoCardCombosForBracketFive = 2;
+    private const int MinimumGameChangersForBracketFive = 6;
 
     private readonly BracketOptions bracketOptions = options.Value;
 
@@ -177,6 +185,7 @@ public sealed class BracketCalculationService(
             profile.FaceProfiles
                 .Select(static face => face.OracleText)
                 .Append(profile.OracleText)
+                .OfType<string>()
                 .Where(static text => !string.IsNullOrWhiteSpace(text)));
 
         return oracleText.Contains("extra turn", StringComparison.OrdinalIgnoreCase);
@@ -213,7 +222,7 @@ public sealed class BracketCalculationService(
             : synergyAssessment.FinalScore;
 
         return synergyAssessment.CommanderSpecificHits.Count > 0
-            || effectiveScore >= 60m
+            || effectiveScore >= MeaningfulSynergyThreshold
             || string.Equals(synergyAssessment.QualitativeLabel, "Focused", StringComparison.OrdinalIgnoreCase)
             || string.Equals(synergyAssessment.QualitativeLabel, "Tuned", StringComparison.OrdinalIgnoreCase);
     }
@@ -231,13 +240,13 @@ public sealed class BracketCalculationService(
         var effectiveScore = synergyAssessment.FinalScore == 0m
             ? synergyAssessment.SynergyScore
             : synergyAssessment.FinalScore;
-        var isHighlyOptimized = effectiveScore >= 80m
+        var isHighlyOptimized = effectiveScore >= HighlyOptimizedSynergyThreshold
             || string.Equals(synergyAssessment.QualitativeLabel, "Tuned", StringComparison.OrdinalIgnoreCase);
 
-        if (infiniteComboCount >= 3
-            || (massLandDenialCount > 0 && isHighlyOptimized && (gameChangerCount >= 3 || infiniteComboCount >= 1))
-            || (gameChangerCount >= 5 && isHighlyOptimized && (earlyTwoCardComboCount + lateTwoCardComboCount >= 2))
-            || (gameChangerCount >= 6 && isHighlyOptimized))
+        if (infiniteComboCount >= MinimumInfiniteCombosForBracketFive
+            || (massLandDenialCount > 0 && isHighlyOptimized && (gameChangerCount >= MinimumGameChangersWithMassLandDenialForBracketFive || infiniteComboCount >= MinimumInfiniteCombosWithMassLandDenialForBracketFive))
+            || (gameChangerCount >= MinimumGameChangersWithComboDensityForBracketFive && isHighlyOptimized && (earlyTwoCardComboCount + lateTwoCardComboCount >= MinimumTwoCardCombosForBracketFive))
+            || (gameChangerCount >= MinimumGameChangersForBracketFive && isHighlyOptimized))
         {
             return 5;
         }
