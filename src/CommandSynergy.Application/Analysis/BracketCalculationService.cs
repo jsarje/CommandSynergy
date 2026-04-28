@@ -192,9 +192,9 @@ public sealed class BracketCalculationService(
     }
 
     private static bool IsInfiniteCombo(ComboResult combo) =>
-        combo.Produces.Any(static produce => produce.Contains("infinite", StringComparison.OrdinalIgnoreCase))
-        || combo.Steps.Contains("infinite", StringComparison.OrdinalIgnoreCase)
-        || combo.Prerequisites.Contains("infinite", StringComparison.OrdinalIgnoreCase);
+        combo.Produces is not null && combo.Produces.Any(static produce => produce.Contains("infinite", StringComparison.OrdinalIgnoreCase))
+        || (combo.Steps?.Contains("infinite", StringComparison.OrdinalIgnoreCase) ?? false)
+        || (combo.Prerequisites?.Contains("infinite", StringComparison.OrdinalIgnoreCase) ?? false);
 
     private static bool IsLateGameTwoCardCombo(
         IReadOnlyList<string> comboCardNames,
@@ -217,9 +217,7 @@ public sealed class BracketCalculationService(
 
     private static bool HasMeaningfulSynergy(SynergyAssessment synergyAssessment)
     {
-        var effectiveScore = synergyAssessment.FinalScore == 0m
-            ? synergyAssessment.SynergyScore
-            : synergyAssessment.FinalScore;
+        var effectiveScore = GetEffectiveSynergyScore(synergyAssessment);
 
         return synergyAssessment.CommanderSpecificHits.Count > 0
             || effectiveScore >= MeaningfulSynergyThreshold
@@ -237,15 +235,20 @@ public sealed class BracketCalculationService(
         SynergyAssessment synergyAssessment,
         bool hasMeaningfulSynergy)
     {
-        var effectiveScore = synergyAssessment.FinalScore == 0m
-            ? synergyAssessment.SynergyScore
-            : synergyAssessment.FinalScore;
+        var effectiveScore = GetEffectiveSynergyScore(synergyAssessment);
         var isHighlyOptimized = effectiveScore >= HighlyOptimizedSynergyThreshold
             || string.Equals(synergyAssessment.QualitativeLabel, "Tuned", StringComparison.OrdinalIgnoreCase);
+        var hasBracketFiveMassLandDenialSignals = massLandDenialCount > 0
+            && isHighlyOptimized
+            && (gameChangerCount >= MinimumGameChangersWithMassLandDenialForBracketFive
+                || infiniteComboCount >= MinimumInfiniteCombosWithMassLandDenialForBracketFive);
+        var hasBracketFiveComboDensitySignals = gameChangerCount >= MinimumGameChangersWithComboDensityForBracketFive
+            && isHighlyOptimized
+            && (earlyTwoCardComboCount + lateTwoCardComboCount >= MinimumTwoCardCombosForBracketFive);
 
         if (infiniteComboCount >= MinimumInfiniteCombosForBracketFive
-            || (massLandDenialCount > 0 && isHighlyOptimized && (gameChangerCount >= MinimumGameChangersWithMassLandDenialForBracketFive || infiniteComboCount >= MinimumInfiniteCombosWithMassLandDenialForBracketFive))
-            || (gameChangerCount >= MinimumGameChangersWithComboDensityForBracketFive && isHighlyOptimized && (earlyTwoCardComboCount + lateTwoCardComboCount >= MinimumTwoCardCombosForBracketFive))
+            || hasBracketFiveMassLandDenialSignals
+            || hasBracketFiveComboDensitySignals
             || (gameChangerCount >= MinimumGameChangersForBracketFive && isHighlyOptimized))
         {
             return 5;
@@ -263,4 +266,9 @@ public sealed class BracketCalculationService(
 
         return hasMeaningfulSynergy ? 2 : 1;
     }
+
+    private static decimal GetEffectiveSynergyScore(SynergyAssessment synergyAssessment) =>
+        synergyAssessment.FinalScore == 0m
+            ? synergyAssessment.SynergyScore
+            : synergyAssessment.FinalScore;
 }
