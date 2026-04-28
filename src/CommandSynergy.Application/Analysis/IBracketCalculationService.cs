@@ -12,5 +12,9 @@ public interface IBracketCalculationService
     /// <summary>
     /// Calculates the bracket result for the supplied deck and card profiles.
     /// </summary>
-    BracketAssessment Calculate(Deck deck, IReadOnlyDictionary<string, CardProfile> cardProfiles);
+    BracketAssessment Calculate(
+        Deck deck,
+        IReadOnlyDictionary<string, CardProfile> cardProfiles,
+        ComboAnalysis comboAnalysis,
+        SynergyAssessment synergyAssessment);
 }

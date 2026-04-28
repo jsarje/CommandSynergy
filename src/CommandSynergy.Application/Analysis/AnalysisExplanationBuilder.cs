@@ -18,7 +18,7 @@ public sealed class AnalysisExplanationBuilder : IAnalysisExplanationBuilder
         var topFactors = assessment.ContributingFactors.Take(2).Select(factor => factor.Explanation).ToArray();
 
         var factorText = topFactors.Length == 0
-            ? " No weighted game changers or pressure signals were detected."
+            ? " No bracket-defining signals were detected."
             : $" Top drivers: {string.Join("; ", topFactors)}.";
 
         var metadataText = missingMetadataCount == 0

@@ -98,6 +98,49 @@ public sealed class DeckAnalysisServiceTests
     }
 
     [Fact]
+    public async Task AnalyzeAsync_uses_commander_synergy_to_promote_low_signal_decks_to_bracket_two()
+    {
+        var gateway = new StubCardCatalogGateway(new Dictionary<string, CardProfile>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["commander"] = CreateCard("commander", "Commander", "commander-oracle", typeLine: "Legendary Creature — Advisor", isGameChanger: false),
+            ["engine-card"] = CreateCard(
+                "engine-card",
+                "Engine Card",
+                "engine-card-oracle",
+                typeLine: "Enchantment",
+                isGameChanger: false,
+                playRateByCommander: new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["commander-oracle"] = 0.42m,
+                },
+                genericColorStapleRate: 0.05m),
+        });
+
+        var sut = new DeckAnalysisService(
+            gateway,
+            new StubCommanderSpellbookClient(),
+            new StubEdhrecClient(),
+            new BracketCalculationService(new Domain.Analysis.BracketEngine(), new AnalysisExplanationBuilder(), Options.Create(new BracketOptions())),
+            new PowerLevelCalculationService(),
+            new SynergyScoringService(new AnalysisExplanationBuilder()),
+            new ThemeAnalysisService(new ThemeMatchingService(), new AnalysisExplanationBuilder()),
+            Array.Empty<IDeckAdviceService>());
+
+        var response = await sut.AnalyzeAsync(new DeckSnapshotContract
+        {
+            CommanderCardId = "commander",
+            Entries =
+            [
+                new DeckEntryContract { CardId = "commander", Quantity = 1, IsCommander = true },
+                new DeckEntryContract { CardId = "engine-card", Quantity = 1 },
+            ],
+        });
+
+        response.Bracket.Level.Should().Be(2);
+        response.Bracket.Factors.Should().Contain(factor => factor.Category == "synergy");
+    }
+
+    [Fact]
     public async Task AnalyzeAsync_includes_chart_ready_deck_stats()
     {
         var gateway = new StubCardCatalogGateway(new Dictionary<string, CardProfile>(StringComparer.OrdinalIgnoreCase)
@@ -190,6 +233,7 @@ public sealed class DeckAnalysisServiceTests
         decimal manaValue = 2,
         string? oracleText = null,
         string? typeLine = null,
+        bool isGameChanger = true,
         IReadOnlyDictionary<string, decimal>? playRateByCommander = null,
         decimal? genericColorStapleRate = null,
         decimal? saltScore = null) => new()
@@ -203,7 +247,7 @@ public sealed class DeckAnalysisServiceTests
         OracleText = oracleText,
         SaltScore = saltScore,
         GenericColorStapleRate = genericColorStapleRate,
-        IsGameChanger = true,
+        IsGameChanger = isGameChanger,
         PlayRateByCommander = playRateByCommander ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
         FaceProfiles = [ new CardFaceProfile("0", name, null, "Artifact", oracleText, null, true) ],
     };

@@ -55,7 +55,6 @@ public sealed class DeckAnalysisService : IDeckAnalysisCoreService
         var cardIds = deck.Entries.Select(entry => entry.CardId).Distinct(StringComparer.OrdinalIgnoreCase);
         var profiles = await cardCatalogGateway.GetCardProfilesAsync(cardIds, cancellationToken).ConfigureAwait(false);
 
-        var bracketAssessment = bracketCalculationService.Calculate(deck, profiles);
         var baseSynergyAssessment = synergyScoringService.Calculate(deck, profiles);
         var commanderEntry = deck.Entries.SingleOrDefault(static entry => entry.IsCommander);
         var commanderProfile = commanderEntry is not null && profiles.TryGetValue(commanderEntry.CardId, out var profile)
@@ -86,6 +85,7 @@ public sealed class DeckAnalysisService : IDeckAnalysisCoreService
         var edhrecInsights = await edhrecInsightsTask.ConfigureAwait(false);
         var (themeAnalysis, themeSynergy) = await themeAnalysisService.AnalyseAsync(deck, profiles, edhrecInsights, cancellationToken).ConfigureAwait(false);
         var synergyAssessment = MergeSynergyAssessments(baseSynergyAssessment, themeSynergy);
+        var bracketAssessment = bracketCalculationService.Calculate(deck, profiles, comboAnalysis, synergyAssessment);
         var powerLevelAssessment = powerLevelCalculationService.Calculate(deck, profiles, comboAnalysis);
         var deckStats = deckStatsCalculationService.Calculate(deck, profiles);
 

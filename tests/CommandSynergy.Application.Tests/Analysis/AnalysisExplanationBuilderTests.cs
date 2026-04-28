@@ -35,7 +35,7 @@ public sealed class AnalysisExplanationBuilderTests
 
         var summary = sut.BuildBracketSummary(assessment, 0);
 
-        summary.Should().Be("Bracket 1 with total weight 0. No weighted game changers or pressure signals were detected.");
+        summary.Should().Be("Bracket 1 with total weight 0. No bracket-defining signals were detected.");
     }
 
     [Fact]
