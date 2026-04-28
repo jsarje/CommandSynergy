@@ -166,6 +166,60 @@ public sealed class DeckSuggestionServiceTests
         response.Suggestions[0].Card.CardId.Should().Be("matching-card");
     }
 
+    [Fact]
+    public async Task GetSuggestionsAsync_matches_colorless_filter_to_cards_with_colorless_identity()
+    {
+        var commander = CreateCard(
+            "commander",
+            "Commander",
+            oracleId: "commander-oracle",
+            typeLine: "Legendary Creature",
+            colorIdentity: ["W"],
+            commanderEligibilityBasis: CommanderEligibilityBasis.LegendaryCreature);
+        var colorlessCard = CreateCard(
+            "colorless-card",
+            "Colorless Card",
+            typeLine: "Artifact",
+            colorIdentity: Array.Empty<string>(),
+            themeSignals: new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Artifacts"] = 0.8m,
+            });
+        var whiteCard = CreateCard(
+            "white-card",
+            "White Card",
+            typeLine: "Artifact",
+            colorIdentity: ["W"],
+            themeSignals: new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Artifacts"] = 0.8m,
+            });
+        var sut = new DeckSuggestionService(
+            new StubCardCatalogGateway([commander, colorlessCard, whiteCard]),
+            new StubEdhrecClient(CommanderThemeInsights.Empty("commander")),
+            new ThemeMatchingService());
+
+        var response = await sut.GetSuggestionsAsync(new DeckSuggestionsRequestContract
+        {
+            Deck = new DeckSnapshotContract
+            {
+                CommanderCardId = "commander",
+                Entries =
+                [
+                    new DeckEntryContract { CardId = "commander", Quantity = 1, IsCommander = true },
+                ],
+            },
+            Filters = new DeckSuggestionFiltersContract
+            {
+                ColorIdentity = ["C"],
+            },
+            Limit = 3,
+        });
+
+        response.Suggestions.Should().ContainSingle();
+        response.Suggestions[0].Card.CardId.Should().Be("colorless-card");
+    }
+
     private static CardProfile CreateCard(
         string cardId,
         string name,

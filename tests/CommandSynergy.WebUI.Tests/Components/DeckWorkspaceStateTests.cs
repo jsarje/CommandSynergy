@@ -186,6 +186,8 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
 
         cut.Find("[data-testid='recommendations-enabled']").Should().NotBeNull();
         cut.Find("[data-testid='recommended-results']").Should().NotBeNull();
+        cut.Find("[data-testid='suggestion-color-C']").Should().NotBeNull();
+        cut.Markup.Should().Contain("Colorless");
         cut.Markup.Should().Contain("Add to Mainboard");
         cut.Markup.Should().Contain("Recommended");
     }

@@ -619,7 +619,7 @@
 
     private bool isImporting;
 
-    private static readonly string[] suggestionColors = ["W", "U", "B", "R", "G"];
+    private static readonly string[] suggestionColors = ["W", "U", "B", "R", "G", "C"];
 
     private WorkspaceCardView? ActiveCommander => Cards.FirstOrDefault(static card => card.IsCommander);
 
@@ -714,6 +714,7 @@
         "B" => "Black",
         "R" => "Red",
         "G" => "Green",
+        "C" => "Colorless",
         _ => color,
     };
 

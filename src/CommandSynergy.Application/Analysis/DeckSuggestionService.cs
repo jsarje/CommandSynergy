@@ -214,7 +214,16 @@ public sealed class DeckSuggestionService(
                 .Where(static color => !string.IsNullOrWhiteSpace(color))
                 .Select(static color => color.Trim().ToUpperInvariant())
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
-            if (colorFilters.Any(filter => !cardColors.Contains(filter)))
+            var requiresColorless = colorFilters.Contains("C", StringComparer.OrdinalIgnoreCase);
+            if (requiresColorless && cardColors.Count > 0)
+            {
+                return false;
+            }
+
+            var coloredFilters = colorFilters
+                .Where(static filter => !string.Equals(filter, "C", StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            if (coloredFilters.Any(filter => !cardColors.Contains(filter)))
             {
                 return false;
             }
