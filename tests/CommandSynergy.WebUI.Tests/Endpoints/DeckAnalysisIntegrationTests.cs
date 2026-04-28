@@ -89,6 +89,9 @@ public sealed class DeckAnalysisIntegrationTests : IClassFixture<TestApplication
         public Task<IReadOnlyDictionary<string, Domain.Cards.CardProfile>> GetCardProfilesAsync(IEnumerable<string> cardIds, CancellationToken cancellationToken = default) =>
             Task.FromResult(profiles);
 
+        public Task<IReadOnlyList<Domain.Cards.CardProfile>> GetCommanderLegalCardProfilesAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult((IReadOnlyList<Domain.Cards.CardProfile>)profiles.Values.ToArray());
+
         public Task<IReadOnlyList<CardSearchResultContract>> SearchAsync(CardSearchQueryContract request, CancellationToken cancellationToken = default) =>
             Task.FromResult((IReadOnlyList<CardSearchResultContract>)Array.Empty<CardSearchResultContract>());
 

@@ -104,6 +104,9 @@ public sealed record CardSearchResultContract
     [JsonPropertyName("imageUri")]
     public string? ImageUri { get; init; }
 
+    [JsonPropertyName("eurPrice")]
+    public decimal? EurPrice { get; init; }
+
     [JsonPropertyName("hasMultipleFaces")]
     public bool HasMultipleFaces { get; init; }
 
@@ -181,6 +184,72 @@ public sealed record DeckAnalysisResponseContract
 
     [JsonPropertyName("deckStats")]
     public DeckStatsContract? DeckStats { get; init; }
+}
+
+/// <summary>
+/// Represents a deck-suggestion request for the active workspace.
+/// </summary>
+public sealed record DeckSuggestionsRequestContract
+{
+    [JsonPropertyName("deck")]
+    public required DeckSnapshotContract Deck { get; init; }
+
+    [JsonPropertyName("filters")]
+    public DeckSuggestionFiltersContract Filters { get; init; } = new();
+
+    [JsonPropertyName("excludedCardIds")]
+    public IReadOnlyList<string> ExcludedCardIds { get; init; } = Array.Empty<string>();
+
+    [JsonPropertyName("limit")]
+    public int Limit { get; init; } = 3;
+}
+
+/// <summary>
+/// Represents the optional user-selected filters applied to deck suggestions.
+/// </summary>
+public sealed record DeckSuggestionFiltersContract
+{
+    [JsonPropertyName("cardType")]
+    public string? CardType { get; init; }
+
+    [JsonPropertyName("manaValue")]
+    public int? ManaValue { get; init; }
+
+    [JsonPropertyName("colorIdentity")]
+    public IReadOnlyList<string> ColorIdentity { get; init; } = Array.Empty<string>();
+
+    [JsonPropertyName("maxEurPrice")]
+    public decimal? MaxEurPrice { get; init; }
+}
+
+/// <summary>
+/// Represents a single suggested card with its blended recommendation scores.
+/// </summary>
+public sealed record DeckSuggestionCardContract
+{
+    [JsonPropertyName("card")]
+    public required CardSearchResultContract Card { get; init; }
+
+    [JsonPropertyName("combinedScore")]
+    public decimal CombinedScore { get; init; }
+
+    [JsonPropertyName("themeScore")]
+    public decimal ThemeScore { get; init; }
+
+    [JsonPropertyName("edhrecScore")]
+    public decimal? EdhrecScore { get; init; }
+}
+
+/// <summary>
+/// Represents the current deck-suggestion response payload.
+/// </summary>
+public sealed record DeckSuggestionsResponseContract
+{
+    [JsonPropertyName("commanderCardId")]
+    public string? CommanderCardId { get; init; }
+
+    [JsonPropertyName("suggestions")]
+    public required IReadOnlyList<DeckSuggestionCardContract> Suggestions { get; init; }
 }
 
 /// <summary>

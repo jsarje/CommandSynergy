@@ -148,6 +148,13 @@ public sealed class HomeTests : BunitContext, IAsyncLifetime
                     Summary = "Stub",
                 },
             });
+
+        public override Task<DeckSuggestionsResponseContract> GetSuggestionsAsync(DeckSuggestionsRequestContract request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new DeckSuggestionsResponseContract
+            {
+                CommanderCardId = request.Deck.CommanderCardId,
+                Suggestions = Array.Empty<DeckSuggestionCardContract>(),
+            });
     }
 
     private sealed class StubDeckImportService : IDeckImportService

@@ -85,6 +85,20 @@ public partial class Home : ComponentBase
 
     private Task SearchAsync() => ViewModel.SearchAsync();
 
+    private Task LoadMagicSuggestionsAsync() => ViewModel.LoadMagicSuggestionsAsync();
+
+    private Task LoadTargetedSuggestionsAsync() => ViewModel.LoadTargetedSuggestionsAsync();
+
+    private Task RerollSuggestionsAsync() => ViewModel.RerollSuggestionsAsync();
+
+    private Task UpdateSuggestionCardTypeFilterAsync(string? value) => ViewModel.UpdateSuggestionCardTypeFilterAsync(value);
+
+    private Task UpdateSuggestionManaValueFilterAsync(int? value) => ViewModel.UpdateSuggestionManaValueFilterAsync(value);
+
+    private Task UpdateSuggestionBudgetEurFilterAsync(decimal? value) => ViewModel.UpdateSuggestionBudgetEurFilterAsync(value);
+
+    private Task UpdateSuggestionColorIdentityFilterAsync(IReadOnlyList<string> colors) => ViewModel.UpdateSuggestionColorIdentityFilterAsync(colors);
+
     private Task RetryAsync() => ViewModel.RetryAsync();
 
     private Task SetCommanderAsync(string cardId) => ViewModel.SetCommanderAsync(cardId);

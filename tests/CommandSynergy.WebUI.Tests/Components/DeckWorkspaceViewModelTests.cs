@@ -174,6 +174,62 @@ public sealed class DeckWorkspaceViewModelTests
     }
 
     [Fact]
+    public async Task Suggestions_load_only_after_explicit_request_and_reroll_skips_seen_cards()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = CreateLibraryState(timeProvider);
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new SuggestionDeckWorkspaceClient(),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.StartNewDeckAsync();
+        await sut.UpdateSearchQueryAsync("Isshin");
+        await sut.SearchAsync();
+        await sut.SetCommanderAsync("isshin-two-heavens-as-one");
+
+        sut.SuggestedCards.Should().BeEmpty();
+
+        await sut.LoadMagicSuggestionsAsync();
+
+        sut.SuggestedCards.Select(static suggestion => suggestion.Card.CardId).Should().Equal("suggestion-a", "suggestion-b", "suggestion-c");
+
+        await sut.RerollSuggestionsAsync();
+
+        sut.SuggestedCards.Select(static suggestion => suggestion.Card.CardId).Should().Equal("suggestion-d", "suggestion-e", "suggestion-f");
+    }
+
+    [Fact]
+    public async Task AddCardAsync_from_suggestion_refreshes_suggestions_to_remove_added_card_from_future_pools()
+    {
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
+        var libraryState = CreateLibraryState(timeProvider);
+
+        using var sut = new DeckWorkspaceViewModel(
+            new DeckWorkspaceStateFactory(),
+            new StubCardSearchIndexClient(),
+            new SuggestionDeckWorkspaceClient(),
+            libraryState);
+
+        await sut.InitializeAsync();
+        await sut.StartNewDeckAsync();
+        await sut.UpdateSearchQueryAsync("Isshin");
+        await sut.SearchAsync();
+        await sut.SetCommanderAsync("isshin-two-heavens-as-one");
+        await sut.LoadMagicSuggestionsAsync();
+
+        sut.SuggestedCards.Select(static suggestion => suggestion.Card.CardId).Should().Equal("suggestion-a", "suggestion-b", "suggestion-c");
+
+        await sut.AddCardAsync("suggestion-a");
+
+        sut.Cards.Should().Contain(card => card.CardId == "suggestion-a" && !card.IsCommander);
+        sut.SuggestedCards.Select(static suggestion => suggestion.Card.CardId).Should().Equal("suggestion-d", "suggestion-e", "suggestion-f");
+    }
+
+    [Fact]
     public async Task IncrementCardQuantityAsync_allows_commander_legal_duplicate_cards_to_grow_and_shrink()
     {
         var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-04-20T00:00:00Z"));
@@ -644,6 +700,13 @@ public sealed class DeckWorkspaceViewModelTests
                     Summary = "Stub",
                 },
             });
+
+        public override Task<DeckSuggestionsResponseContract> GetSuggestionsAsync(DeckSuggestionsRequestContract request, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new DeckSuggestionsResponseContract
+            {
+                CommanderCardId = request.Deck.CommanderCardId,
+                Suggestions = Array.Empty<DeckSuggestionCardContract>(),
+            });
     }
 
     private sealed class CountingDeckWorkspaceClient : StubDeckWorkspaceClient
@@ -666,6 +729,56 @@ public sealed class DeckWorkspaceViewModelTests
             AnalyzeCallCount += 1;
             return base.AnalyzeAsync(deckSnapshot, cancellationToken);
         }
+    }
+
+    private sealed class SuggestionDeckWorkspaceClient : StubDeckWorkspaceClient
+    {
+        private static readonly CardSearchResultContract[] SuggestionCards =
+        [
+            CreateSuggestion("suggestion-a", "Suggestion A", 9.1m),
+            CreateSuggestion("suggestion-b", "Suggestion B", 8.6m),
+            CreateSuggestion("suggestion-c", "Suggestion C", 8.1m),
+            CreateSuggestion("suggestion-d", "Suggestion D", 7.6m),
+            CreateSuggestion("suggestion-e", "Suggestion E", 7.1m),
+            CreateSuggestion("suggestion-f", "Suggestion F", 6.6m),
+        ];
+
+        public override Task<DeckSuggestionsResponseContract> GetSuggestionsAsync(DeckSuggestionsRequestContract request, CancellationToken cancellationToken = default)
+        {
+            var excludedCardIds = request.ExcludedCardIds
+                .Concat(request.Deck.Entries.Select(static entry => entry.CardId))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var suggestions = SuggestionCards
+                .Where(card => !excludedCardIds.Contains(card.CardId))
+                .Take(request.Limit)
+                .Select((card, index) => new DeckSuggestionCardContract
+                {
+                    Card = card,
+                    CombinedScore = 92m - index,
+                    ThemeScore = 88m - index,
+                    EdhrecScore = 80m - index,
+                })
+                .ToArray();
+
+            return Task.FromResult(new DeckSuggestionsResponseContract
+            {
+                CommanderCardId = request.Deck.CommanderCardId,
+                Suggestions = suggestions,
+            });
+        }
+
+        private static CardSearchResultContract CreateSuggestion(string cardId, string name, decimal eurPrice) => new()
+        {
+            CardId = cardId,
+            Name = name,
+            ManaCost = "{2}{W}",
+            ManaValue = 3m,
+            TypeLine = "Creature",
+            ColorIdentity = ["W"],
+            ImageUri = $"https://cards.example/{cardId}.jpg",
+            EurPrice = eurPrice,
+            CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown,
+        };
     }
 
     private sealed class StubDeckImportService : IDeckImportService

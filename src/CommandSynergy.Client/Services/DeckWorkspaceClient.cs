@@ -38,6 +38,18 @@ public class DeckWorkspaceClient(
             ?? throw new InvalidOperationException("The analysis response payload was empty.");
     }
 
+    /// <summary>
+    /// Requests commander-aware card suggestions for the current deck snapshot.
+    /// </summary>
+    public virtual async Task<DeckSuggestionsResponseContract> GetSuggestionsAsync(DeckSuggestionsRequestContract request, CancellationToken cancellationToken = default)
+    {
+        var response = await httpClient.PostAsJsonAsync("/api/decks/suggestions", request, cancellationToken).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<DeckSuggestionsResponseContract>(cancellationToken).ConfigureAwait(false)
+            ?? throw new InvalidOperationException("The deck suggestion response payload was empty.");
+    }
+
     public virtual Task<DeckImportResultContract> ImportAsync(DeckImportRequestContract request, CancellationToken cancellationToken = default) =>
         deckImportService.ImportAsync(request, cancellationToken);
 

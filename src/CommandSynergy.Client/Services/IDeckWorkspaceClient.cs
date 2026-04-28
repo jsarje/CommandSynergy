@@ -19,6 +19,11 @@ public interface IDeckWorkspaceClient
     Task<DeckAnalysisResponseContract> AnalyzeAsync(DeckSnapshotContract deckSnapshot, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Requests commander-aware card suggestions for the current deck snapshot.
+    /// </summary>
+    Task<DeckSuggestionsResponseContract> GetSuggestionsAsync(DeckSuggestionsRequestContract request, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Imports a portable deck document.
     /// </summary>
     Task<DeckImportResultContract> ImportAsync(DeckImportRequestContract request, CancellationToken cancellationToken = default);

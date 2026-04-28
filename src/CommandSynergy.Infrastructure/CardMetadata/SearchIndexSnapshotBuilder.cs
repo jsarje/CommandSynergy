@@ -29,6 +29,7 @@ public sealed class SearchIndexSnapshotBuilder(IOptions<CardMetadataOptions> opt
                 ColorIdentity = card.ColorIdentity,
                 SaltScore = card.SaltScore,
                 ImageUri = card.ImageUri,
+                EurPrice = card.EurPrice,
                 HasMultipleFaces = card.HasMultipleFaces,
                 AllowsMultipleCopies = card.AllowsMultipleCopies,
                 CommanderEligibilityBasis = card.CommanderEligibilityBasis,

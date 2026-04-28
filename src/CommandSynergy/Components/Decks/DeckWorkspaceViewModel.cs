@@ -49,8 +49,12 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     private readonly List<PileDefinitionContract> piles = [];
     private readonly List<DeckEntryState> entries = [];
     private readonly Dictionary<string, WorkspaceCardView> knownCards = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> seenSuggestedCardIds = new(StringComparer.OrdinalIgnoreCase);
     private readonly IReadOnlyList<FormatOptionView> supportedImportFormats;
     private readonly IReadOnlyList<FormatOptionView> supportedExportFormats;
+    private readonly IReadOnlyList<FormatOptionView> suggestionTypeOptions;
+    private bool hasRequestedSuggestions;
+    private bool useTargetedSuggestionFilters;
     private ImportedDeckRecord? pendingImportedDeck;
     private CancellationTokenSource? refreshCancellationTokenSource;
 
@@ -79,6 +83,17 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             new FormatOptionView("generic-plaintext", "Generic Plaintext"),
         ];
         supportedExportFormats = supportedImportFormats.Where(static option => !string.IsNullOrWhiteSpace(option.Value)).ToArray();
+        suggestionTypeOptions =
+        [
+            new FormatOptionView("", "Any type"),
+            new FormatOptionView("Creature", "Creature"),
+            new FormatOptionView("Artifact", "Artifact"),
+            new FormatOptionView("Enchantment", "Enchantment"),
+            new FormatOptionView("Instant", "Instant"),
+            new FormatOptionView("Sorcery", "Sorcery"),
+            new FormatOptionView("Planeswalker", "Planeswalker"),
+            new FormatOptionView("Land", "Land"),
+        ];
     }
 
     /// <summary>
@@ -127,6 +142,21 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     /// </summary>
     public IReadOnlyList<WorkspaceCardView> SearchResults { get; private set; }
 
+    /// <summary>
+    /// Gets the currently displayed recommendation candidates.
+    /// </summary>
+    public IReadOnlyList<DeckSuggestionView> SuggestedCards { get; private set; } = Array.Empty<DeckSuggestionView>();
+
+    /// <summary>
+    /// Gets whether deck suggestions are being refreshed.
+    /// </summary>
+    public bool IsRefreshingSuggestions { get; private set; }
+
+    /// <summary>
+    /// Gets the latest deck-suggestion status message when available.
+    /// </summary>
+    public string? SuggestionsStatusMessage { get; private set; }
+
     public bool IsHydratingLibrary => importedDeckLibraryState.IsHydrating;
 
     public string? LibraryRecoveryMessage => importedDeckLibraryState.RecoveryMessage;
@@ -148,6 +178,16 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     public IReadOnlyList<FormatOptionView> SupportedImportFormats => supportedImportFormats;
 
     public IReadOnlyList<FormatOptionView> SupportedExportFormats => supportedExportFormats;
+
+    public IReadOnlyList<FormatOptionView> SuggestionTypeOptions => suggestionTypeOptions;
+
+    public string SuggestionCardTypeFilter { get; private set; } = string.Empty;
+
+    public int? SuggestionManaValueFilter { get; private set; }
+
+    public decimal? SuggestionBudgetEurFilter { get; private set; }
+
+    public IReadOnlyList<string> SuggestionColorIdentityFilter { get; private set; } = Array.Empty<string>();
 
     public string ImportDocumentText { get; private set; } = string.Empty;
 
@@ -389,6 +429,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         LoadSnapshotIntoWorkspace(snapshot, deck.NormalizedDeck);
         NewDeckName = string.Empty;
         LinkedDeckName = deck.Name;
+        ResetSuggestionSession(clearFilters: false);
         await RefreshInsightsAsync(CancellationToken.None).ConfigureAwait(false);
         ImportStatusMessage = $"Opened '{deck.Name}' as a working copy in the workspace.";
     }
@@ -405,6 +446,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         knownCards.Clear();
         SearchResults = Array.Empty<WorkspaceCardView>();
         Analysis = null;
+        ClearSuggestions();
         ExportPreview = null;
         ExportStatusMessage = null;
         SearchQuery = string.Empty;
@@ -413,6 +455,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         EnsureDefaultWorkspacePiles();
         RefreshDerivedCards();
         State = stateFactory.CreateEmpty("Choose a commander to activate validation and synergy analysis.");
+        ResetSuggestionSession(clearFilters: true);
 
         await importedDeckLibraryState.SetActiveDeckAsync(null, cancellationToken).ConfigureAwait(false);
         ClearPendingDuplicateImport();
@@ -599,6 +642,46 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     }
 
     /// <summary>
+    /// Updates the active suggestion type filter.
+    /// </summary>
+    public Task UpdateSuggestionCardTypeFilterAsync(string? cardType)
+    {
+        SuggestionCardTypeFilter = string.IsNullOrWhiteSpace(cardType) ? string.Empty : cardType.Trim();
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Updates the active suggestion mana-value filter.
+    /// </summary>
+    public Task UpdateSuggestionManaValueFilterAsync(int? manaValue)
+    {
+        SuggestionManaValueFilter = manaValue is > -1 ? manaValue : null;
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Updates the active suggestion color filter.
+    /// </summary>
+    public Task UpdateSuggestionColorIdentityFilterAsync(IReadOnlyList<string> colors)
+    {
+        SuggestionColorIdentityFilter = colors
+            .Where(static color => !string.IsNullOrWhiteSpace(color))
+            .Select(static color => color.Trim().ToUpperInvariant())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Updates the active suggestion budget filter.
+    /// </summary>
+    public Task UpdateSuggestionBudgetEurFilterAsync(decimal? maxEurPrice)
+    {
+        SuggestionBudgetEurFilter = maxEurPrice is >= 0m ? maxEurPrice : null;
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
     /// Executes a search against the current server-backed search index.
     /// </summary>
     public async Task SearchAsync(CancellationToken cancellationToken = default)
@@ -634,10 +717,35 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     }
 
     /// <summary>
+    /// Loads the default top-synergy recommendations for the active commander.
+    /// </summary>
+    public Task LoadMagicSuggestionsAsync(CancellationToken cancellationToken = default)
+    {
+        useTargetedSuggestionFilters = false;
+        return RefreshSuggestionsAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Loads filtered recommendations using the current suggestion controls.
+    /// </summary>
+    public Task LoadTargetedSuggestionsAsync(CancellationToken cancellationToken = default)
+    {
+        useTargetedSuggestionFilters = true;
+        return RefreshSuggestionsAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Loads a new unseen set of recommendations for the current session.
+    /// </summary>
+    public Task RerollSuggestionsAsync(CancellationToken cancellationToken = default) =>
+        RefreshSuggestionsAsync(cancellationToken);
+
+    /// <summary>
     /// Selects the commander and immediately refreshes authoritative validation and analysis.
     /// </summary>
     public async Task SetCommanderAsync(string cardId)
     {
+        var previousCommanderCardId = GetCommanderCardId();
         var commanderCard = GetKnownCard(cardId);
         if (!commanderCard.IsCommanderEligible)
         {
@@ -645,6 +753,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             {
                 Analysis = null;
                 State = stateFactory.CreateEmpty("Choose a legal commander to activate validation and synergy analysis.");
+                ClearSuggestions();
             }
 
             return;
@@ -675,6 +784,11 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         knownCards[cardId] = commanderCard;
 
         RefreshDerivedCards();
+        if (!string.Equals(previousCommanderCardId, cardId, StringComparison.OrdinalIgnoreCase))
+        {
+            ResetSuggestionSession(clearFilters: false);
+        }
+
         await RefreshInsightsAsync(CancellationToken.None).ConfigureAwait(false);
         await PersistActiveImportedDeckAsync().ConfigureAwait(false);
     }
@@ -686,6 +800,8 @@ public sealed class DeckWorkspaceViewModel : IDisposable
     {
         var card = GetKnownCard(cardId);
         knownCards[cardId] = card;
+        var refreshSuggestionsAfterAdd = hasRequestedSuggestions
+            && SuggestedCards.Any(suggestion => string.Equals(suggestion.Card.CardId, cardId, StringComparison.OrdinalIgnoreCase));
 
         if (string.IsNullOrWhiteSpace(GetCommanderCardId()))
         {
@@ -713,6 +829,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             RefreshDerivedCards();
             Analysis = null;
             State = stateFactory.CreateEmpty("Choose a legal commander to activate validation and synergy analysis.");
+            ClearSuggestions();
             return;
         }
 
@@ -734,6 +851,14 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         RefreshDerivedCards();
         await PersistActiveImportedDeckAsync().ConfigureAwait(false);
         await ScheduleRefreshAsync().ConfigureAwait(false);
+
+        if (refreshSuggestionsAfterAdd)
+        {
+            await RefreshSuggestionsAsync(CancellationToken.None).ConfigureAwait(false);
+            return;
+        }
+
+        InvalidateSuggestions("Deck changed. Request suggestions again when you want a fresh batch.");
     }
 
     /// <summary>
@@ -761,11 +886,13 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         {
             Analysis = null;
             State = stateFactory.CreateEmpty("Choose a legal commander to activate validation and synergy analysis.");
+            ClearSuggestions();
             return;
         }
 
         await PersistActiveImportedDeckAsync().ConfigureAwait(false);
         await ScheduleRefreshAsync().ConfigureAwait(false);
+        InvalidateSuggestions("Deck changed. Request suggestions again when you want a fresh batch.");
     }
 
     /// <summary>
@@ -792,11 +919,13 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         {
             Analysis = null;
             State = stateFactory.CreateEmpty("Choose a legal commander to activate validation and synergy analysis.");
+            ClearSuggestions();
             return;
         }
 
         await PersistActiveImportedDeckAsync().ConfigureAwait(false);
         await ScheduleRefreshAsync().ConfigureAwait(false);
+        InvalidateSuggestions("Deck changed. Request suggestions again when you want a fresh batch.");
     }
 
     /// <summary>
@@ -814,6 +943,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         RefreshDerivedCards();
         await PersistActiveImportedDeckAsync().ConfigureAwait(false);
         await ScheduleRefreshAsync().ConfigureAwait(false);
+        InvalidateSuggestions("Deck changed. Request suggestions again when you want a fresh batch.");
     }
 
     /// <summary>
@@ -828,10 +958,116 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         {
             Analysis = null;
             State = stateFactory.CreateEmpty("Choose a commander to activate validation and synergy analysis.");
+            ClearSuggestions();
             return;
         }
         await PersistActiveImportedDeckAsync().ConfigureAwait(false);
         await ScheduleRefreshAsync().ConfigureAwait(false);
+        InvalidateSuggestions("Deck changed. Request suggestions again when you want a fresh batch.");
+    }
+
+    private async Task RefreshSuggestionsAsync(CancellationToken cancellationToken)
+    {
+        var commanderCardId = GetCommanderCardId();
+        if (string.IsNullOrWhiteSpace(commanderCardId))
+        {
+            ClearSuggestions();
+            return;
+        }
+
+        try
+        {
+            IsRefreshingSuggestions = true;
+            SuggestionsStatusMessage = null;
+            hasRequestedSuggestions = true;
+
+            var response = await deckWorkspaceClient.GetSuggestionsAsync(new DeckSuggestionsRequestContract
+            {
+                Deck = CreateSnapshot(commanderCardId),
+                Filters = CreateSuggestionFilters(),
+                ExcludedCardIds = seenSuggestedCardIds.ToArray(),
+                Limit = 3,
+            }, cancellationToken).ConfigureAwait(false);
+
+            SuggestedCards = response.Suggestions
+                .Select(MapSuggestion)
+                .ToArray();
+
+            foreach (var suggestion in SuggestedCards)
+            {
+                seenSuggestedCardIds.Add(suggestion.Card.CardId);
+                knownCards[suggestion.Card.CardId] = suggestion.Card;
+            }
+
+            SuggestionsStatusMessage = SuggestedCards.Count == 0
+                ? "No unseen recommendations matched the current filters."
+                : null;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        catch
+        {
+            SuggestedCards = Array.Empty<DeckSuggestionView>();
+            SuggestionsStatusMessage = "Recommendations are temporarily unavailable. Try rerolling in a moment.";
+        }
+        finally
+        {
+            IsRefreshingSuggestions = false;
+        }
+    }
+
+    private DeckSuggestionFiltersContract CreateSuggestionFilters() => new()
+    {
+        CardType = useTargetedSuggestionFilters && !string.IsNullOrWhiteSpace(SuggestionCardTypeFilter) ? SuggestionCardTypeFilter : null,
+        ManaValue = useTargetedSuggestionFilters ? SuggestionManaValueFilter : null,
+        ColorIdentity = useTargetedSuggestionFilters ? SuggestionColorIdentityFilter : Array.Empty<string>(),
+        MaxEurPrice = useTargetedSuggestionFilters ? SuggestionBudgetEurFilter : null,
+    };
+
+    private DeckSuggestionView MapSuggestion(DeckSuggestionCardContract suggestion)
+    {
+        var card = MapSearchResult(suggestion.Card);
+        return new DeckSuggestionView(card, suggestion.CombinedScore, suggestion.ThemeScore, suggestion.EdhrecScore);
+    }
+
+    private void ResetSuggestionSession(bool clearFilters)
+    {
+        seenSuggestedCardIds.Clear();
+        ClearSuggestions();
+
+        if (!clearFilters)
+        {
+            useTargetedSuggestionFilters = false;
+            return;
+        }
+
+        SuggestionCardTypeFilter = string.Empty;
+        SuggestionManaValueFilter = null;
+        SuggestionBudgetEurFilter = null;
+        SuggestionColorIdentityFilter = Array.Empty<string>();
+        useTargetedSuggestionFilters = false;
+    }
+
+    private void InvalidateSuggestions(string message)
+    {
+        if (!hasRequestedSuggestions)
+        {
+            return;
+        }
+
+        SuggestedCards = Array.Empty<DeckSuggestionView>();
+        SuggestionsStatusMessage = message;
+        IsRefreshingSuggestions = false;
+        hasRequestedSuggestions = false;
+    }
+
+    private void ClearSuggestions()
+    {
+        SuggestedCards = Array.Empty<DeckSuggestionView>();
+        SuggestionsStatusMessage = null;
+        IsRefreshingSuggestions = false;
+        hasRequestedSuggestions = false;
     }
 
     private async Task PersistActiveImportedDeckAsync()
@@ -872,6 +1108,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
         if (string.IsNullOrWhiteSpace(GetCommanderCardId()))
         {
             State = stateFactory.CreateEmpty("Choose a commander to activate validation and synergy analysis.");
+            ClearSuggestions();
             return;
         }
 
@@ -1144,6 +1381,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
                 ColorIdentity = portableEntry.ColorIdentity,
                 SaltScore = portableEntry.SaltScore,
                 ImageUri = portableEntry.ImageUri,
+                EurPrice = null,
                 HasMultipleFaces = portableEntry.HasMultipleFaces,
                 Faces = CreateFacesFromPortableEntry(portableEntry),
                 Quantity = portableEntry.Quantity,
@@ -1270,6 +1508,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             ColorIdentity = result.ColorIdentity,
             SaltScore = result.SaltScore,
             ImageUri = result.ImageUri,
+            EurPrice = result.EurPrice,
             HasMultipleFaces = result.HasMultipleFaces,
             Faces = faces,
             AssignedPileId = MainboardPileId,
@@ -1311,6 +1550,7 @@ public sealed class DeckWorkspaceViewModel : IDisposable
             AssignedPileId = MainboardPileId,
             Quantity = 1,
             ManaValue = 0m,
+            EurPrice = null,
             AllowsMultipleCopies = AllowsMultipleCopies(cardId, "Unknown Card", false),
             CommanderEligibilityBasis = CommanderEligibilityBasis.Unknown,
         };
@@ -1427,6 +1667,8 @@ public sealed record WorkspaceCardView
 
     public string? ImageUri { get; init; }
 
+    public decimal? EurPrice { get; init; }
+
     public bool HasMultipleFaces { get; init; }
 
     public bool AllowsMultipleCopies { get; init; }
@@ -1457,6 +1699,11 @@ public sealed record WorkspaceCardView
 /// Represents a single renderable card face.
 /// </summary>
 public sealed record WorkspaceCardFaceView(string Name, string? ManaCost, string TypeLine, string? ImageUri, bool IsPrimaryFace);
+
+/// <summary>
+/// Represents a rendered recommendation candidate in the interactive workspace.
+/// </summary>
+public sealed record DeckSuggestionView(WorkspaceCardView Card, decimal CombinedScore, decimal ThemeScore, decimal? EdhrecScore);
 
 /// <summary>
 /// Represents a requested pile move for a specific card.
