@@ -82,7 +82,7 @@
             }
         </div>
 
-        <div class="commander-card__actions">
+        <div class="commander-card__actions pile-board__actions">
             @if (Card.SaltScore is not null)
             {
                 <span class="commander-card__salt" data-testid="salt-badge-@Card.CardId">Salt @Card.SaltScore.Value.ToString("0.#")</span>
