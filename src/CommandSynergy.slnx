@@ -7,6 +7,7 @@
     <Project Path="../tests/CommandSynergy.Application.Tests/CommandSynergy.Application.Tests.csproj" />
     <Project Path="../tests/CommandSynergy.Domain.Tests/CommandSynergy.Domain.Tests.csproj" />
     <Project Path="../tests/CommandSynergy.Infrastructure.Tests/CommandSynergy.Infrastructure.Tests.csproj" />
+    <Project Path="../tests/CommandSynergy.Playwright.Tests/CommandSynergy.Playwright.Tests.csproj" />
     <Project Path="../tests/CommandSynergy.WebUI.Tests/CommandSynergy.WebUI.Tests.csproj" />
   </Folder>
   <Project Path="CommandSynergy.Application/CommandSynergy.Application.csproj" />
