@@ -181,7 +181,7 @@
 .commander-card__footer {
     display: flex;
     gap: 0.75rem;
-    align-items: start;
+    align-items: center;
     justify-content: space-between;
 }
 
@@ -192,6 +192,19 @@
     gap: 0.5rem;
     flex-wrap: wrap;
     align-items: center;
+}
+
+.commander-card__meta {
+    min-width: 0;
+}
+
+.commander-card__actions {
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.commander-card__footer > * {
+    min-width: 0;
 }
 
 .commander-card__tag,
@@ -275,6 +288,33 @@
 .commander-card__flip-button:focus-visible {
     outline: 3px solid rgba(31, 91, 75, 0.28);
     outline-offset: 2px;
+}
+
+.commander-card__footer .pile-board__remove-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: 1px solid rgba(143, 76, 52, 0.18);
+    background: rgba(143, 76, 52, 0.1);
+    color: var(--cs-tertiary, #8f4c34);
+}
+
+.commander-card__footer .pile-board__remove-button:hover {
+    transform: translateY(-1px);
+    background: rgba(143, 76, 52, 0.16);
+    border-color: rgba(143, 76, 52, 0.28);
+}
+
+.commander-card__footer .pile-board__remove-button:focus-visible {
+    outline: 3px solid rgba(143, 76, 52, 0.28);
+    outline-offset: 2px;
+}
+
+.commander-card__footer .pile-board__remove-button ::deep(.mud-icon-root) {
+    font-size: 0.8rem;
 }
 
 @media (max-width: 640px) {
