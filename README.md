@@ -35,6 +35,53 @@ CommandSynergy is a developer-focused .NET 10 Blazor Web App to build, validate,
 - `src/CommandSynergy.Infrastructure`: Scryfall adapters, Parquet metadata access, caching, and telemetry.
 - `src/CommandSynergy.Ingestion`: Console tool to refresh the Parquet snapshot.
 
+## Containers
+
+- GitHub Actions publishes two GHCR images from `main`: `ghcr.io/jsarje/commandsynergy-web` and `ghcr.io/jsarje/commandsynergy-ingestion`.
+- Both containers should point `CardMetadata__SnapshotDirectory` at the same mounted directory so the web app and scheduled ingestion jobs read and write the same Parquet snapshot.
+
+```yaml
+services:
+  blazor-app:
+    image: ghcr.io/jsarje/commandsynergy-web:main
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_HTTP_PORTS: "8080"
+      CardMetadata__SnapshotDirectory: /data/card-metadata
+    volumes:
+      - shared-data:/data/card-metadata
+
+  ingestion:
+    image: ghcr.io/jsarje/commandsynergy-ingestion:main
+    profiles: [ "manual" ]
+    environment:
+      CardMetadata__SnapshotDirectory: /data/card-metadata
+    volumes:
+      - shared-data:/data/card-metadata
+
+  ofelia:
+    image: mcuadros/ofelia:latest
+    command: daemon --docker
+    depends_on:
+      - blazor-app
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      ofelia.job-run.refresh-card-metadata.schedule: "@weekly"
+      ofelia.job-run.refresh-card-metadata.image: "ghcr.io/jsarje/commandsynergy-ingestion:main"
+      ofelia.job-run.refresh-card-metadata.environment: "CardMetadata__SnapshotDirectory=/data/card-metadata"
+      ofelia.job-run.refresh-card-metadata.volume: "shared-data:/data/card-metadata"
+
+volumes:
+  shared-data:
+    name: shared-data
+```
+
+1. Pull the published images, then seed the shared volume once with `docker compose --profile manual run --rm ingestion`.
+2. Start the long-running services with `docker compose up -d blazor-app ofelia`.
+3. Keep the explicit `name: shared-data` entry so Ofelia reuses the same named volume instead of a Compose-generated alias.
+
 ## Next steps & contribution
 
 If you'd like to contribute, run the tests and follow the development and security guidelines in [CONTRIBUTING.md](CONTRIBUTING.md).

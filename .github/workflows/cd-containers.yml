@@ -1,0 +1,99 @@
+name: CD Containers
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: cd-containers-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  SOLUTION: src/CommandSynergy.slnx
+  REGISTRY: ghcr.io
+  WEB_IMAGE: jsarje/commandsynergy-web
+  INGESTION_IMAGE: jsarje/commandsynergy-ingestion
+
+jobs:
+  publish:
+    name: Build, Test, Publish
+    if: github.repository == 'jsarje/CommandSynergy'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@55ec9447dda3d1cf6bd587150f3262f30ee10815
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Configure NuGet packages folder
+        run: echo "NUGET_PACKAGES=$HOME/.nuget/packages" >> "$GITHUB_ENV"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/*.sln', '**/*.slnx') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION }}
+
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION }} -c Release --no-restore
+
+      - name: Run tests
+        run: dotnet test ${{ env.SOLUTION }} -c Release --no-build --verbosity normal
+
+      - name: Compute image tags
+        id: metadata
+        shell: bash
+        run: |
+          short_sha="${GITHUB_SHA::12}"
+          image_tags="sha-${short_sha}"
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            image_tags="main;${image_tags}"
+          fi
+
+          echo "image_tags=${image_tags}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish web image
+        env:
+          DOTNET_CONTAINER_REGISTRY_UNAME: ${{ github.actor }}
+          DOTNET_CONTAINER_REGISTRY_PWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          dotnet publish src/CommandSynergy/CommandSynergy.csproj
+          -c Release
+          --no-restore
+          --os linux
+          --arch x64
+          -t:PublishContainer
+          -p:ContainerRegistry=${{ env.REGISTRY }}
+          -p:ContainerRepository=${{ env.WEB_IMAGE }}
+          -p:ContainerImageTags=${{ steps.metadata.outputs.image_tags }}
+
+      - name: Publish ingestion image
+        env:
+          DOTNET_CONTAINER_REGISTRY_UNAME: ${{ github.actor }}
+          DOTNET_CONTAINER_REGISTRY_PWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          dotnet publish src/CommandSynergy.Ingestion/CommandSynergy.Ingestion.csproj
+          -c Release
+          --no-restore
+          --os linux
+          --arch x64
+          -t:PublishContainer
+          -p:ContainerRegistry=${{ env.REGISTRY }}
+          -p:ContainerRepository=${{ env.INGESTION_IMAGE }}
+          -p:ContainerImageTags=${{ steps.metadata.outputs.image_tags }}
