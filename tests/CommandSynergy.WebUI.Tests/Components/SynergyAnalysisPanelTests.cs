@@ -25,7 +25,7 @@ public sealed class SynergyAnalysisPanelTests : BunitContext
             .Add(component => component.HasError, false));
 
         cut.Find("[data-testid='synergy-analysis-loading']").Should().NotBeNull();
-        cut.Markup.Should().Contain("Measuring deck synergy");
+        cut.Markup.Should().Contain("Reading synergy");
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed class SynergyAnalysisPanelTests : BunitContext
             .Add(component => component.HasError, false));
 
         cut.Find("[data-testid='synergy-analysis-empty']").Should().NotBeNull();
-        cut.Markup.Should().Contain("Synergy feedback arrives after the first successful sync.");
+        cut.Markup.Should().Contain("Synergy appears after the first sync.");
     }
 
     [Fact]

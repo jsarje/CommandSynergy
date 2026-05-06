@@ -4,7 +4,7 @@
 {
     <div class="deck-stats deck-stats--loading" data-testid="deck-stats-loading">
         <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-        <p class="deck-stats__message">Preparing chart-ready deck stats...</p>
+        <p class="deck-stats__message">Loading deck stats…</p>
     </div>
 }
 else if (HasError)
@@ -18,28 +18,22 @@ else if (HasError)
 else if (!HasDeckStats)
 {
     <div class="deck-stats deck-stats--empty" data-testid="deck-stats-empty">
-        <p class="deck-stats__message">Deck stats appear once analysis is performed.</p>
+        <p class="deck-stats__message">Deck stats appear after the first sync.</p>
     </div>
 }
 else
 {
     <section class="deck-stats deck-stats--ready" data-testid="deck-stats-ready" aria-busy="@IsLoading">
-        <div class="deck-stats__header">
-            <div>
-                <p class="workspace-panel__label">Deck stats</p>                
-            </div>
-
-            @if (IsLoading)
-            {
-                <span class="deck-stats__refresh">Refreshing after the latest sync...</span>
-            }
-        </div>
+        @if (IsLoading)
+        {
+            <span class="deck-stats__refresh">Refreshing…</span>
+        }
 
         @if (!areChartsReady)
         {
             <div class="deck-stats__lazy-shell" data-testid="deck-stats-lazy">
                 <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-                <p class="deck-stats__message">Loading deck stats in the background so the rest of the workspace stays responsive.</p>
+                <p class="deck-stats__message">Loading charts in the background.</p>
             </div>
         }
         else
@@ -47,10 +41,7 @@ else
             <div class="deck-stats__grid">
                 <section class="deck-stats__card" data-testid="deck-stats-mana-values">
                     <div class="deck-stats__card-header">
-                        <div>
-                            <h4>Mana values</h4>
-                            <p>Nonland cards, including the commander.</p>
-                        </div>
+                        <h4>Mana values</h4>
                     </div>
 
                     <div class="deck-stats__bars" role="img" aria-label="Mana value bar chart">
@@ -69,10 +60,7 @@ else
 
                 <section class="deck-stats__card" data-testid="deck-stats-mana-cost">
                     <div class="deck-stats__card-header">
-                        <div>
-                            <h4>Mana cost mix</h4>
-                            <p>Colored symbols pulled from spell mana costs.</p>
-                        </div>
+                        <h4>Mana cost mix</h4>
                     </div>
 
                     @if (DeckStats!.ManaCostDistribution.Count == 0)
@@ -100,10 +88,7 @@ else
 
                 <section class="deck-stats__card" data-testid="deck-stats-mana-generation">
                     <div class="deck-stats__card-header">
-                        <div>
-                            <h4>Mana generation</h4>
-                            <p>Oracle-text mana production across the current list.</p>
-                        </div>
+                        <h4>Mana generation</h4>
                     </div>
 
                     @if (DeckStats!.ManaGenerationDistribution.Count == 0)
@@ -131,10 +116,7 @@ else
 
                 <section class="deck-stats__card" data-testid="deck-stats-card-types">
                     <div class="deck-stats__card-header">
-                        <div>
-                            <h4>Card types</h4>
-                            <p>Primary card type for every card in the deck.</p>
-                        </div>
+                        <h4>Card types</h4>
                     </div>
 
                     @if (DeckStats!.CardTypeDistribution.Count == 0)

@@ -7,7 +7,6 @@
         <MudAppBar Elevation="0" Dense="true" Fixed="false" Class="workspace-appbar">
             <div class="workspace-appbar__inner">
                 <div class="workspace-appbar__brand">
-                    <p class="workspace-appbar__eyebrow">CommandSynergy</p>
                     <h1 class="workspace-appbar__name">Synergy Sphere</h1>
                     <p class="workspace-appbar__brand-sub">
                         @GetDeckTitle() · @GetCommanderTitle()
@@ -116,10 +115,7 @@
         <section class="workspace-shell__search">
             <MudPaper Elevation="0" Class="workspace-panel workspace-panel--search">
                 <div class="workspace-panel__header">
-                    <div>
-                        <p class="workspace-panel__label">Search</p>
-                        <h2>Find cards</h2>
-                    </div>
+                    <h2>Find cards</h2>
                 </div>
 
                 <div class="workspace-search workspace-search--compact">
@@ -144,10 +140,7 @@
                 <section class="workspace-recommendations @(ActiveCommander is null ? "workspace-recommendations--inactive" : string.Empty)"
                          data-testid="recommendations-shell">
                     <div class="workspace-section-heading">
-                        <div>
-                            <p class="workspace-panel__label">Recommended</p>
-                            <h3>Deck suggestions</h3>
-                        </div>
+                        <h3>Suggestions</h3>
                         <div class="workspace-recommendations__actions">
                             <button type="button"
                                     class="workspace-search-result__secondary"
@@ -155,14 +148,14 @@
                                     aria-expanded="@isRecommendationsOpen.ToString().ToLowerInvariant()"
                                     disabled="@(ActiveCommander is null)"
                                     @onclick="ToggleSuggestions">
-                                @(isRecommendationsOpen ? "Hide suggestions" : "Open suggestions")
+                                @(isRecommendationsOpen ? "Hide" : "Open")
                             </button>
                         </div>
                     </div>
 
                     @if (ActiveCommander is null)
                     {
-                        <p class="workspace-panel__empty" data-testid="recommendations-disabled">Set a commander to unlock deck suggestions.</p>
+                        <p class="workspace-panel__empty" data-testid="recommendations-disabled">Set a commander to unlock suggestions.</p>
                     }
                     else if (isRecommendationsOpen)
                     {
@@ -256,7 +249,7 @@
 
                             @if (SuggestedCards.Count == 0 && string.IsNullOrWhiteSpace(SuggestionsStatusMessage) && !IsRefreshingSuggestions)
                             {
-                                <p class="workspace-panel__empty" data-testid="suggestions-idle">Request suggestions when you want a fresh recommendation batch.</p>
+                                <p class="workspace-panel__empty" data-testid="suggestions-idle">Run a suggestion pass when you want new options.</p>
                             }
 
                             @if (!string.IsNullOrWhiteSpace(SuggestionsStatusMessage))
@@ -311,7 +304,7 @@
                 <div class="workspace-search-results" data-testid="search-results">
                     @if (SearchResults.Count == 0)
                     {
-                        <p class="workspace-panel__empty">Search for a commander or a card name to start building the list.</p>
+                        <p class="workspace-panel__empty">Search for a commander or card to start building.</p>
                     }
                     else
                     {
@@ -368,9 +361,8 @@
             <div class="workspace-dialog-backdrop" data-testid="delete-imported-deck-dialog">
                 <section class="workspace-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-imported-deck-title">
                     <div class="workspace-dialog__content">
-                        <p class="workspace-panel__label">Confirm delete</p>
                         <h2 id="delete-imported-deck-title">Delete @pendingDeleteDeck.Name?</h2>
-                        <p>This removes the imported deck from this browser only. Your open working copy stays available until you replace it.</p>
+                        <p>Removes it from this browser. Your open working copy stays put.</p>
                     </div>
                     <div class="workspace-dialog__actions">
                         <button type="button"

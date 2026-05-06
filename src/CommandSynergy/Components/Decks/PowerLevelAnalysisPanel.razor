@@ -4,7 +4,7 @@
 {
     <div class="analysis-panel analysis-panel--loading" data-testid="power-analysis-loading">
         <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-        <p class="analysis-panel__message">Calculating power level…</p>
+        <p class="analysis-panel__message">Reading power…</p>
     </div>
 }
 else if (HasError)
@@ -18,7 +18,7 @@ else if (HasError)
 else if (Analysis is null)
 {
     <div class="analysis-panel analysis-panel--empty" data-testid="power-analysis-empty">
-        <p class="analysis-panel__message">Power level feedback arrives after the first successful sync.</p>
+        <p class="analysis-panel__message">Power appears after the first sync.</p>
     </div>
 }
 else

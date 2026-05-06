@@ -25,7 +25,7 @@ public sealed class PowerLevelAnalysisPanelTests : BunitContext
             .Add(component => component.HasError, false));
 
         cut.Find("[data-testid='power-analysis-loading']").Should().NotBeNull();
-        cut.Markup.Should().Contain("Calculating power level");
+        cut.Markup.Should().Contain("Reading power");
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed class PowerLevelAnalysisPanelTests : BunitContext
             .Add(component => component.HasError, false));
 
         cut.Find("[data-testid='power-analysis-empty']").Should().NotBeNull();
-        cut.Markup.Should().Contain("Power level feedback arrives after the first successful sync.");
+        cut.Markup.Should().Contain("Power appears after the first sync.");
     }
 
     [Fact]

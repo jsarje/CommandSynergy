@@ -179,7 +179,7 @@ public sealed class DeckWorkspaceStateTests : BunitContext, IAsyncLifetime
             .Add(component => component.ImportedDecks, Array.Empty<ImportedDeckRecord>())
             .Add(component => component.ActiveImportedDeckDiagnostics, Array.Empty<ImportDiagnostic>()));
 
-        cut.Find("[data-testid='toggle-suggestions']").TextContent.Should().Contain("Open suggestions");
+        cut.Find("[data-testid='toggle-suggestions']").TextContent.Should().Contain("Open");
         cut.FindAll(".workspace-search-result--recommended").Should().BeEmpty();
 
         cut.Find("[data-testid='toggle-suggestions']").Click();

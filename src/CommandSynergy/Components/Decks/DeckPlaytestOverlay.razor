@@ -5,11 +5,7 @@
              aria-labelledby="playtest-overlay-title">
         <header class="playtest-overlay__header">
             <div class="playtest-overlay__header-copy">
-                <p class="workspace-panel__label">Playtest</p>
-                <h2 id="playtest-overlay-title">Goldfish the current mainboard</h2>
-                <p class="playtest-overlay__status">
-                    Shuffle the live mainboard, draw an opening hand, and practice mulligans without leaving the workspace behind.
-                </p>
+                <h2 id="playtest-overlay-title">Goldfish</h2>
             </div>
 
             <div class="playtest-overlay__header-actions">
@@ -60,7 +56,6 @@
         {
             <section class="playtest-overlay__section playtest-overlay__section--controls">
                 <div>
-                    <p class="workspace-panel__label">Current step</p>
                     @if (phase is PlaytestPhase.ChoosingBottomCards)
                     {
                         <p class="playtest-overlay__status" data-testid="playtest-status">
@@ -103,10 +98,7 @@
             <div class="playtest-overlay__board">
                 <section class="playtest-overlay__section">
                     <div class="playtest-overlay__section-header">
-                        <div>
-                            <p class="workspace-panel__label">Hand</p>
-                            <h3>Cards in hand</h3>
-                        </div>
+                        <h3>Hand</h3>
                         <span>@hand.Count cards</span>
                     </div>
 
@@ -160,10 +152,7 @@
 
                 <section class="playtest-overlay__section playtest-overlay__section--stack">
                     <div class="playtest-overlay__section-header">
-                        <div>
-                            <p class="workspace-panel__label">Library</p>
-                            <h3>Deck state</h3>
-                        </div>
+                        <h3>Library</h3>
                         <span>@library.Count remaining</span>
                     </div>
 
@@ -171,21 +160,18 @@
                         <article class="playtest-overlay__stack-card">
                             <span>Top of library</span>
                             <strong>@(library.Count == 0 ? "Empty" : "Unknown card")</strong>
-                            <p>Draw one card at a time from the top until the library runs out.</p>
+                            <p>Draw from the top until the library runs out.</p>
                         </article>
 
                         <article class="playtest-overlay__stack-card">
                             <span>Starting hand</span>
                             <strong>@OpeningHandSize cards</strong>
-                            <p>Every new playtest begins by shuffling the live mainboard and drawing up to seven cards.</p>
+                            <p>Each new playtest shuffles and draws up to seven.</p>
                         </article>
                     </div>
 
                     <div class="playtest-overlay__section-header">
-                        <div>
-                            <p class="workspace-panel__label">Bottom of library</p>
-                            <h3>Chosen order</h3>
-                        </div>
+                        <h3>Bottom of library</h3>
                         <span>@bottomedCards.Count cards</span>
                     </div>
 

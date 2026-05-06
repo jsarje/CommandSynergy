@@ -3,10 +3,7 @@
 
 <MudPaper Elevation="0" Class="workspace-panel workspace-panel--status">
     <div class="workspace-panel__header">
-        <div>
-            <p class="workspace-panel__label">Signals</p>
-            <h2>Deck signals</h2>
-        </div>
+        <h2>Deck signals</h2>
         <div class="workspace-panel__header-side workspace-panel__header-side--status">
                 @if (IsHydratingLibrary || IsAutoOpeningDeck)
                 {
@@ -27,36 +24,20 @@
         </div>
     </div>
 
-    <div class="workspace-summary-strip" aria-label="Workspace summary" data-testid="workspace-summary">
-        <div>
-            <span>Commander</span>
-            <strong>@CommanderName</strong>
-        </div>
-        <div>
-            <span>Deck Name</span>
-            <strong>@DeckName</strong>
-        </div>
-        <div>
-            <span>Deck Status</span>
-            <strong>@GetStateHeadline()</strong>
-        </div>
-    </div>
-
     <section class="workspace-briefing" aria-label="Deck briefing" data-testid="workspace-briefing">
-        <div class="workspace-briefing__copy">
-            <p class="workspace-panel__label">Deck briefing</p>
+        <div>
             <h3>@GetStateHeadline()</h3>
-            <p class="workspace-panel__intro">@GetStateSummary()</p>
+            <p>@GetStateHint()</p>
         </div>
 
         <div class="workspace-briefing__metrics">
             <div>
-                <span>Cards logged</span>
-                <strong>@TotalDeckCards</strong>
+                <span>Commander</span>
+                <strong>@CommanderName</strong>
             </div>
             <div>
-                <span>Validation</span>
-                <strong>@ValidationStatusLabel</strong>
+                <span>Deck</span>
+                <strong>@DeckName</strong>
             </div>
             <div>
                 <span>Next move</span>
@@ -71,7 +52,7 @@
             <MudProgressCircular Indeterminate="true" Size="Size.Medium" Class="workspace-panel__activity-banner-spinner" />
             <div>
                 <strong>Analysis in progress</strong>
-                <p>Refreshing bracket, synergy, power level, and theme signals for the current deck state.</p>
+                <p>Refreshing the current read.</p>
             </div>
         </div>
     }
@@ -81,7 +62,7 @@
             <MudProgressCircular Indeterminate="true" Size="Size.Medium" Class="workspace-panel__activity-banner-spinner" />
             <div>
                 <strong>Restoring saved deck</strong>
-                <p>Opening your last selected deck and preparing analysis. This may take a moment.</p>
+                <p>Opening your last deck.</p>
             </div>
         </div>
     }
@@ -150,7 +131,7 @@
 
                             @if (State.Findings.Count == 0)
                             {
-                                <p class="workspace-panel__empty">No findings yet. Add a commander and a few core cards to unlock the deeper read.</p>
+                                <p class="workspace-panel__empty">No findings yet.</p>
                             }
                             else
                             {
@@ -222,17 +203,6 @@
         _ => "Deck needs validation work",
     };
 
-    private string GetStateSummary() => State.Status switch
-    {
-        DeckWorkspaceStatus.Loading => "Loading the active working copy and preparing validation data.",
-        DeckWorkspaceStatus.Empty => "Lock in a legal commander first so color identity, validation, and deck analysis have a stable frame of reference.",
-        DeckWorkspaceStatus.Recovery => State.Message ?? "A sync problem interrupted the latest analysis pass.",
-        _ when IsHydratingLibrary || IsAutoOpeningDeck => "Your last saved deck is being restored into the working copy and queued for validation.",
-        _ when IsRefreshingInsights => "Fresh bracket, synergy, power, and theme reads are running against the current list.",
-        _ when State.Validation?.IsValid == true => "Core checks are passing, so you can tune card quality, role balance, and thematic clarity.",
-        _ => "Resolve the current findings to unlock a cleaner read on bracket, synergy, power, and themes.",
-    };
-
     private string GetNextActionLabel() => State.Status switch
     {
         DeckWorkspaceStatus.Loading => "Wait for setup",
@@ -242,5 +212,16 @@
         _ when IsRefreshingInsights => "Review current read",
         _ when State.Validation?.IsValid == true => "Tune the 99",
         _ => "Fix findings",
+    };
+
+    private string GetStateHint() => State.Status switch
+    {
+        DeckWorkspaceStatus.Loading => "Pulling your latest deck signals together.",
+        DeckWorkspaceStatus.Empty => "Lock in a commander to open the full workspace.",
+        DeckWorkspaceStatus.Recovery => "Reconnect the deck before making more changes.",
+        _ when IsHydratingLibrary || IsAutoOpeningDeck => "Opening the last saved deck state.",
+        _ when IsRefreshingInsights => "Review the current read while the next one loads.",
+        _ when State.Validation?.IsValid == true => "Use the panels below to tune the list.",
+        _ => "Clear the current findings to unlock a full analysis read.",
     };
 }

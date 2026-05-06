@@ -4,7 +4,7 @@
 {
     <div class="analysis-panel analysis-panel--loading" data-testid="bracket-analysis-loading">
         <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-        <p class="analysis-panel__message">Fetching bracket assessment…</p>
+        <p class="analysis-panel__message">Reading bracket…</p>
     </div>
 }
 else if (HasError)
@@ -18,7 +18,7 @@ else if (HasError)
 else if (Analysis is null)
 {
     <div class="analysis-panel analysis-panel--empty" data-testid="bracket-analysis-empty">
-        <p class="analysis-panel__message">Bracket feedback arrives after the first successful sync.</p>
+        <p class="analysis-panel__message">Bracket appears after the first sync.</p>
     </div>
 }
 else

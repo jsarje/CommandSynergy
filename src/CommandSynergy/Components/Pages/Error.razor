@@ -5,9 +5,8 @@
 <PageTitle>Something went wrong — Synergy Sphere</PageTitle>
 
 <div class="error-page">
-    <p class="error-page__eyebrow">Error</p>
     <h1>Something went wrong.</h1>
-    <p>An unexpected error occurred while processing your request. The issue has been logged.</p>
+    <p>An unexpected error interrupted the workspace.</p>
 
     @if (ShowRequestId)
     {
@@ -20,8 +19,8 @@
 
     <details class="error-page__dev-details">
         <summary>Developer notes</summary>
-        <p>Switch to the <strong>Development</strong> environment to see detailed exception information. Do not enable this on deployed applications — it may expose sensitive data to end users.</p>
-        <p>Set the <code>ASPNETCORE_ENVIRONMENT</code> environment variable to <code>Development</code> and restart the app.</p>
+        <p>Use the <strong>Development</strong> environment for detailed exception information. Do not enable it on deployed apps.</p>
+        <p>Set <code>ASPNETCORE_ENVIRONMENT</code> to <code>Development</code> and restart the app.</p>
     </details>
 </div>
 

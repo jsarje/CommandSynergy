@@ -32,7 +32,7 @@ public sealed class DeckExportPanelTests : BunitContext, IAsyncLifetime
             .Add(component => component.SupportedFormats, [new FormatOptionView("moxfield-text", "Moxfield Text")])
             .Add(component => component.SelectedFormatId, "moxfield-text"));
 
-        cut.Markup.Should().Contain("Generate a local export preview");
+        cut.Markup.Should().Contain("Generate a preview from the current workspace.");
     }
 
     [Fact]
