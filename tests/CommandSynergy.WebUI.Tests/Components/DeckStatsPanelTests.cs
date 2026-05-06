@@ -25,7 +25,7 @@ public sealed class DeckStatsPanelTests : BunitContext
             .Add(component => component.Analysis, null));
 
         cut.Find("[data-testid='deck-stats-loading']").Should().NotBeNull();
-        cut.Markup.Should().Contain("Preparing chart-ready deck stats");
+        cut.Markup.Should().Contain("Loading deck stats");
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed class DeckStatsPanelTests : BunitContext
             .Add(component => component.Analysis, CreateAnalysis()));
 
         cut.Find("[data-testid='deck-stats-lazy']").Should().NotBeNull();
-        cut.Markup.Should().Contain("Loading deck stats in the background");
+        cut.Markup.Should().Contain("Loading charts in the background");
         cut.Markup.Should().NotContain("deck-stats-load-button");
     }
 

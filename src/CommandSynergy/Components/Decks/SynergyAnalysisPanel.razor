@@ -4,7 +4,7 @@
 {
     <div class="analysis-panel analysis-panel--loading" data-testid="synergy-analysis-loading">
         <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-        <p class="analysis-panel__message">Measuring deck synergy…</p>
+        <p class="analysis-panel__message">Reading synergy…</p>
     </div>
 }
 else if (HasError)
@@ -18,7 +18,7 @@ else if (HasError)
 else if (Analysis is null)
 {
     <div class="analysis-panel analysis-panel--empty" data-testid="synergy-analysis-empty">
-        <p class="analysis-panel__message">Synergy feedback arrives after the first successful sync.</p>
+        <p class="analysis-panel__message">Synergy appears after the first sync.</p>
     </div>
 }
 else
@@ -45,7 +45,7 @@ else
 
         @if (Analysis.Synergy.CommanderSpecificHits.Count > 0)
         {
-            <p class="analysis-synergy__hits-label">Commander-specific hits</p>
+            <p class="analysis-synergy__hits-label">Commander hits</p>
             <ul class="analysis-synergy__hits" data-testid="synergy-commander-hits">
                 @foreach (var hit in Analysis.Synergy.CommanderSpecificHits)
                 {
@@ -56,7 +56,7 @@ else
 
         @if (Analysis.Synergy.StapleOverloadIndicators.Count > 0)
         {
-            <p class="analysis-synergy__staples-label">Staple overload indicators</p>
+            <p class="analysis-synergy__staples-label">Staples</p>
             <ul class="analysis-synergy__staples" data-testid="synergy-staple-overload">
                 @foreach (var staple in Analysis.Synergy.StapleOverloadIndicators)
                 {

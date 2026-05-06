@@ -4,19 +4,16 @@
 <div class="workspace-utility-drawer-backdrop"
     data-testid="workspace-utility-drawer-backdrop"
     @onclick="async () => { if (!IsImporting) await CloseRequested.InvokeAsync(null); }">
-        <aside class="workspace-utility-drawer"
-            id="workspace-utility-drawer"
-            style="position:relative;"
+    <aside class="workspace-utility-drawer"
+           id="workspace-utility-drawer"
+           style="position:relative;"
            role="dialog"
            aria-modal="true"
            aria-labelledby="workspace-utility-drawer-title"
            data-testid="workspace-utility-menu"
            @onclick:stopPropagation="true">
         <div class="workspace-utility-menu__header">
-            <div>
-                <p class="workspace-panel__label">Deck Management</p>
-                <h2 id="workspace-utility-drawer-title">Deck library, import, and export</h2>
-            </div>
+            <h2 id="workspace-utility-drawer-title">Deck library</h2>
             <button type="button"
                     class="workspace-utility-menu__close"
                     aria-label="Close menu"
@@ -40,10 +37,7 @@
                 <MudExpansionPanel Text="@($"Library ({ImportedDecks?.Count ?? 0})")" Expanded="true">
                     <section class="workspace-utility-section">
                         <div class="workspace-panel__header">
-                            <div>
-                                <p class="workspace-panel__label">Library</p>
-                                <h2>Your saved decks</h2>
-                            </div>
+                            <h2>Your decks</h2>
                             <div class="workspace-panel__header-side">
                                 @if (IsHydratingLibrary)
                                 {
@@ -75,7 +69,7 @@
                         @if (IsWorkspaceLinkedToSavedDeck)
                         {
                             <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" data-testid="workspace-link-status">
-                                Editing <strong>@ActiveWorkspaceDeckName</strong>. This working copy saves back to the selected local deck.
+                                Editing <strong>@ActiveWorkspaceDeckName</strong>. Changes save back to this deck.
                             </MudAlert>
 
                             <div class="workspace-search" data-testid="linked-deck-rename-controls">
@@ -105,7 +99,7 @@
                         else
                         {
                             <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" data-testid="workspace-link-status">
-                                This draft is detached. Save it when you want it to become a reusable local deck.
+                                This draft is detached. Save it when you want to keep it.
                             </MudAlert>
 
                             <div class="workspace-search" data-testid="new-deck-save-controls">
@@ -132,7 +126,7 @@
                         <div class="workspace-search-results" data-testid="imported-deck-library">
                             @if (ImportedDecks == null || ImportedDecks.Count == 0)
                             {
-                                <p class="workspace-panel__empty">No saved decks yet. Imported lists stay in this browser only until you replace or delete them.</p>
+                                <p class="workspace-panel__empty">No saved decks yet. Imports stay in this browser until you replace or delete them.</p>
                             }
                             else
                             {
@@ -213,10 +207,7 @@
                         {
                             <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" data-testid="duplicate-import-resolution">
                                 <div class="workspace-stack">
-                                    <div>
-                                        <h3>Reimport options</h3>
-                                        <p>Update the existing <strong>@PendingDuplicateImportName</strong> entry or keep both by saving the new import as <strong>@PendingDuplicateImportTargetName</strong>.</p>
-                                    </div>
+                                    <p>Update <strong>@PendingDuplicateImportName</strong> or keep both as <strong>@PendingDuplicateImportTargetName</strong>.</p>
                                     <div class="workspace-search workspace-search--actions">
                                         <button type="button" class="workspace-search__button" @onclick="() => UpdateExistingImportedDeckRequested.InvokeAsync(null)" disabled="@IsImporting">Update existing deck</button>
                                         <button type="button" class="workspace-search-result__secondary" @onclick="() => ImportDuplicateAsNewDeckRequested.InvokeAsync(null)" disabled="@IsImporting">Import as new deck</button>

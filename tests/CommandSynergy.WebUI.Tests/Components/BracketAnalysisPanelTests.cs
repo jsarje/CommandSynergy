@@ -25,7 +25,7 @@ public sealed class BracketAnalysisPanelTests : BunitContext
             .Add(component => component.HasError, false));
 
         cut.Find("[data-testid='bracket-analysis-loading']").Should().NotBeNull();
-        cut.Markup.Should().Contain("Fetching bracket assessment");
+        cut.Markup.Should().Contain("Reading bracket");
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed class BracketAnalysisPanelTests : BunitContext
             .Add(component => component.HasError, false));
 
         cut.Find("[data-testid='bracket-analysis-empty']").Should().NotBeNull();
-        cut.Markup.Should().Contain("Bracket feedback arrives after the first successful sync.");
+        cut.Markup.Should().Contain("Bracket appears after the first sync.");
     }
 
     [Fact]

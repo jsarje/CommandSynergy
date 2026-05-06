@@ -35,7 +35,7 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
 
         OpenUtilityMenu(cut);
 
-        cut.Find("[data-testid='imported-deck-library']").TextContent.Should().Contain("browser only");
+        cut.Find("[data-testid='imported-deck-library']").TextContent.Should().Contain("this browser");
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public sealed class DeckPortabilityWorkflowTests : BunitContext, IAsyncLifetime
 
         OpenUtilityMenu(cut);
 
-        cut.Find("[data-testid='duplicate-import-resolution']").TextContent.Should().Contain("Update the existing Isshin Pressure entry");
+        cut.Find("[data-testid='duplicate-import-resolution']").TextContent.Should().Contain("Update Isshin Pressure");
         cut.Find("[data-testid='duplicate-import-resolution']").TextContent.Should().Contain("Isshin Pressure 001");
     }
 
