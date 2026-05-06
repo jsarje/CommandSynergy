@@ -96,7 +96,7 @@ else
                                aria-expanded="@isExpanded"
                                aria-controls="@detailsTestId"
                                @onclick="() => ToggleTheme(theme.Name)">
-                        @(isExpanded ? "Hide details" : "Details")
+                        @(isExpanded ? $"Hide details for {theme.Name}" : $"Show details for {theme.Name}")
                     </MudButton>
                 </div>
                 @if (leadContributor is not null)
