@@ -2,23 +2,19 @@ name: CD Containers
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    tags:
+      - 'v*'
 
 permissions:
-  contents: read
+  contents: write
   packages: write
-
-concurrency:
-  group: cd-containers-${{ github.ref }}
-  cancel-in-progress: false
 
 env:
   DOTNET_VERSION: '10.0.x'
   SOLUTION: src/CommandSynergy.slnx
   REGISTRY: ghcr.io
-  WEB_IMAGE: jsarje/commandsynergy-web
-  INGESTION_IMAGE: jsarje/commandsynergy-ingestion
+  WEB_IMAGE: ${{ github.repository_owner }}/commandsynergy-web
+  INGESTION_IMAGE: ${{ github.repository_owner }}/commandsynergy-ingestion
 
 jobs:
   publish:
@@ -59,14 +55,31 @@ jobs:
       - name: Compute image tags
         id: metadata
         shell: bash
-        run: |
-          # The .NET SDK expects ContainerImageTags as a semicolon-delimited list.
-          image_tags="sha-${GITHUB_SHA}"
-          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-            image_tags="main;${image_tags}"
+        run: | 
+          TAG_REF="${GITHUB_REF#refs/tags/}"     # e.g. v1.2.3
+          VERSION="${TAG_REF#v}"                 # e.g. 1.2.3
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          if [ -z "$MAJOR" ]; then
+            echo "Unable to parse major version from tag: $TAG_REF"
+            exit 1
           fi
 
-          echo "image_tags=${image_tags}" >> "$GITHUB_OUTPUT"
+          IMAGE_TAGS="$VERSION;$MAJOR"
+
+          if [ -n "$MINOR" ]; then
+            IMAGE_TAGS="$IMAGE_TAGS;$MAJOR.$MINOR"
+          fi
+
+          if [[ "$VERSION" != *-* ]]; then
+            IMAGE_TAGS="latest;$IMAGE_TAGS"
+          fi
+
+          # Optional: also publish the original git tag form
+          IMAGE_TAGS="$IMAGE_TAGS;$TAG_REF"
+
+          echo "image_tags=$IMAGE_TAGS" >> "$GITHUB_OUTPUT"
 
       - name: Publish web image
         env:
@@ -97,3 +110,17 @@ jobs:
           -p:ContainerRegistry=${{ env.REGISTRY }}
           -p:ContainerRepository=${{ env.INGESTION_IMAGE }}
           -p:ContainerImageTags=${{ steps.metadata.outputs.image_tags }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:          
+          body: |          
+            Published container images:
+
+            - `ghcr.io/${{ env.WEB_IMAGE }}:${{ github.ref_name }}`
+            - `ghcr.io/${{ env.INGESTION_IMAGE }}:${{ github.ref_name }}`
+
+            Packages:
+            - https://github.com/${{ github.repository }}/pkgs/container/commandsynergy-web
+            - https://github.com/${{ github.repository }}/pkgs/container/commandsynergy-ingestion
+          generate_release_notes: true
