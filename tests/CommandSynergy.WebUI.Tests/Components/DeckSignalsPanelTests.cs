@@ -2,7 +2,6 @@ using Bunit;
 using CommandSynergy.Application.Contracts;
 using CommandSynergy.Application.Decks;
 using CommandSynergy.Components.Decks;
-using CommandSynergy.WebUI.Tests;
 using FluentAssertions;
 using Microsoft.AspNetCore.Components;
 using MudBlazor.Services;
@@ -174,6 +173,6 @@ public sealed class DeckSignalsPanelTests : BunitContext
             CommanderSpecificHits = Array.Empty<string>(),
             StapleOverloadIndicators = Array.Empty<string>(),
         },
-        ThemeAnalysis = ThemeAnalysisTestData.CreateReadyAnalysis().ThemeAnalysis,
+        ThemeAnalysis = global::CommandSynergy.WebUI.Tests.ThemeAnalysisTestData.CreateReadyAnalysis().ThemeAnalysis,
     };
 }

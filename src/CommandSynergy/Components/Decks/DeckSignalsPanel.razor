@@ -263,7 +263,15 @@
         ? "workspace-metric-button workspace-metric-button--active"
         : "workspace-metric-button";
 
-    private string GetDetailPanelId(DeckSignalDetail detail) => $"deck-signal-detail-{detail.ToString().ToLowerInvariant()}";
+    private static string GetDetailPanelId(DeckSignalDetail detail) => detail switch
+    {
+        DeckSignalDetail.Validation => "deck-signal-detail-validation",
+        DeckSignalDetail.Bracket => "deck-signal-detail-bracket",
+        DeckSignalDetail.Synergy => "deck-signal-detail-synergy",
+        DeckSignalDetail.PowerLevel => "deck-signal-detail-powerlevel",
+        DeckSignalDetail.ThemeSignals => "deck-signal-detail-themesignals",
+        _ => "deck-signal-detail",
+    };
 
     private string GetAriaExpandedValue(DeckSignalDetail detail) => IsDetailOpen(detail) ? "true" : "false";
 
