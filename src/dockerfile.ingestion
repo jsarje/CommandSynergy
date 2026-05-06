@@ -1,0 +1,29 @@
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
+WORKDIR /src
+
+# Copy solution and project files
+COPY ["CommandSynergy.Ingestion/CommandSynergy.Ingestion.csproj", "CommandSynergy.Ingestion/"]
+COPY ["CommandSynergy.Application/CommandSynergy.Application.csproj", "CommandSynergy.Application/"]
+COPY ["CommandSynergy.Domain/CommandSynergy.Domain.csproj", "CommandSynergy.Domain/"]
+COPY ["CommandSynergy.Infrastructure/CommandSynergy.Infrastructure.csproj", "CommandSynergy.Infrastructure/"]
+
+# Restore dependencies
+RUN dotnet restore "CommandSynergy.Ingestion/CommandSynergy.Ingestion.csproj"
+
+# Copy all source files
+COPY . .
+
+# Build and publish
+WORKDIR "/src/CommandSynergy.Ingestion"
+RUN dotnet publish "CommandSynergy.Ingestion.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/runtime:10.0-noble-chiseled AS final
+WORKDIR /app
+
+# Copy published output
+COPY --from=build /app/publish .
+
+# Run the application
+ENTRYPOINT ["dotnet", "CommandSynergy.Ingestion.dll"]

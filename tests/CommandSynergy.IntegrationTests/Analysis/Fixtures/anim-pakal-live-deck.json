@@ -1,0 +1,50 @@
+{
+  "deckId": "integration-anim-pakal-boros-tokens",
+  "name": "Anim Pakal Integration Deck",
+  "expectedBracketLevel": 1,
+  "minPower": 1.0,
+  "maxPower": 10.0,
+  "minSynergy": 0.0,
+  "maxSynergy": 10.0,
+  "expectedTheme": "Tokens",
+  "commanderCardId": "1614b2f7-2be6-4932-96ac-5db1d77f9bfd",
+  "companionCardId": null,
+  "piles": [],
+  "entries": [
+    {
+      "cardId": "1614b2f7-2be6-4932-96ac-5db1d77f9bfd",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": true,
+      "isCompanion": false
+    },
+    {
+      "cardId": "5f7d9d5d-0d7d-4d15-9c52-0f5a8b6b0f22",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "3d5bb7c9-0f6d-48b2-8f35-95135406c574",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "7fbf7f36-6cb2-44fd-8f03-ea2e9d8d3460",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "0d4f95a4-29f0-4f8a-8f3e-157ccd44fcbb",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    }
+  ]
+}
