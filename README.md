@@ -78,9 +78,10 @@ volumes:
     name: shared-data
 ```
 
-1. Pull the published images, then seed the shared volume once with `docker compose --profile manual run --rm ingestion`.
-2. Start the long-running services with `docker compose up -d blazor-app ofelia`.
-3. Keep the explicit `name: shared-data` entry so Ofelia reuses the same named volume instead of a Compose-generated alias.
+1. Save the example as `docker-compose.yml`, then pull the published images with `docker compose pull`.
+2. Seed the shared volume once with `docker compose --profile manual run --rm ingestion`.
+3. Start the long-running services with `docker compose up -d blazor-app ofelia`.
+4. Keep the explicit `name: shared-data` entry so Ofelia reuses the same named volume instead of a Compose-generated alias.
 
 ## Next steps & contribution
 

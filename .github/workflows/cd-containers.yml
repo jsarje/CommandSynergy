@@ -60,8 +60,8 @@ jobs:
         id: metadata
         shell: bash
         run: |
-          short_sha="${GITHUB_SHA::12}"
-          image_tags="sha-${short_sha}"
+          # The .NET SDK expects ContainerImageTags as a semicolon-delimited list.
+          image_tags="sha-${GITHUB_SHA}"
           if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
             image_tags="main;${image_tags}"
           fi
