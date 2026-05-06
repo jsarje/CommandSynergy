@@ -36,9 +36,6 @@
 	<None Include="..\..\src\CommandSynergy\appsettings.json" Link="appsettings.json">
 	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
-	<None Include="..\..\src\CommandSynergy\Data\CardMetadata\cards.parquet" Link="Data\CardMetadata\cards.parquet">
-	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	</None>
   </ItemGroup>
 
   <ItemGroup>
