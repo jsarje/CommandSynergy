@@ -468,6 +468,30 @@ h1:focus {
     font-size: 1.15rem;
 }
 
+.workspace-metric-button {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 0.8rem;
+    border-radius: var(--cs-radius-md);
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(31, 91, 75, 0.08);
+    text-align: left;
+    transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+}
+
+.workspace-metric-button:hover,
+.workspace-metric-button:focus-visible {
+    background: rgba(255, 255, 255, 0.82);
+    border-color: rgba(31, 91, 75, 0.24);
+    transform: translateY(-1px);
+}
+
+.workspace-metric-button--active {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(31, 91, 75, 0.28);
+    box-shadow: 0 10px 24px rgba(31, 91, 75, 0.08);
+}
+
 .workspace-shell__stats-panel {
     margin-top: 1.5rem;
 }
@@ -1165,6 +1189,14 @@ h1:focus {
 
 .workspace-disclosure-set .mud-expand-panel-content {
     padding-inline: 1rem;
+}
+
+.workspace-disclosure-set--analysis .mud-expand-panel-header {
+    display: none;
+}
+
+.workspace-panel__hint {
+    margin-top: 1rem;
 }
 
 .workspace-disclosure-set--drawer {
