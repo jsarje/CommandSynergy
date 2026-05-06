@@ -94,9 +94,10 @@ else
                                Class="theme-analysis__toggle"
                                data-testid="@($"theme-toggle-{themeSlug}")"
                                aria-expanded="@isExpanded"
+                               aria-label="@(isExpanded ? $"Hide details for {theme.Name}" : $"Show details for {theme.Name}")"
                                aria-controls="@detailsTestId"
                                @onclick="() => ToggleTheme(theme.Name)">
-                        @(isExpanded ? $"Hide details for {theme.Name}" : $"Show details for {theme.Name}")
+                        @(isExpanded ? "Hide details" : "Show details")
                     </MudButton>
                 </div>
                 @if (leadContributor is not null)

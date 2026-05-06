@@ -27,6 +27,7 @@
     <section class="workspace-briefing" aria-label="Deck briefing" data-testid="workspace-briefing">
         <div>
             <h3>@GetStateHeadline()</h3>
+            <p>@GetStateHint()</p>
         </div>
 
         <div class="workspace-briefing__metrics">
@@ -211,5 +212,16 @@
         _ when IsRefreshingInsights => "Review current read",
         _ when State.Validation?.IsValid == true => "Tune the 99",
         _ => "Fix findings",
+    };
+
+    private string GetStateHint() => State.Status switch
+    {
+        DeckWorkspaceStatus.Loading => "Pulling your latest deck signals together.",
+        DeckWorkspaceStatus.Empty => "Lock in a commander to open the full workspace.",
+        DeckWorkspaceStatus.Recovery => "Reconnect the deck before making more changes.",
+        _ when IsHydratingLibrary || IsAutoOpeningDeck => "Opening the last saved deck state.",
+        _ when IsRefreshingInsights => "Review the current read while the next one loads.",
+        _ when State.Validation?.IsValid == true => "Use the panels below to tune the list.",
+        _ => "Clear the current findings to unlock a full analysis read.",
     };
 }
