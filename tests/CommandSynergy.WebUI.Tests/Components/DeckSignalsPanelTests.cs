@@ -46,7 +46,7 @@ public sealed class DeckSignalsPanelTests : BunitContext
     }
 
     [Fact]
-    public void Deck_signals_panel_renders_ready_metrics_and_findings()
+    public void Deck_signals_panel_renders_ready_metrics_with_details_collapsed_by_default()
     {
         var findings = new[]
         {
@@ -78,12 +78,53 @@ public sealed class DeckSignalsPanelTests : BunitContext
         cut.Find("[data-testid='workspace-briefing']").TextContent.Should().Contain("Deck needs validation work");
         cut.Find("[data-testid='workspace-briefing']").TextContent.Should().Contain("Isshin, Two Heavens as One");
         cut.Find("[data-testid='workspace-briefing']").TextContent.Should().Contain("Fix findings");
-        cut.Find("[data-testid='validation-findings']").TextContent.Should().Contain("Average mana value is climbing above the target.");
-        cut.Find("[data-testid='analysis-panel']").TextContent.Should().Contain("Bracket");
-        cut.Find("[data-testid='analysis-panel']").TextContent.Should().Contain("Synergy");
-        cut.Find("[data-testid='analysis-panel']").TextContent.Should().Contain("Power level");
+        cut.Find("[data-testid='analysis-detail-hint']").TextContent.Should().Contain("Click a metric");
+        cut.FindAll("[data-testid='validation-findings']").Should().BeEmpty();
+        cut.Find("[data-testid='metric-validation-trigger']").GetAttribute("aria-expanded").Should().Be("false");
+        cut.Find("[data-testid='metric-bracket-trigger']").GetAttribute("aria-expanded").Should().Be("false");
         cut.Markup.Should().Contain("Needs work");
         cut.Markup.Should().Contain("72.4");
+    }
+
+    [Fact]
+    public void Deck_signals_panel_reveals_requested_detail_when_metric_is_clicked()
+    {
+        var findings = new[]
+        {
+            new ValidationFindingContract
+            {
+                Severity = "warning",
+                Code = "curve.high",
+                Message = "Average mana value is climbing above the target.",
+            },
+        };
+
+        var cut = Render<DeckSignalsPanel>(parameters => parameters
+            .Add(component => component.State, new DeckWorkspaceState(
+                DeckWorkspaceStatus.Ready,
+                null,
+                new DeckValidationResponseContract
+                {
+                    IsValid = false,
+                    Findings = findings,
+                    DeckCardCount = 100,
+                },
+                findings))
+            .Add(component => component.Analysis, CreateAnalysis())
+            .Add(component => component.IsRefreshingInsights, false));
+
+        cut.Find("[data-testid='metric-validation-trigger']").Click();
+
+        cut.Find("[data-testid='validation-findings']").TextContent.Should().Contain("Average mana value is climbing above the target.");
+        cut.Find("[data-testid='metric-validation-trigger']").GetAttribute("aria-expanded").Should().Be("true");
+        cut.FindAll("[data-testid='analysis-detail-hint']").Should().BeEmpty();
+
+        cut.Find("[data-testid='metric-bracket-trigger']").Click();
+
+        cut.Find("[data-testid='analysis-bracket']").TextContent.Should().Contain("Bracket summary.");
+        cut.Find("[data-testid='metric-validation-trigger']").GetAttribute("aria-expanded").Should().Be("false");
+        cut.Find("[data-testid='metric-bracket-trigger']").GetAttribute("aria-expanded").Should().Be("true");
+        cut.FindAll("[data-testid='validation-findings']").Should().BeEmpty();
     }
 
     [Fact]
@@ -132,5 +173,6 @@ public sealed class DeckSignalsPanelTests : BunitContext
             CommanderSpecificHits = Array.Empty<string>(),
             StapleOverloadIndicators = Array.Empty<string>(),
         },
+        ThemeAnalysis = global::CommandSynergy.WebUI.Tests.ThemeAnalysisTestData.CreateReadyAnalysis().ThemeAnalysis,
     };
 }

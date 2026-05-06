@@ -97,33 +97,62 @@
                     <span>Deck cards</span>
                     <strong>@State.Validation?.DeckCardCount</strong>
                 </div>
-                <div>
+                <button type="button"
+                        class="@GetMetricButtonClass(DeckSignalDetail.Validation)"
+                        data-testid="metric-validation-trigger"
+                        aria-controls="@GetDetailPanelId(DeckSignalDetail.Validation)"
+                        aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.Validation)"
+                        @onclick="() => ToggleDetail(DeckSignalDetail.Validation)">
                     <span>Legality</span>
                     <strong>@(State.Validation?.IsValid == true ? "Legal" : "Needs work")</strong>
-                </div>
-                <div>
+                </button>
+                <button type="button"
+                        class="@GetMetricButtonClass(DeckSignalDetail.Bracket)"
+                        data-testid="metric-bracket-trigger"
+                        aria-controls="@GetDetailPanelId(DeckSignalDetail.Bracket)"
+                        aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.Bracket)"
+                        @onclick="() => ToggleDetail(DeckSignalDetail.Bracket)">
                     <span>Bracket</span>
                     <strong>@(Analysis?.Bracket.Level.ToString() ?? "-")</strong>
-                </div>
-                <div>
+                </button>
+                <button type="button"
+                        class="@GetMetricButtonClass(DeckSignalDetail.Synergy)"
+                        data-testid="metric-synergy-trigger"
+                        aria-controls="@GetDetailPanelId(DeckSignalDetail.Synergy)"
+                        aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.Synergy)"
+                        @onclick="() => ToggleDetail(DeckSignalDetail.Synergy)">
                     <span>Synergy</span>
                     <strong>@(Analysis?.Synergy.Score.ToString("0.#") ?? "-")</strong>
-                </div>
-                <div>
+                </button>
+                <button type="button"
+                        class="@GetMetricButtonClass(DeckSignalDetail.PowerLevel)"
+                        data-testid="metric-power-trigger"
+                        aria-controls="@GetDetailPanelId(DeckSignalDetail.PowerLevel)"
+                        aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.PowerLevel)"
+                        @onclick="() => ToggleDetail(DeckSignalDetail.PowerLevel)">
                     <span>Power</span>
                     <strong>@(Analysis?.PowerLevel.Score.ToString("0.#") ?? "-")</strong>
-                </div>
-                <div>
+                </button>
+                <button type="button"
+                        class="@GetMetricButtonClass(DeckSignalDetail.ThemeSignals)"
+                        data-testid="metric-theme-trigger"
+                        aria-controls="@GetDetailPanelId(DeckSignalDetail.ThemeSignals)"
+                        aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.ThemeSignals)"
+                        @onclick="() => ToggleDetail(DeckSignalDetail.ThemeSignals)">
                     <span>Top Theme</span>
                     <strong>@(Analysis?.ThemeAnalysis?.CommanderAlignment?.CommanderTopTheme ?? "-")</strong>
-                </div>
-            </div>            
+                </button>
+            </div>
 
-            <MudExpansionPanels MultiExpansion="true" Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
-                @if (State.Validation == null || State.Validation?.IsValid == false)
-                {
-                    <MudExpansionPanel Text="Legality/Validation">                    
-                        <section class="workspace-stack">
+            @if (selectedDetail is null)
+            {
+                <p class="workspace-panel__empty workspace-panel__hint" data-testid="analysis-detail-hint">Click a metric to view details.</p>
+            }
+            else if (selectedDetail == DeckSignalDetail.Validation)
+            {
+                <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
+                    <MudExpansionPanel Text="Legality/Validation" Expanded="true">
+                        <section id="@GetDetailPanelId(DeckSignalDetail.Validation)" class="workspace-stack">
                             <div class="workspace-section-heading">
                                 <h3>Validation findings</h3>
                                 <span class="workspace-panel__badge">@State.Findings.Count.ToString("00")</span>
@@ -144,25 +173,64 @@
                             }
                         </section>
                     </MudExpansionPanel>
-                }
-                <MudExpansionPanel Text="Bracket">
-                    <BracketAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
-                </MudExpansionPanel>
-                <MudExpansionPanel Text="Synergy">
-                    <SynergyAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
-                </MudExpansionPanel>
-                <MudExpansionPanel Text="Power level">
-                    <PowerLevelAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
-                </MudExpansionPanel>
-                <MudExpansionPanel Text="Theme signals">
-                    <ThemeAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
-                </MudExpansionPanel>
-            </MudExpansionPanels>
+                </MudExpansionPanels>
+            }
+            else if (selectedDetail == DeckSignalDetail.Bracket)
+            {
+                <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
+                    <MudExpansionPanel Text="Bracket" Expanded="true">
+                        <section id="@GetDetailPanelId(DeckSignalDetail.Bracket)">
+                            <BracketAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
+                        </section>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            }
+            else if (selectedDetail == DeckSignalDetail.Synergy)
+            {
+                <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
+                    <MudExpansionPanel Text="Synergy" Expanded="true">
+                        <section id="@GetDetailPanelId(DeckSignalDetail.Synergy)">
+                            <SynergyAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
+                        </section>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            }
+            else if (selectedDetail == DeckSignalDetail.PowerLevel)
+            {
+                <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
+                    <MudExpansionPanel Text="Power level" Expanded="true">
+                        <section id="@GetDetailPanelId(DeckSignalDetail.PowerLevel)">
+                            <PowerLevelAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
+                        </section>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            }
+            else if (selectedDetail == DeckSignalDetail.ThemeSignals)
+            {
+                <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
+                    <MudExpansionPanel Text="Theme signals" Expanded="true">
+                        <section id="@GetDetailPanelId(DeckSignalDetail.ThemeSignals)">
+                            <ThemeAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
+                        </section>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            }
         </div>
     }
 </MudPaper>
 
 @code {
+    private DeckSignalDetail? selectedDetail;
+
+    private enum DeckSignalDetail
+    {
+        Validation,
+        Bracket,
+        Synergy,
+        PowerLevel,
+        ThemeSignals,
+    }
+
     [Parameter]
     public required DeckWorkspaceState State { get; set; }
 
@@ -189,8 +257,30 @@
     public EventCallback RetryRequested { get; set; }
 
     private bool IsRecoveryState => State.Status == DeckWorkspaceStatus.Recovery;
-
     private string ValidationStatusLabel => State.Validation?.IsValid == true ? "Ready" : "Needs work";
+
+    private string GetMetricButtonClass(DeckSignalDetail detail) => IsDetailOpen(detail)
+        ? "workspace-metric-button workspace-metric-button--active"
+        : "workspace-metric-button";
+
+    private static string GetDetailPanelId(DeckSignalDetail detail) => detail switch
+    {
+        DeckSignalDetail.Validation => "deck-signal-detail-validation",
+        DeckSignalDetail.Bracket => "deck-signal-detail-bracket",
+        DeckSignalDetail.Synergy => "deck-signal-detail-synergy",
+        DeckSignalDetail.PowerLevel => "deck-signal-detail-powerlevel",
+        DeckSignalDetail.ThemeSignals => "deck-signal-detail-themesignals",
+        _ => "deck-signal-detail",
+    };
+
+    private string GetAriaExpandedValue(DeckSignalDetail detail) => IsDetailOpen(detail) ? "true" : "false";
+
+    private bool IsDetailOpen(DeckSignalDetail detail) => selectedDetail == detail;
+
+    private void ToggleDetail(DeckSignalDetail detail)
+    {
+        selectedDetail = selectedDetail == detail ? null : detail;
+    }
 
     private string GetStateHeadline() => State.Status switch
     {

@@ -100,24 +100,24 @@ jobs:
         include:
           - name: web
             repository: commandsynergy-web
-            dockerfile: ./dockerfile.webapp
+            dockerfile: ./src/dockerfile.webapp
           - name: ingestion
             repository: commandsynergy-ingestion
-            dockerfile: ./dockerfile.ingestion
+            dockerfile: ./src/dockerfile.ingestion
     steps:
       - name: Checkout repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -144,7 +144,7 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Build and push multi-arch image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ./src
           file: ${{ matrix.dockerfile }}
