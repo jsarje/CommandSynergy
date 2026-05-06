@@ -1,0 +1,38 @@
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
+WORKDIR /src
+
+# Copy solution and project files
+COPY ["CommandSynergy/CommandSynergy.csproj", "CommandSynergy/"]
+COPY ["CommandSynergy.Client/CommandSynergy.Client.csproj", "CommandSynergy.Client/"]
+COPY ["CommandSynergy.Application/CommandSynergy.Application.csproj", "CommandSynergy.Application/"]
+COPY ["CommandSynergy.Domain/CommandSynergy.Domain.csproj", "CommandSynergy.Domain/"]
+COPY ["CommandSynergy.Infrastructure/CommandSynergy.Infrastructure.csproj", "CommandSynergy.Infrastructure/"]
+
+# Restore dependencies
+RUN dotnet restore "CommandSynergy/CommandSynergy.csproj"
+
+# Copy all source files
+COPY . .
+
+# Build and publish
+WORKDIR "/src/CommandSynergy"
+RUN dotnet publish "CommandSynergy.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled AS final
+WORKDIR /app
+
+# Copy published output
+COPY --from=build /app/publish .
+
+# Expose port
+EXPOSE 8080
+EXPOSE 8081
+
+# Set environment variables
+ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+# Run the application
+ENTRYPOINT ["dotnet", "CommandSynergy.dll"]
