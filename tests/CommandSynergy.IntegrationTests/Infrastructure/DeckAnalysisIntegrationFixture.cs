@@ -16,6 +16,11 @@ public sealed class DeckAnalysisIntegrationFixture : IAsyncLifetime
         PropertyNameCaseInsensitive = true,
     };
 
+    private static readonly JsonSerializerOptions fixtureJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        PropertyNameCaseInsensitive = true,
+    };
+
     private IHost? host;
 
     public string ContentRootPath { get; } = AppContext.BaseDirectory;
@@ -63,10 +68,16 @@ public sealed class DeckAnalysisIntegrationFixture : IAsyncLifetime
 
     public DeckSnapshotContract LoadDeckSnapshot(string fixtureName)
     {
+        var fixture = LoadFixtureExpectations(fixtureName);
+        return fixture.ToDeckSnapshot();
+    }
+
+    public DeckAnalysisFixtureContract LoadFixtureExpectations(string fixtureName)
+    {
         var fixturePath = Path.Combine(ContentRootPath, "Analysis", "Fixtures", fixtureName);
         using var stream = File.OpenRead(fixturePath);
-        var snapshot = JsonSerializer.Deserialize<DeckSnapshotContract>(stream, deckSnapshotJsonOptions);
-        return snapshot ?? throw new InvalidOperationException($"Deck fixture '{fixtureName}' did not deserialize into {nameof(DeckSnapshotContract)}.");
+        var fixture = JsonSerializer.Deserialize<DeckAnalysisFixtureContract>(stream, fixtureJsonOptions);
+        return fixture ?? throw new InvalidOperationException($"Deck fixture '{fixtureName}' did not deserialize into {nameof(DeckAnalysisFixtureContract)}.");
     }
 
     public async Task<DeckAnalysisResponseContract> AnalyzeAsync(string fixtureName, CancellationToken cancellationToken = default)
@@ -84,4 +95,41 @@ public sealed class DeckAnalysisIntegrationFixture : IAsyncLifetime
             throw new InvalidOperationException("The integration fixture has not been initialized.");
         }
     }
+}
+
+public sealed record DeckAnalysisFixtureContract
+{
+    public string? DeckId { get; init; }
+
+    public string? Name { get; init; }
+
+    public string? CommanderCardId { get; init; }
+
+    public string? CompanionCardId { get; init; }
+
+    public required IReadOnlyList<DeckEntryContract> Entries { get; init; }
+
+    public IReadOnlyList<PileDefinitionContract> Piles { get; init; } = Array.Empty<PileDefinitionContract>();
+
+    public int? ExpectedBracketLevel { get; init; }
+
+    public decimal? MinPower { get; init; }
+
+    public decimal? MaxPower { get; init; }
+
+    public decimal? MinSynergy { get; init; }
+
+    public decimal? MaxSynergy { get; init; }
+
+    public string? ExpectedTheme { get; init; }
+
+    public DeckSnapshotContract ToDeckSnapshot() => new()
+    {
+        DeckId = DeckId,
+        Name = Name,
+        CommanderCardId = CommanderCardId,
+        CompanionCardId = CompanionCardId,
+        Entries = Entries,
+        Piles = Piles,
+    };
 }

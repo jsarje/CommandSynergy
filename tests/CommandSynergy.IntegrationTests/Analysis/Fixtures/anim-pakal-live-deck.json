@@ -1,6 +1,12 @@
 {
   "deckId": "integration-anim-pakal-boros-tokens",
   "name": "Anim Pakal Integration Deck",
+  "expectedBracketLevel": 1,
+  "minPower": 1.0,
+  "maxPower": 10.0,
+  "minSynergy": 0.0,
+  "maxSynergy": 10.0,
+  "expectedTheme": "Tokens",
   "commanderCardId": "1614b2f7-2be6-4932-96ac-5db1d77f9bfd",
   "companionCardId": null,
   "piles": [],
