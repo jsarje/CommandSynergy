@@ -17,8 +17,43 @@ env:
   INGESTION_IMAGE: ${{ github.repository_owner }}/commandsynergy-ingestion
 
 jobs:
-  publish:
-    name: Build, Test, Publish
+  prepare:
+    name: Prepare metadata
+    if: github.repository == 'jsarje/CommandSynergy'
+    runs-on: ubuntu-latest
+    outputs:
+      image_tags: ${{ steps.metadata.outputs.image_tags }}
+    steps:
+      - name: Compute image tags
+        id: metadata
+        shell: bash
+        run: |
+          TAG_REF="${GITHUB_REF#refs/tags/}"     # e.g. v1.2.3
+          VERSION="${TAG_REF#v}"                 # e.g. 1.2.3
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          if [ -z "$MAJOR" ]; then
+            echo "Unable to parse major version from tag: $TAG_REF"
+            exit 1
+          fi
+
+          IMAGE_TAGS="$VERSION;$MAJOR"
+
+          if [ -n "$MINOR" ]; then
+            IMAGE_TAGS="$IMAGE_TAGS;$MAJOR.$MINOR"
+          fi
+
+          if [[ "$VERSION" != *-* ]]; then
+            IMAGE_TAGS="latest;$IMAGE_TAGS"
+          fi
+
+          IMAGE_TAGS="$IMAGE_TAGS;$TAG_REF"
+
+          echo "image_tags=$IMAGE_TAGS" >> "$GITHUB_OUTPUT"
+
+  validate:
+    name: Build and test
     if: github.repository == 'jsarje/CommandSynergy'
     runs-on: ubuntu-latest
     steps:
@@ -52,73 +87,147 @@ jobs:
       - name: Run tests
         run: dotnet test ${{ env.SOLUTION }} -c Release --no-build --verbosity normal
 
-      - name: Compute image tags
-        id: metadata
+  publish:
+    name: Publish ${{ matrix.image.name }} (${{ matrix.platform.tag_suffix }})
+    if: github.repository == 'jsarje/CommandSynergy'
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - validate
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - name: web
+            project: src/CommandSynergy/CommandSynergy.csproj
+            repository: commandsynergy-web
+          - name: ingestion
+            project: src/CommandSynergy.Ingestion/CommandSynergy.Ingestion.csproj
+            repository: commandsynergy-ingestion
+        platform:
+          - rid: linux-x64
+            dotnet_arch: x64
+            tag_suffix: linux-x64
+          - rid: linux-arm64
+            dotnet_arch: arm64
+            tag_suffix: linux-arm64
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@55ec9447dda3d1cf6bd587150f3262f30ee10815
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Configure NuGet packages folder
+        run: echo "NUGET_PACKAGES=$HOME/.nuget/packages" >> "$GITHUB_ENV"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/*.sln', '**/*.slnx') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore publish assets
+        run: dotnet restore ${{ matrix.image.project }} -r ${{ matrix.platform.rid }}
+
+      - name: Compute architecture-specific tags
+        id: arch_tags
         shell: bash
-        run: | 
-          TAG_REF="${GITHUB_REF#refs/tags/}"     # e.g. v1.2.3
-          VERSION="${TAG_REF#v}"                 # e.g. 1.2.3
+        env:
+          BASE_TAGS: ${{ needs.prepare.outputs.image_tags }}
+          TAG_SUFFIX: ${{ matrix.platform.tag_suffix }}
+        run: |
+          IFS=';' read -ra TAGS <<< "$BASE_TAGS"
+          ARCH_TAGS=""
 
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          for TAG in "${TAGS[@]}"; do
+            [ -n "$TAG" ] || continue
 
-          if [ -z "$MAJOR" ]; then
-            echo "Unable to parse major version from tag: $TAG_REF"
-            exit 1
-          fi
+            if [ -n "$ARCH_TAGS" ]; then
+              ARCH_TAGS="$ARCH_TAGS;"
+            fi
 
-          IMAGE_TAGS="$VERSION;$MAJOR"
+            ARCH_TAGS="$ARCH_TAGS$TAG-$TAG_SUFFIX"
+          done
 
-          if [ -n "$MINOR" ]; then
-            IMAGE_TAGS="$IMAGE_TAGS;$MAJOR.$MINOR"
-          fi
+          echo "image_tags=$ARCH_TAGS" >> "$GITHUB_OUTPUT"
 
-          if [[ "$VERSION" != *-* ]]; then
-            IMAGE_TAGS="latest;$IMAGE_TAGS"
-          fi
-
-          # Optional: also publish the original git tag form
-          IMAGE_TAGS="$IMAGE_TAGS;$TAG_REF"
-
-          echo "image_tags=$IMAGE_TAGS" >> "$GITHUB_OUTPUT"
-
-      - name: Publish web image
+      - name: Publish image
         env:
           DOTNET_CONTAINER_REGISTRY_UNAME: ${{ github.actor }}
           DOTNET_CONTAINER_REGISTRY_PWORD: ${{ secrets.GITHUB_TOKEN }}
         run: >
-          dotnet publish src/CommandSynergy/CommandSynergy.csproj
+          dotnet publish ${{ matrix.image.project }}
           -c Release
           --no-restore
           --os linux
-          --arch x64
+          --arch ${{ matrix.platform.dotnet_arch }}
           -t:PublishContainer
           -p:ContainerRegistry=${{ env.REGISTRY }}
-          -p:ContainerRepository=${{ env.WEB_IMAGE }}
-          -p:ContainerImageTags=${{ steps.metadata.outputs.image_tags }}
+          -p:ContainerRepository=${{ github.repository_owner }}/${{ matrix.image.repository }}
+          -p:ContainerImageTags=${{ steps.arch_tags.outputs.image_tags }}
 
-      - name: Publish ingestion image
+  manifest:
+    name: Publish manifests for ${{ matrix.name }}
+    if: github.repository == 'jsarje/CommandSynergy'
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - publish
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: web
+            repository: commandsynergy-web
+          - name: ingestion
+            repository: commandsynergy-ingestion
+    steps:
+      - name: Log in to GHCR
         env:
-          DOTNET_CONTAINER_REGISTRY_UNAME: ${{ github.actor }}
-          DOTNET_CONTAINER_REGISTRY_PWORD: ${{ secrets.GITHUB_TOKEN }}
-        run: >
-          dotnet publish src/CommandSynergy.Ingestion/CommandSynergy.Ingestion.csproj
-          -c Release
-          --no-restore
-          --os linux
-          --arch x64
-          -t:PublishContainer
-          -p:ContainerRegistry=${{ env.REGISTRY }}
-          -p:ContainerRepository=${{ env.INGESTION_IMAGE }}
-          -p:ContainerImageTags=${{ steps.metadata.outputs.image_tags }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GHCR_TOKEN" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
+      - name: Create multi-arch manifests
+        shell: bash
+        env:
+          BASE_TAGS: ${{ needs.prepare.outputs.image_tags }}
+          IMAGE_REPOSITORY: ${{ github.repository_owner }}/${{ matrix.repository }}
+        run: |
+          IFS=';' read -ra TAGS <<< "$BASE_TAGS"
+
+          for TAG in "${TAGS[@]}"; do
+            [ -n "$TAG" ] || continue
+
+            docker buildx imagetools create \
+              --tag "${{ env.REGISTRY }}/$IMAGE_REPOSITORY:$TAG" \
+              "${{ env.REGISTRY }}/$IMAGE_REPOSITORY:$TAG-linux-x64" \
+              "${{ env.REGISTRY }}/$IMAGE_REPOSITORY:$TAG-linux-arm64"
+          done
+
+  release:
+    name: Create GitHub release
+    if: github.repository == 'jsarje/CommandSynergy'
+    runs-on: ubuntu-latest
+    needs:
+      - manifest
+    steps:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
-        with:          
-          body: |          
-            Published container images:
+        with:
+          body: |
+            Published multi-architecture container images:
 
             - `ghcr.io/${{ env.WEB_IMAGE }}:${{ github.ref_name }}`
             - `ghcr.io/${{ env.INGESTION_IMAGE }}:${{ github.ref_name }}`
+
+            Architecture-specific tags are also available with the `-linux-x64` and `-linux-arm64` suffixes.
 
             Packages:
             - https://github.com/${{ github.repository }}/pkgs/container/commandsynergy-web

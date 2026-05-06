@@ -2,6 +2,7 @@
   <Folder Name="/SolutionItems/">
     <File Path="../.gitignore" />
     <File Path="../.impeccable.md" />
+    <File Path="../README.md" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="../tests/CommandSynergy.Application.Tests/CommandSynergy.Application.Tests.csproj" />

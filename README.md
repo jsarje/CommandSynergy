@@ -42,7 +42,7 @@ CommandSynergy is a developer-focused .NET 10 Blazor Web App to build, validate,
 
 ```yaml
 services:
-  blazor-app:
+  synergy-sphere:
     image: ghcr.io/jsarje/commandsynergy-web:main
     ports:
       - "8080:8080"
