@@ -146,7 +146,7 @@
 
             @if (selectedDetail is null)
             {
-                <p class="workspace-panel__empty workspace-panel__hint" data-testid="analysis-detail-hint">Click a metric to inspect the read.</p>
+                <p class="workspace-panel__empty workspace-panel__hint" data-testid="analysis-detail-hint">Click a metric to view details.</p>
             }
             else if (selectedDetail == DeckSignalDetail.Validation)
             {
@@ -179,9 +179,9 @@
             {
                 <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
                     <MudExpansionPanel Text="Bracket" Expanded="true">
-                        <div id="@GetDetailPanelId(DeckSignalDetail.Bracket)">
+                        <section id="@GetDetailPanelId(DeckSignalDetail.Bracket)">
                             <BracketAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
-                        </div>
+                        </section>
                     </MudExpansionPanel>
                 </MudExpansionPanels>
             }
@@ -189,9 +189,9 @@
             {
                 <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
                     <MudExpansionPanel Text="Synergy" Expanded="true">
-                        <div id="@GetDetailPanelId(DeckSignalDetail.Synergy)">
+                        <section id="@GetDetailPanelId(DeckSignalDetail.Synergy)">
                             <SynergyAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
-                        </div>
+                        </section>
                     </MudExpansionPanel>
                 </MudExpansionPanels>
             }
@@ -199,9 +199,9 @@
             {
                 <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
                     <MudExpansionPanel Text="Power level" Expanded="true">
-                        <div id="@GetDetailPanelId(DeckSignalDetail.PowerLevel)">
+                        <section id="@GetDetailPanelId(DeckSignalDetail.PowerLevel)">
                             <PowerLevelAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
-                        </div>
+                        </section>
                     </MudExpansionPanel>
                 </MudExpansionPanels>
             }
@@ -209,9 +209,9 @@
             {
                 <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
                     <MudExpansionPanel Text="Theme signals" Expanded="true">
-                        <div id="@GetDetailPanelId(DeckSignalDetail.ThemeSignals)">
+                        <section id="@GetDetailPanelId(DeckSignalDetail.ThemeSignals)">
                             <ThemeAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
-                        </div>
+                        </section>
                     </MudExpansionPanel>
                 </MudExpansionPanels>
             }
