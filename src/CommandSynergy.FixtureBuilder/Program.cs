@@ -301,7 +301,7 @@ sealed partial record FixtureBuilderOptions(
     }
 
 
-    [GeneratedRegex("^(?<quantity>\\d+)\\s+(?<name>.+?)(?:\\s+\\((?<tag>commander|companion)\\))?$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    [GeneratedRegex("^(?<quantity>\\d+)x?\\s+(?<name>.+?)(?:\\s+\\((?<tag>commander|companion)\\))?$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex DeckLineRegex();
 
 }
