@@ -105,7 +105,7 @@ static ParsedDeckLine? ParseLine(string rawLine)
     var match = FixtureBuilderOptions.MatchDeckLine(line);
     if (!match.Success)
     {
-        throw new InvalidOperationException($"Could not parse line '{line}'. Expected format '1 Card Name' or '1 Card Name (commander)'.");
+        throw new InvalidOperationException($"Could not parse line '{line}'. Expected format '1 Card Name', '1x Card Name', or tagged variants such as '1 Card Name (commander)'.");
     }
 
     var quantity = int.Parse(match.Groups["quantity"].Value, CultureInfo.InvariantCulture);
