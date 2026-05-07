@@ -7,37 +7,20 @@
     box-shadow: none;
 }
 
-.theme-analysis__header,
-.theme-analysis__section-header {
-    display: flex;
-    align-items: start;
-    justify-content: space-between;
-    gap: 0.75rem;
-}
-
 .theme-analysis__header {
-    margin-bottom: 0.85rem;
+    margin-bottom: 0;
 }
 
-.theme-analysis__refresh-banner,
 .theme-analysis__message,
 .theme-analysis__subtle,
 .theme-analysis__preview-label {
     color: #5e5144;
 }
 
-.theme-analysis__refresh-banner,
 .theme-analysis__message {
     margin: 0.35rem 0 0;
     font-size: 0.95rem;
     line-height: 1.45;
-}
-
-.theme-analysis__refresh-banner {
-    display: inline-flex;
-    padding: 0.35rem 0.65rem;
-    border-radius: 999px;
-    background: rgba(168, 109, 42, 0.08);
 }
 
 .theme-analysis__summary-strip {
@@ -54,7 +37,6 @@
     font-weight: 700;
 }
 
-.theme-analysis__alignment,
 .theme-analysis__chip,
 .theme-analysis__metadata-pill,
 .theme-analysis__toggle {
@@ -62,9 +44,6 @@
 }
 
 .theme-analysis__alignment {
-    padding: 0.35rem 0.7rem;
-    font-size: 0.8rem;
-    font-weight: 700;
     background: rgba(76, 60, 45, 0.08);
     color: #3f342c;
 }
@@ -86,15 +65,11 @@
 }
 
 .theme-analysis__chips {
-    display: flex;
-    flex-wrap: wrap;
     gap: 0.5rem;
     margin-bottom: 1rem;
 }
 
 .theme-analysis__chip {
-    display: inline-flex;
-    align-items: center;
     gap: 0.45rem;
     padding: 0.45rem 0.75rem;
     background: rgba(88, 116, 79, 0.1);
@@ -125,21 +100,14 @@
     background: rgba(255, 255, 255, 0.44);
 }
 
+
 .theme-analysis__contributors,
 .theme-analysis__off-theme {
-    list-style: none;
-    padding: 0;
-    margin: 0.8rem 0 0;
-    display: grid;
-    gap: 0.65rem;
+    margin-top: 0.8rem;
 }
 
 .theme-analysis__contributor,
 .theme-analysis__off-theme-card {
-    display: flex;
-    align-items: start;
-    justify-content: space-between;
-    gap: 0.75rem;
     padding: 0.8rem;
     border-radius: 14px;
     background: rgba(255, 255, 255, 0.46);
@@ -165,18 +133,4 @@
     font-size: 0.75rem;
     font-weight: 700;
     white-space: nowrap;
-}
-
-@media (max-width: 640px) {
-    .theme-analysis__header,
-    .theme-analysis__section-header,
-    .theme-analysis__contributor,
-    .theme-analysis__off-theme-card {
-        flex-direction: column;
-    }
-
-    .theme-analysis__toggle,
-    .theme-analysis__alignment {
-        align-self: flex-start;
-    }
 }

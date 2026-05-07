@@ -57,7 +57,7 @@ public sealed class AnalysisExplanationBuilder : IAnalysisExplanationBuilder
     {
         var offThemeText = offThemeCardCount == 0
             ? "Every analysed card reinforced at least one theme"
-            : $"{offThemeCardCount} of {totalCardCount} cards currently read as off-theme";        
+            : $"{offThemeCardCount} of {totalCardCount} cards currently read as off-theme";
 
         return $"Theme score {finalScore:0.#}/100 ({qualitativeLabel}). {alignment.Summary} {offThemeText}.";
     }

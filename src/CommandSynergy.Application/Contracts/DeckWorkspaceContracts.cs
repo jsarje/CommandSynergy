@@ -311,13 +311,49 @@ public sealed record ManaCurveContract
 /// <summary>
 /// Represents the heuristic power-level response payload.
 /// </summary>
+public sealed record AnalysisSummaryItemContract
+{
+    [JsonPropertyName("label")]
+    public required string Label { get; init; }
+
+    [JsonPropertyName("value")]
+    public required string Value { get; init; }
+
+    [JsonPropertyName("description")]
+    public string? Description { get; init; }
+
+    [JsonPropertyName("tone")]
+    public string Tone { get; init; } = "neutral";
+}
+
+/// <summary>
+/// Represents a grouped set of bite-sized analysis summary items.
+/// </summary>
+public sealed record AnalysisSummarySectionContract
+{
+    [JsonPropertyName("title")]
+    public required string Title { get; init; }
+
+    [JsonPropertyName("items")]
+    public IReadOnlyList<AnalysisSummaryItemContract> Items { get; init; } = Array.Empty<AnalysisSummaryItemContract>();
+}
+
+/// <summary>
+/// Represents the heuristic power-level response payload.
+/// </summary>
 public sealed record PowerLevelAssessmentContract
 {
     [JsonPropertyName("score")]
     public decimal Score { get; init; }
 
+    [JsonPropertyName("label")]
+    public string Label { get; init; } = "Measured";
+
     [JsonPropertyName("summary")]
     public required string Summary { get; init; }
+
+    [JsonPropertyName("supportingSections")]
+    public IReadOnlyList<AnalysisSummarySectionContract> SupportingSections { get; init; } = Array.Empty<AnalysisSummarySectionContract>();
 
     /// <summary>
     /// Gets a baseline power-level payload used when older cached responses omit this field.
@@ -325,7 +361,24 @@ public sealed record PowerLevelAssessmentContract
     public static PowerLevelAssessmentContract Baseline() => new()
     {
         Score = 4.0m,
+        Label = "Measured",
         Summary = "Baseline heuristic score before card-speed and combo adjustments.",
+        SupportingSections =
+        [
+            new AnalysisSummarySectionContract
+            {
+                Title = "Read",
+                Items =
+                [
+                    new AnalysisSummaryItemContract
+                    {
+                        Label = "Baseline",
+                        Value = "Awaiting deck signals",
+                        Description = "Sync more card data to replace the baseline read with the deck's current pace and pressure.",
+                    },
+                ],
+            },
+        ],
     };
 }
 
@@ -418,6 +471,9 @@ public sealed record SynergyAssessmentContract
     [JsonPropertyName("qualitativeLabel")]
     public string QualitativeLabel { get; init; } = "Pile";
 
+    [JsonPropertyName("label")]
+    public string Label { get; init; } = "Pile";
+
     [JsonPropertyName("edhrecEnhanced")]
     public bool EdhrecEnhanced { get; init; }
 
@@ -429,6 +485,9 @@ public sealed record SynergyAssessmentContract
 
     [JsonPropertyName("stapleOverloadIndicators")]
     public IReadOnlyList<string> StapleOverloadIndicators { get; init; } = Array.Empty<string>();
+
+    [JsonPropertyName("supportingSections")]
+    public IReadOnlyList<AnalysisSummarySectionContract> SupportingSections { get; init; } = Array.Empty<AnalysisSummarySectionContract>();
 }
 
 /// <summary>

@@ -1,6 +1,6 @@
 @using CommandSynergy.Application.Contracts
 
-@if (IsLoading)
+@if (IsLoading && Analysis is null)
 {
     <div class="analysis-panel analysis-panel--loading" data-testid="bracket-analysis-loading">
         <MudProgressCircular Indeterminate="true" Size="Size.Small" />
@@ -23,27 +23,72 @@ else if (Analysis is null)
 }
 else
 {
-    <div class="analysis-bracket" data-testid="analysis-bracket">
-        <div class="analysis-bracket__header">
-            <h4 class="analysis-bracket__label">Bracket @Analysis.Bracket.Level</h4>
-            <span class="analysis-bracket__weight"
-                  title="Total bracket weight">@Analysis.Bracket.TotalWeight.ToString("0.##")</span>
-        </div>
-        <p class="analysis-bracket__summary">@Analysis.Bracket.Summary</p>
-
-        @if (Analysis.Bracket.Factors.Count > 0)
-        {
-            <ul class="analysis-factors" data-testid="bracket-factors">
-                @foreach (var factor in Analysis.Bracket.Factors)
+    <section class="analysis-panel analysis-panel--ready analysis-bracket" data-testid="analysis-bracket" aria-busy="@IsLoading">
+        <div class="analysis-panel__header">
+            <div>
+                <h4 class="analysis-bracket__label">Bracket</h4>
+                @if (IsLoading)
                 {
-                    <li class="analysis-factor analysis-factor--@factor.Category">
-                        <span class="analysis-factor__weight">+@factor.Weight.ToString("0.##")</span>
-                        <span class="analysis-factor__explanation">@factor.Explanation</span>
-                    </li>
+                    <p class="analysis-panel__refresh-banner" data-testid="bracket-analysis-refreshing" role="status" aria-live="polite">
+                        Refreshing. Showing the previous result.
+                    </p>
                 }
+            </div>
+            <span class="analysis-panel__label-pill analysis-panel__label-pill--bracket"
+                  data-testid="bracket-analysis-pill"
+                  title="Commander bracket read">Bracket @Analysis.Bracket.Level</span>
+        </div>
+
+        <p class="analysis-panel__summary">@Analysis.Bracket.Summary</p>
+
+        <section class="analysis-panel__section" aria-labelledby="bracket-overview-title">
+            <div class="analysis-panel__section-header">
+                <h5 id="bracket-overview-title">Overview</h5>
+            </div>
+            <ul class="analysis-panel__list" data-testid="bracket-analysis-overview">
+                <li class="analysis-panel__item analysis-panel__item--neutral">
+                    <div>
+                        <strong>Total weight</strong>
+                        <p>Accumulated bracket pressure from the current deck signals.</p>
+                    </div>
+                    <span class="analysis-panel__item-value">@Analysis.Bracket.TotalWeight.ToString("0.##")</span>
+                </li>
+                <li class="analysis-panel__item analysis-panel__item--neutral">
+                    <div>
+                        <strong>Top drivers</strong>
+                        <p>@(Analysis.Bracket.Factors.Count == 0 ? "No bracket-defining signals surfaced yet." : $"{Analysis.Bracket.Factors.Count} weighted factor(s) are currently shaping the read.")</p>
+                    </div>
+                    <span class="analysis-panel__item-value">@Analysis.Bracket.Factors.Count</span>
+                </li>
             </ul>
-        }
-    </div>
+        </section>
+
+        <section class="analysis-panel__section" aria-labelledby="bracket-factors-title">
+            <div class="analysis-panel__section-header">
+                <h5 id="bracket-factors-title">Weighted factors</h5>
+            </div>
+
+            @if (Analysis.Bracket.Factors.Count == 0)
+            {
+                <p class="analysis-panel__message">No bracket-defining signals were detected.</p>
+            }
+            else
+            {
+                <ul class="analysis-panel__list analysis-factors" data-testid="bracket-factors">
+                    @foreach (var factor in Analysis.Bracket.Factors)
+                    {
+                        <li class="analysis-panel__item analysis-factor analysis-factor--@factor.Category">
+                            <div>
+                                <strong>@FormatCategoryLabel(factor.Category)</strong>
+                                <p class="analysis-factor__explanation">@factor.Explanation</p>
+                            </div>
+                            <span class="analysis-panel__item-value analysis-factor__weight">+@factor.Weight.ToString("0.##")</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    </section>
 }
 
 @code {
@@ -64,4 +109,15 @@ else
     /// </summary>
     [Parameter]
     public bool HasError { get; set; }
+
+    private static string FormatCategoryLabel(string category)
+    {
+        if (string.IsNullOrWhiteSpace(category))
+        {
+            return "Signal";
+        }
+
+        return string.Join(' ', category.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(static part => char.ToUpperInvariant(part[0]) + part[1..]));
+    }
 }

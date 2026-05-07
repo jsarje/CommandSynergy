@@ -77,8 +77,21 @@ public sealed class BracketAnalysisPanelTests : BunitContext
             .Add(component => component.HasError, false)
             .Add(component => component.Analysis, analysis));
 
-        cut.Find("[data-testid='analysis-bracket']").TextContent.Should().Contain("Bracket 4");
+        cut.Find("[data-testid='bracket-analysis-pill']").TextContent.Should().Contain("Bracket 4");
+        cut.Find("[data-testid='bracket-analysis-overview']").TextContent.Should().Contain("Total weight");
         cut.Find("[data-testid='bracket-factors']").TextContent.Should().Contain("Mana Crypt is a configured game changer.");
+    }
+
+    [Fact]
+    public void Bracket_analysis_panel_preserves_stale_results_while_refreshing()
+    {
+        var cut = Render<BracketAnalysisPanel>(parameters => parameters
+            .Add(component => component.IsLoading, true)
+            .Add(component => component.HasError, false)
+            .Add(component => component.Analysis, CreateAnalysis()));
+
+        cut.Find("[data-testid='analysis-bracket']").HasAttribute("aria-busy").Should().BeTrue();
+        cut.Find("[data-testid='bracket-analysis-refreshing']").TextContent.Should().Contain("Showing the previous result");
     }
 
     private static DeckAnalysisResponseContract CreateAnalysis() => new()
@@ -87,11 +100,13 @@ public sealed class BracketAnalysisPanelTests : BunitContext
         PowerLevel = new PowerLevelAssessmentContract
         {
             Score = 6.7m,
+            Label = "Focused",
             Summary = "Power summary.",
         },
         Synergy = new SynergyAssessmentContract
         {
             Score = 74.2m,
+            Label = "Focused",
             Summary = "Synergy summary.",
             CommanderSpecificHits = Array.Empty<string>(),
             StapleOverloadIndicators = Array.Empty<string>(),

@@ -60,9 +60,57 @@ public sealed class SynergyAnalysisPanelTests : BunitContext
             Synergy = new SynergyAssessmentContract
             {
                 Score = 80m,
+                FinalScore = 82m,
+                QualitativeLabel = "Tuned",
+                Label = "Tuned",
                 Summary = "Strong commander alignment.",
                 CommanderSpecificHits = ["Graveyard Enabler", "Sacrifice Outlet"],
                 StapleOverloadIndicators = ["Rhystic Study"],
+                SupportingSections =
+                [
+                    new AnalysisSummarySectionContract
+                    {
+                        Title = "Breakdown",
+                        Items =
+                        [
+                            new AnalysisSummaryItemContract
+                            {
+                                Label = "Final read",
+                                Value = "82",
+                                Description = "Final read after all synergy inputs.",
+                                Tone = "positive",
+                            },
+                        ],
+                    },
+                    new AnalysisSummarySectionContract
+                    {
+                        Title = "Commander hits",
+                        Items =
+                        [
+                            new AnalysisSummaryItemContract
+                            {
+                                Label = "Graveyard Enabler",
+                                Value = "Supports the plan",
+                                Description = "Commander-aligned piece.",
+                                Tone = "positive",
+                            },
+                        ],
+                    },
+                    new AnalysisSummarySectionContract
+                    {
+                        Title = "Cautions",
+                        Items =
+                        [
+                            new AnalysisSummaryItemContract
+                            {
+                                Label = "Rhystic Study",
+                                Value = "Generic pressure",
+                                Description = "Broad staple pressure.",
+                                Tone = "warning",
+                            },
+                        ],
+                    },
+                ],
             },
         };
 
@@ -71,9 +119,22 @@ public sealed class SynergyAnalysisPanelTests : BunitContext
             .Add(component => component.HasError, false)
             .Add(component => component.Analysis, analysis));
 
-        cut.Find("[data-testid='analysis-synergy']").TextContent.Should().Contain("80");
+        cut.Find("[data-testid='synergy-analysis-pill']").TextContent.Should().Contain("Tuned");
+        cut.Find("[data-testid='analysis-synergy']").TextContent.Should().Contain("82");
         cut.Find("[data-testid='synergy-commander-hits']").TextContent.Should().Contain("Graveyard Enabler");
         cut.Find("[data-testid='synergy-staple-overload']").TextContent.Should().Contain("Rhystic Study");
+    }
+
+    [Fact]
+    public void Synergy_analysis_panel_preserves_stale_results_while_refreshing()
+    {
+        var cut = Render<SynergyAnalysisPanel>(parameters => parameters
+            .Add(component => component.IsLoading, true)
+            .Add(component => component.HasError, false)
+            .Add(component => component.Analysis, CreateAnalysis()));
+
+        cut.Find("[data-testid='analysis-synergy']").HasAttribute("aria-busy").Should().BeTrue();
+        cut.Find("[data-testid='synergy-analysis-refreshing']").TextContent.Should().Contain("Showing the previous result");
     }
 
     private static DeckAnalysisResponseContract CreateAnalysis() => new()
@@ -88,14 +149,60 @@ public sealed class SynergyAnalysisPanelTests : BunitContext
         PowerLevel = new PowerLevelAssessmentContract
         {
             Score = 6.7m,
+            Label = "Focused",
             Summary = "Power summary.",
         },
         Synergy = new SynergyAssessmentContract
         {
             Score = 74.2m,
+            FinalScore = 74.2m,
+            QualitativeLabel = "Focused",
+            Label = "Focused",
             Summary = "Synergy summary.",
             CommanderSpecificHits = Array.Empty<string>(),
             StapleOverloadIndicators = Array.Empty<string>(),
+            SupportingSections =
+            [
+                new AnalysisSummarySectionContract
+                {
+                    Title = "Breakdown",
+                    Items =
+                    [
+                        new AnalysisSummaryItemContract
+                        {
+                            Label = "Final read",
+                            Value = "74.2",
+                            Description = "Composite read.",
+                        },
+                    ],
+                },
+                new AnalysisSummarySectionContract
+                {
+                    Title = "Commander hits",
+                    Items =
+                    [
+                        new AnalysisSummaryItemContract
+                        {
+                            Label = "Commander hits",
+                            Value = "None surfaced",
+                            Description = "No standout glue pieces yet.",
+                        },
+                    ],
+                },
+                new AnalysisSummarySectionContract
+                {
+                    Title = "Cautions",
+                    Items =
+                    [
+                        new AnalysisSummaryItemContract
+                        {
+                            Label = "Staple drag",
+                            Value = "In check",
+                            Description = "No obvious tension points.",
+                        },
+                    ],
+                },
+            ],
         },
     };
 }

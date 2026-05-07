@@ -60,8 +60,23 @@ public sealed class PowerLevelAnalysisPanelTests : BunitContext
             .Add(component => component.HasError, false)
             .Add(component => component.Analysis, CreateAnalysis()));
 
+        cut.Find("[data-testid='power-analysis-pill']").TextContent.Should().Contain("Focused");
         cut.Find("[data-testid='analysis-power']").TextContent.Should().Contain("6.7");
         cut.Find("[data-testid='analysis-power']").TextContent.Should().Contain("Power summary.");
+        cut.Find("[data-testid='power-analysis-read']").TextContent.Should().Contain("Curve");
+        cut.Find("[data-testid='power-analysis-signals']").TextContent.Should().Contain("Fast mana");
+    }
+
+    [Fact]
+    public void Power_level_analysis_panel_preserves_stale_results_while_refreshing()
+    {
+        var cut = Render<PowerLevelAnalysisPanel>(parameters => parameters
+            .Add(component => component.IsLoading, true)
+            .Add(component => component.HasError, false)
+            .Add(component => component.Analysis, CreateAnalysis()));
+
+        cut.Find("[data-testid='analysis-power']").HasAttribute("aria-busy").Should().BeTrue();
+        cut.Find("[data-testid='power-analysis-refreshing']").TextContent.Should().Contain("Showing the previous result");
     }
 
     private static DeckAnalysisResponseContract CreateAnalysis() => new()
@@ -76,11 +91,44 @@ public sealed class PowerLevelAnalysisPanelTests : BunitContext
         PowerLevel = new PowerLevelAssessmentContract
         {
             Score = 6.7m,
+            Label = "Focused",
             Summary = "Power summary.",
+            SupportingSections =
+            [
+                new AnalysisSummarySectionContract
+                {
+                    Title = "Read",
+                    Items =
+                    [
+                        new AnalysisSummaryItemContract
+                        {
+                            Label = "Curve",
+                            Value = "2.4",
+                            Description = "Lean curve supports earlier pressure.",
+                            Tone = "positive",
+                        },
+                    ],
+                },
+                new AnalysisSummarySectionContract
+                {
+                    Title = "Signals",
+                    Items =
+                    [
+                        new AnalysisSummaryItemContract
+                        {
+                            Label = "Fast mana",
+                            Value = "2 pieces",
+                            Description = "Acceleration is pushing the deck upward.",
+                            Tone = "positive",
+                        },
+                    ],
+                },
+            ],
         },
         Synergy = new SynergyAssessmentContract
         {
             Score = 74.2m,
+            Label = "Focused",
             Summary = "Synergy summary.",
             CommanderSpecificHits = Array.Empty<string>(),
             StapleOverloadIndicators = Array.Empty<string>(),

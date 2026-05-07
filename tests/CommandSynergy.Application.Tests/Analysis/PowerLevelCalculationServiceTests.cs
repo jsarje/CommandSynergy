@@ -33,7 +33,7 @@ public sealed class PowerLevelCalculationServiceTests
         var result = sut.Calculate(deck, profiles, comboAnalysis);
 
         result.Score.Should().Be(9.2m);
-        result.Summary.Should().Contain("avg MV 1.8");
+        result.Summary.Should().Contain("Average ManaCost 1.8");
         result.Summary.Should().Contain("1 fast mana card");
         result.Summary.Should().Contain("1 efficient tutor");
         result.Summary.Should().Contain("1 free interaction piece");
@@ -54,7 +54,7 @@ public sealed class PowerLevelCalculationServiceTests
         var result = sut.Calculate(deck, profiles, ComboAnalysis.Empty());
 
         result.Score.Should().Be(3.5m);
-        result.Summary.Should().Contain("avg MV 5");
+        result.Summary.Should().Contain("Average ManaCost 5");
     }
 
     [Fact]
