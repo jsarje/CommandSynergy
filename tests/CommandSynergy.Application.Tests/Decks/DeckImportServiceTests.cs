@@ -61,6 +61,43 @@ public sealed class DeckImportServiceTests
     }
 
     [Fact]
+    public async Task ImportAsync_supports_bare_plaintext_entries_with_x_quantity_prefix()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.ImportAsync(new DeckImportRequestContract
+        {
+            RawDocumentText = "1x Mountain",
+        });
+
+        result.DetectedFormatId.Should().Be("generic-plaintext");
+        result.ImportedDeck.NormalizedDeck.ImportedCardCount.Should().Be(1);
+        result.ImportedDeck.NormalizedDeck.Entries.Should().ContainSingle(entry =>
+            entry.DisplayName == "Mountain"
+            && entry.Quantity == 1);
+    }
+
+    [Fact]
+    public async Task ImportAsync_supports_mixed_plaintext_quantity_prefix_styles()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.ImportAsync(new DeckImportRequestContract
+        {
+            RawDocumentText = "1 Mountain\n1x Sol Ring",
+        });
+
+        result.DetectedFormatId.Should().Be("generic-plaintext");
+        result.ImportedDeck.NormalizedDeck.ImportedCardCount.Should().Be(2);
+        result.ImportedDeck.NormalizedDeck.Entries.Should().ContainSingle(entry =>
+            entry.DisplayName == "Mountain"
+            && entry.Quantity == 1);
+        result.ImportedDeck.NormalizedDeck.Entries.Should().ContainSingle(entry =>
+            entry.DisplayName == "Sol Ring"
+            && entry.Quantity == 1);
+    }
+
+    [Fact]
     public async Task ImportAsync_reuses_card_resolution_for_duplicate_card_names()
     {
         var cardSearchService = new CountingCardSearchService();
@@ -95,6 +132,7 @@ public sealed class DeckImportServiceTests
             ["Wear // Tear"] = new() { CardId = "wear-tear", Name = "Wear // Tear", ManaCost = "{1}{R} // {W}", TypeLine = "Instant", ColorIdentity = ["R", "W"], ImageUri = "https://cards.example/wear-tear.jpg", HasMultipleFaces = true, CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
             ["Swords to Plowshares"] = new() { CardId = "swords-to-plowshares", Name = "Swords to Plowshares", ManaCost = "{W}", TypeLine = "Instant", ColorIdentity = ["W"], ImageUri = "https://cards.example/swords-to-plowshares.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
             ["Cultivate"] = new() { CardId = "cultivate", Name = "Cultivate", ManaCost = "{2}{G}", TypeLine = "Sorcery", ColorIdentity = ["G"], ImageUri = "https://cards.example/cultivate.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
+            ["Mountain"] = new() { CardId = "mountain", Name = "Mountain", ManaCost = string.Empty, TypeLine = "Basic Land — Mountain", ColorIdentity = ["R"], ImageUri = "https://cards.example/mountain.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
             ["Arcane Signet"] = new() { CardId = "arcane-signet", Name = "Arcane Signet", ManaCost = "{2}", TypeLine = "Artifact", ColorIdentity = Array.Empty<string>(), ImageUri = "https://cards.example/arcane-signet.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
             ["Aftermath Analyst"] = new() { CardId = "aftermath-analyst", Name = "Aftermath Analyst", ManaCost = "{2}{G}", TypeLine = "Creature", ColorIdentity = ["G"], ImageUri = "https://cards.example/aftermath-analyst.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
             ["Magar of the Magic Strings"] = new() { CardId = "magar-of-the-magic-strings", Name = "Magar of the Magic Strings", ManaCost = "{1}{B}{R}", TypeLine = "Legendary Creature", ColorIdentity = ["B", "R"], ImageUri = "https://cards.example/magar-of-the-magic-strings.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.LegendaryCreature },
