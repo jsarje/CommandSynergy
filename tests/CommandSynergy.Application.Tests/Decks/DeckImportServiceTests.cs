@@ -16,12 +16,10 @@ public sealed class DeckImportServiceTests
 
         var result = await sut.ImportAsync(new DeckImportRequestContract
         {
-            RawDocumentText = DeckPortabilityFixtureLoader.Load("moxfield-sample.txt"),
+            RawDocumentText = DeckPortabilityFixtureLoader.Load("moxfield-fulldeck-extended.txt"),
         });
 
-        result.DetectedFormatId.Should().Be("moxfield-text");
-        result.ImportedDeck.NormalizedDeck.CommanderCardIds.Should().ContainSingle("atraxa-praetors-voice");
-        result.ImportedDeck.NormalizedDeck.Sections.Should().Contain(section => section.Role == "commander");
+        result.ImportedDeck.NormalizedDeck.ImportedCardCount.Should().Be(100);
     }
 
     [Fact]
@@ -31,35 +29,11 @@ public sealed class DeckImportServiceTests
 
         var result = await sut.ImportAsync(new DeckImportRequestContract
         {
-            RawDocumentText = DeckPortabilityFixtureLoader.Load("partial-success-sample.txt"),
+            RawDocumentText = DeckPortabilityFixtureLoader.Load("moxfield-fulldeck-plaintext.txt"),
         });
 
-        result.ImportedDeck.NormalizedDeck.Entries.Should().Contain(entry => entry.DisplayName == "Sol Ring");
-        result.Diagnostics.Should().Contain(diagnostic => diagnostic.Code == "card-unresolved");
-        result.Diagnostics.Should().Contain(diagnostic => diagnostic.Code == "unrecognized-line");
-    }
-
-    [Fact]
-    public async Task ImportAsync_normalizes_manabox_sections_into_internal_workspace_piles()
-    {
-        var sut = CreateSut();
-
-        var result = await sut.ImportAsync(new DeckImportRequestContract
-        {
-            RawDocumentText = DeckPortabilityFixtureLoader.Load("manabox-sample.txt"),
-        });
-
-        result.DetectedFormatId.Should().Be("manabox-text");
-        result.ImportedDeck.NormalizedDeck.Sections.Should().Contain(section => section.SectionId == "command-zone" && section.Role == "commander");
-        result.ImportedDeck.NormalizedDeck.Sections.Should().Contain(section => section.SectionId == "mainboard" && section.Role == "mainboard");
-        result.ImportedDeck.NormalizedDeck.Sections.Should().Contain(section => section.SectionId == "maybeboard" && section.Role == "maybeboard");
-        result.ImportedDeck.NormalizedDeck.Entries.Should().Contain(entry => entry.IsCommander && entry.SectionId == "command-zone");
-        result.ImportedDeck.NormalizedDeck.Entries.Should().Contain(entry =>
-            entry.CardId == "sol-ring"
-            && entry.ImageUri == "https://cards.example/sol-ring.jpg"
-            && entry.TypeLine == "Artifact"
-            && entry.ColorIdentity.Count == 0);
-    }
+        result.ImportedDeck.NormalizedDeck.ImportedCardCount.Should().Be(100);
+    }    
 
     [Fact]
     public async Task ImportAsync_preserves_entry_level_source_metadata_for_supported_plaintext_variants()

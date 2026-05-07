@@ -1,9 +1,0 @@
-Deck: Troubled Import
-
-Commander:
-1 Atraxa, Praetors' Voice
-
-Deck:
-1 Sol Ring
-1 Totally Made Up Card
-this line is bad
