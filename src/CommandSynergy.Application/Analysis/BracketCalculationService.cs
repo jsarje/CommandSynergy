@@ -65,7 +65,7 @@ public sealed class BracketCalculationService(
                 factors.Add(new BracketFactor(
                     "game-changer",
                     bracketOptions.GameChangerWeight,
-                    $"{profile.Name} is flagged by Scryfall as a game changer.",
+                    $"{profile.Name} is flagged as a game changer.",
                     entry.CardId));
             }
 

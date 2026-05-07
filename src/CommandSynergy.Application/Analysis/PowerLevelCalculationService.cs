@@ -139,8 +139,8 @@ public sealed class PowerLevelCalculationService : IPowerLevelCalculationService
         int comboCount)
     {
         var curveText = averageManaValue is null
-            ? "curve unavailable"
-            : $"avg MV {averageManaValue.Value.ToString("0.##", CultureInfo.InvariantCulture)}";
+            ? "Curve unavailable"
+            : $"Average ManaCost {averageManaValue.Value.ToString("0.##", CultureInfo.InvariantCulture)}";
 
         return $"{curveText}; {Pluralize(fastManaCount, "fast mana card")}, {Pluralize(efficientTutorCount, "efficient tutor")}, {Pluralize(freeInteractionCount, "free interaction piece")}, and {Pluralize(comboCount, "included combo")}.";
     }
