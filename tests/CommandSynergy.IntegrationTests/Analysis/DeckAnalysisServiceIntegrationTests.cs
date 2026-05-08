@@ -20,8 +20,8 @@ public sealed class DeckAnalysisServiceIntegrationTests : IClassFixture<DeckAnal
             return;
         }
 
-        var expected = fixture.LoadFixtureExpectations("anim-pakal-live-deck.json");
-        var response = await fixture.AnalyzeAsync("anim-pakal-live-deck.json");
+        var expected = fixture.LoadFixtureExpectations("monks.json");
+        var response = await fixture.AnalyzeAsync("monks.json");
 
         response.Bracket.Level.Should().Be(expected.ExpectedBracketLevel ?? 1);
         response.Bracket.Summary.Should().NotBeNullOrWhiteSpace();
