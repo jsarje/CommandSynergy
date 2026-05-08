@@ -10,7 +10,7 @@ public sealed class DeckImportService(
     TimeProvider timeProvider) : IDeckImportService
 {
     private const int MaxDocumentLength = 64 * 1024;
-    private const int MaxConcurrentCardResolutions = 8;
+    private const int MaxConcurrentCardResolutions = 16;
 
     public async Task<DeckImportResultContract> ImportAsync(DeckImportRequestContract request, CancellationToken cancellationToken = default)
     {

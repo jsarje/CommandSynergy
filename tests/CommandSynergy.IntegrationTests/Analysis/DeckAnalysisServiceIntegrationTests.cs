@@ -12,16 +12,20 @@ public sealed class DeckAnalysisServiceIntegrationTests : IClassFixture<DeckAnal
         this.fixture = fixture;
     }
 
-    [Fact]
-    public async Task AnalyzeAsync_returns_live_analysis_for_fixture_deck()
+    [Theory]
+    [InlineData("monks.json")]
+    [InlineData("Avacyn.json")]
+    [InlineData("Elves.json")]
+    [InlineData("Yshtola.json")]
+    public async Task AnalyzeAsync_ShouldReturnExpectedAnalysis_WhenFixtureDeckPassed(string deckJson)
     {
         if (!fixture.LiveDependenciesEnabled)
         {
             return;
         }
 
-        var expected = fixture.LoadFixtureExpectations("monks.json");
-        var response = await fixture.AnalyzeAsync("monks.json");
+        var expected = fixture.LoadFixtureExpectations(deckJson);
+        var response = await fixture.AnalyzeAsync(deckJson);
 
         response.Bracket.Level.Should().Be(expected.ExpectedBracketLevel ?? 1);
         response.Bracket.Summary.Should().NotBeNullOrWhiteSpace();

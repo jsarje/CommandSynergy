@@ -3,6 +3,11 @@
   "name": "Elves",
   "commanderCardId": "5f7687b1-630a-4e95-89c7-eaf456d8cb68",
   "companionCardId": null,
+  "expectedBracketLevel": 3,
+  "minPower": 5.0,
+  "maxPower": 8.0,
+  "minSynergy": 30.0,
+  "maxSynergy": 50.0,
   "entries": [
     {
       "cardId": "5f7687b1-630a-4e95-89c7-eaf456d8cb68",

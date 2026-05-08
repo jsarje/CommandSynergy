@@ -3,6 +3,11 @@
   "name": "Yshtola",
   "commanderCardId": "c7f2c2d5-e052-49e8-b5de-712858c2ea78",
   "companionCardId": null,
+  "expectedBracketLevel": 4,
+  "minPower": 5.0,
+  "maxPower": 8.0,
+  "minSynergy": 30.0,
+  "maxSynergy": 50.0,
   "entries": [
     {
       "cardId": "c7f2c2d5-e052-49e8-b5de-712858c2ea78",

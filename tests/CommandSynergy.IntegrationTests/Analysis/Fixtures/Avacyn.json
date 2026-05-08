@@ -3,6 +3,11 @@
   "name": "Avacyn",
   "commanderCardId": "fe675f03-cbb5-4177-b7d7-64a30260ee2a",
   "companionCardId": null,
+  "expectedBracketLevel": 4,
+  "minPower": 4.0,
+  "maxPower": 7.0,
+  "minSynergy": 30.0,
+  "maxSynergy": 50.0,
   "entries": [
     {
       "cardId": "fe675f03-cbb5-4177-b7d7-64a30260ee2a",
