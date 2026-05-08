@@ -13,7 +13,7 @@ public sealed class BracketCalculationServiceTests
     private readonly BracketCalculationService sut = new(
         new Domain.Analysis.BracketEngine(),
         new AnalysisExplanationBuilder(),
-        Options.Create(new BracketOptions()));
+        Options.Create(new BracketOptions { LevelThresholds = [0, 10, 15] }));
 
     [Fact]
     public void Calculate_returns_bracket_one_when_no_synergy_or_escalating_signals_exist()

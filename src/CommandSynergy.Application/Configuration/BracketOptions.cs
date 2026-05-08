@@ -15,7 +15,7 @@ public sealed class BracketOptions
     [Range(1, 5)]
     public int MaximumBracketLevel { get; set; } = 5;
 
-    public IReadOnlyList<decimal> LevelThresholds { get; set; } = new[] { 0m, 5m, 10m, 15m, 20m };
+    public required IReadOnlyList<decimal> LevelThresholds { get; set; }
 
     [Range(0, 10)]
     public decimal LowCostAccelerationWeight { get; set; } = 1.5m;

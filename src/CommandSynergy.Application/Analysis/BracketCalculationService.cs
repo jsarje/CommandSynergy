@@ -169,7 +169,7 @@ public sealed class BracketCalculationService(
 
         var assessment = weightedAssessment with
         {
-            BracketLevel = Math.Clamp(resolvedLevel, bracketOptions.MinimumBracketLevel, bracketOptions.MaximumBracketLevel),
+            BracketLevel = Math.Clamp(weightedAssessment.BracketLevel, bracketOptions.MinimumBracketLevel, bracketOptions.MaximumBracketLevel),
         };
 
         return assessment with
