@@ -21,13 +21,6 @@ public sealed class BracketCalculationService(
     private const decimal OptimizationWeight = 3.0m;
     private const decimal LateGameTwoCardComboManaThreshold = 7.0m;
     private const decimal MeaningfulSynergyThreshold = 60.0m;
-    private const decimal HighlyOptimizedSynergyThreshold = 80.0m;
-    private const int MinimumInfiniteCombosForBracketFive = 3;
-    private const int MinimumGameChangersWithMassLandDenialForBracketFive = 3;
-    private const int MinimumInfiniteCombosWithMassLandDenialForBracketFive = 1;
-    private const int MinimumGameChangersWithComboDensityForBracketFive = 5;
-    private const int MinimumTwoCardCombosForBracketFive = 2;
-    private const int MinimumGameChangersForBracketFive = 6;
 
     private readonly BracketOptions bracketOptions = options.Value;
 
@@ -142,17 +135,17 @@ public sealed class BracketCalculationService(
                 "The deck shows clear internal synergy between its cards."));
         }
 
-        var resolvedLevel = ResolveBracketLevel(
+        var effectiveSynergyScore = GetEffectiveSynergyScore(synergyAssessment);
+        var hasAnySynergy = HasAnySynergy(synergyAssessment);
+
+        if (ShouldAddOptimizationFactor(
             gameChangerCount,
             massLandDenialCount,
-            extraTurnCount,
             earlyTwoCardComboCount,
             lateTwoCardComboCount,
             infiniteComboCount,
-            synergyAssessment,
-            hasMeaningfulSynergy);
-
-        if (resolvedLevel == 5)
+            effectiveSynergyScore,
+            synergyAssessment.QualitativeLabel))
         {
             factors.Add(new BracketFactor(
                 "optimization",
@@ -160,12 +153,25 @@ public sealed class BracketCalculationService(
                 "The deck shows multiple high-end optimization signals across combos and bracket-defining cards."));
         }
 
-        var weightedAssessment = bracketEngine.Calculate(
+        var engineInput = new BracketResolutionInput(
             factors,
             bracketOptions.LevelThresholds,
             bracketOptions.MinimumBracketLevel,
             bracketOptions.MaximumBracketLevel,
-            "Bracket analysis pending explanation.");
+            "Bracket analysis pending explanation.",
+            gameChangerCount,
+            massLandDenialCount,
+            extraTurnCount,
+            earlyTwoCardComboCount,
+            lateTwoCardComboCount,
+            infiniteComboCount,
+            effectiveSynergyScore,
+            synergyAssessment.QualitativeLabel,
+            synergyAssessment.CommanderSpecificHits.Count,
+            hasMeaningfulSynergy,
+            hasAnySynergy);
+
+        var weightedAssessment = bracketEngine.Calculate(engineInput);
 
         var assessment = weightedAssessment with
         {
@@ -225,46 +231,38 @@ public sealed class BracketCalculationService(
             || string.Equals(synergyAssessment.QualitativeLabel, "Tuned", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static int ResolveBracketLevel(
+    private static bool HasAnySynergy(SynergyAssessment synergyAssessment)
+    {
+        var effectiveScore = GetEffectiveSynergyScore(synergyAssessment);
+
+        // Only return false for truly random piles with no synergy signals at all
+        return synergyAssessment.CommanderSpecificHits.Count > 0
+            || effectiveScore > 20m
+            || !string.Equals(synergyAssessment.QualitativeLabel, "Unfocused", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ShouldAddOptimizationFactor(
         int gameChangerCount,
         int massLandDenialCount,
-        int extraTurnCount,
         int earlyTwoCardComboCount,
         int lateTwoCardComboCount,
         int infiniteComboCount,
-        SynergyAssessment synergyAssessment,
-        bool hasMeaningfulSynergy)
+        decimal effectiveSynergyScore,
+        string qualitativeLabel)
     {
-        var effectiveScore = GetEffectiveSynergyScore(synergyAssessment);
-        var isHighlyOptimized = effectiveScore >= HighlyOptimizedSynergyThreshold
-            || string.Equals(synergyAssessment.QualitativeLabel, "Tuned", StringComparison.OrdinalIgnoreCase);
+        var isHighlyOptimized = effectiveSynergyScore >= 80.0m
+            || string.Equals(qualitativeLabel, "Tuned", StringComparison.OrdinalIgnoreCase);
         var hasBracketFiveMassLandDenialSignals = massLandDenialCount > 0
             && isHighlyOptimized
-            && (gameChangerCount >= MinimumGameChangersWithMassLandDenialForBracketFive
-                || infiniteComboCount >= MinimumInfiniteCombosWithMassLandDenialForBracketFive);
-        var hasBracketFiveComboDensitySignals = gameChangerCount >= MinimumGameChangersWithComboDensityForBracketFive
+            && (gameChangerCount >= 3 || infiniteComboCount >= 1);
+        var hasBracketFiveComboDensitySignals = gameChangerCount >= 5
             && isHighlyOptimized
-            && (earlyTwoCardComboCount + lateTwoCardComboCount >= MinimumTwoCardCombosForBracketFive);
+            && (earlyTwoCardComboCount + lateTwoCardComboCount >= 2);
 
-        if (infiniteComboCount >= MinimumInfiniteCombosForBracketFive
+        return infiniteComboCount >= 3
             || hasBracketFiveMassLandDenialSignals
             || hasBracketFiveComboDensitySignals
-            || (gameChangerCount >= MinimumGameChangersForBracketFive && isHighlyOptimized))
-        {
-            return 5;
-        }
-
-        if (massLandDenialCount > 0 || earlyTwoCardComboCount > 0 || gameChangerCount >= 3 || extraTurnCount >= 2)
-        {
-            return 4;
-        }
-
-        if (gameChangerCount > 0 || lateTwoCardComboCount > 0 || extraTurnCount == 1)
-        {
-            return 3;
-        }
-
-        return hasMeaningfulSynergy ? 2 : 1;
+            || (gameChangerCount >= 6 && isHighlyOptimized);
     }
 
     private static decimal GetEffectiveSynergyScore(SynergyAssessment synergyAssessment) =>

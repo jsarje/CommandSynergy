@@ -21,7 +21,11 @@ public sealed class BracketCalculationServiceTests
         var deck = CreateDeck("filler-card");
         var profiles = CreateProfiles(CreateCard("filler-card", "Filler Card", manaValue: 3m));
 
-        var result = sut.Calculate(deck, profiles, ComboAnalysis.Empty(), CreateSynergyAssessment(score: 28m));
+        var result = sut.Calculate(
+            deck,
+            profiles,
+            ComboAnalysis.Empty(),
+            CreateSynergyAssessment(score: 0m, qualitativeLabel: "Unfocused", commanderSpecificHits: []));
 
         result.BracketLevel.Should().Be(1);
         result.ContributingFactors.Should().BeEmpty();
@@ -41,6 +45,21 @@ public sealed class BracketCalculationServiceTests
 
         result.BracketLevel.Should().Be(2);
         result.ContributingFactors.Should().ContainSingle(factor => factor.Category == "synergy");
+    }
+
+    [Fact]
+    public void Calculate_returns_bracket_two_when_the_deck_shows_any_non_random_coherence()
+    {
+        var deck = CreateDeck("theme-card");
+        var profiles = CreateProfiles(CreateCard("theme-card", "Theme Card", manaValue: 3m));
+
+        var result = sut.Calculate(
+            deck,
+            profiles,
+            ComboAnalysis.Empty(),
+            CreateSynergyAssessment(score: 28m));
+
+        result.BracketLevel.Should().Be(2);
     }
 
     [Fact]
