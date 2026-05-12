@@ -88,6 +88,7 @@
                         aria-controls="@GetDetailPanelId(DeckSignalDetail.Validation)"
                         aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.Validation)"
                         @onclick="() => ToggleDetail(DeckSignalDetail.Validation)">
+                    <i class="workspace-metric-button__indicator" aria-hidden="true">?</i>
                     <span>Legality</span>
                     <strong>@(State.Validation?.IsValid == true ? "Legal" : "Needs work")</strong>
                 </button>
@@ -97,6 +98,7 @@
                         aria-controls="@GetDetailPanelId(DeckSignalDetail.Bracket)"
                         aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.Bracket)"
                         @onclick="() => ToggleDetail(DeckSignalDetail.Bracket)">
+                    <i class="workspace-metric-button__indicator" aria-hidden="true">?</i>
                     <span>Bracket</span>
                     <strong>@(Analysis?.Bracket.Level.ToString() ?? "-")</strong>
                 </button>
@@ -106,6 +108,7 @@
                         aria-controls="@GetDetailPanelId(DeckSignalDetail.Synergy)"
                         aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.Synergy)"
                         @onclick="() => ToggleDetail(DeckSignalDetail.Synergy)">
+                    <i class="workspace-metric-button__indicator" aria-hidden="true">?</i>
                     <span>Synergy</span>
                     <strong>@(Analysis?.Synergy.Score.ToString("0.#") ?? "-")</strong>
                 </button>
@@ -115,6 +118,7 @@
                         aria-controls="@GetDetailPanelId(DeckSignalDetail.PowerLevel)"
                         aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.PowerLevel)"
                         @onclick="() => ToggleDetail(DeckSignalDetail.PowerLevel)">
+                    <i class="workspace-metric-button__indicator" aria-hidden="true">?</i>
                     <span>Power</span>
                     <strong>@(Analysis?.PowerLevel.Score.ToString("0.#") ?? "-")</strong>
                 </button>
@@ -124,6 +128,7 @@
                         aria-controls="@GetDetailPanelId(DeckSignalDetail.ThemeSignals)"
                         aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.ThemeSignals)"
                         @onclick="() => ToggleDetail(DeckSignalDetail.ThemeSignals)">
+                    <i class="workspace-metric-button__indicator" aria-hidden="true">?</i>
                     <span>Top Theme</span>
                     <strong>@(Analysis?.ThemeAnalysis?.CommanderAlignment?.CommanderTopTheme ?? "-")</strong>
                 </button>
