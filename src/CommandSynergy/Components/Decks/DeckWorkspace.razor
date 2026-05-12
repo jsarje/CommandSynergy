@@ -7,35 +7,40 @@
         <MudAppBar Elevation="0" Dense="true" Fixed="false" Class="workspace-appbar">
             <div class="workspace-appbar__inner">
                 <div class="workspace-appbar__brand">
+                    <p class="workspace-appbar__eyebrow">Commander deck workspace</p>
                     <h1 class="workspace-appbar__name">Synergy Sphere</h1>
                     <p class="workspace-appbar__brand-sub">
                         @GetDeckTitle() · @GetCommanderTitle()
                     </p>
                 </div>
 
-                <button type="button"
-                        class="workspace-appbar__action"
-                        aria-label="Open Playtest"
-                        data-testid="open-playtest"
-                        @onclick="OpenPlaytestOverlay">
-                    Playtest
-                </button>
+                <div class="workspace-appbar__controls">
+                    @if (TotalDeckCards > 0)
+                    {
+                        <span class="workspace-appbar__deck-count" aria-label="@TotalDeckCards cards in deck">
+                            @TotalDeckCards cards
+                        </span>
+                    }
 
-                @if (TotalDeckCards > 0)
-                {
-                    <span class="workspace-appbar__deck-count" aria-label="@TotalDeckCards cards in deck">
-                        @TotalDeckCards cards
-                    </span>
-                }
+                    <div class="workspace-appbar__actions">
+                        <button type="button"
+                                class="workspace-appbar__action"
+                                aria-label="Open Playtest"
+                                data-testid="open-playtest"
+                                @onclick="OpenPlaytestOverlay">
+                            Playtest
+                        </button>
 
-                <button type="button"
-                        class="workspace-appbar__action"
-                        aria-expanded="@isUtilityMenuOpen.ToString().ToLowerInvariant()"
-                        aria-controls="workspace-utility-drawer"
-                        aria-label="Open Deck Library"
-                        @onclick="ToggleUtilityMenu">
-                    Deck Library
-                </button>
+                        <button type="button"
+                                class="workspace-appbar__action"
+                                aria-expanded="@isUtilityMenuOpen.ToString().ToLowerInvariant()"
+                                aria-controls="workspace-utility-drawer"
+                                aria-label="Open Deck Library"
+                                @onclick="ToggleUtilityMenu">
+                            Deck Library
+                        </button>
+                    </div>
+                </div>
             </div>
         </MudAppBar>
 
@@ -115,7 +120,14 @@
         <section class="workspace-shell__search">
             <MudPaper Elevation="0" Class="workspace-panel workspace-panel--search">
                 <div class="workspace-panel__header">
-                    <h2>Find cards</h2>
+                    <div class="workspace-panel__heading-block">
+                        <h2>Find cards</h2>
+                        <p class="workspace-panel__intro workspace-panel__intro--tight">
+                            @(ActiveCommander is null
+                                ? "Start with a legal commander, then search staples and role players to shape the list."
+                                : "Search for staples, role players, and silver bullets that fit your current shell.")
+                        </p>
+                    </div>
                 </div>
 
                 <div class="workspace-search workspace-search--compact">
@@ -140,7 +152,12 @@
                 <section class="workspace-recommendations @(ActiveCommander is null ? "workspace-recommendations--inactive" : string.Empty)"
                          data-testid="recommendations-shell">
                     <div class="workspace-section-heading">
-                        <h3>Suggestions</h3>
+                        <div>
+                            <h3>Suggestions</h3>
+                            <p class="workspace-panel__intro workspace-panel__intro--tight">
+                                Target the next pass with card type, mana value, budget, or color identity filters.
+                            </p>
+                        </div>
                         <div class="workspace-recommendations__actions">
                             <button type="button"
                                     class="workspace-search-result__secondary"
@@ -221,11 +238,12 @@
                                 {
                                     <label class="workspace-recommendation-colors__option">
                                         <input type="checkbox"
+                                               class="workspace-recommendation-colors__checkbox"
                                                value="@color"
                                                checked="@SuggestionColorIdentityFilter.Contains(color, StringComparer.OrdinalIgnoreCase)"
                                                data-testid="@($"suggestion-color-{color}")"
                                                @onchange="eventArgs => OnSuggestionColorChanged(color, eventArgs)" />
-                                        <span>@ResolveColorName(color)</span>
+                                        <span class="workspace-recommendation-colors__label">@ResolveColorName(color)</span>
                                     </label>
                                 }
                             </fieldset>
