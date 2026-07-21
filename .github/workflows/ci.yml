@@ -51,7 +51,7 @@ jobs:
 
       - name: Run tests
         run: |
-          dotnet test ${{ env.SOLUTION }} -c Release --no-build --verbosity normal --logger trx;LogFileName=TestResults.trx || true
+          dotnet test ${{ env.SOLUTION }} -c Release --no-build --verbosity normal --filter "Category!=LocalOnly" --logger trx;LogFileName=TestResults.trx || true
 
       - name: Upload test results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

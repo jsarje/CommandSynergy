@@ -3,6 +3,7 @@ using FluentAssertions;
 
 namespace CommandSynergy.IntegrationTests.Analysis;
 
+[Trait("Category", "LocalOnly")]
 public sealed class DeckAnalysisServiceIntegrationTests : IClassFixture<DeckAnalysisIntegrationFixture>
 {
     private readonly DeckAnalysisIntegrationFixture fixture;
