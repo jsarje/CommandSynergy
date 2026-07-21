@@ -25,9 +25,24 @@
     </div>
 
     <section class="workspace-briefing" aria-label="Deck briefing" data-testid="workspace-briefing">
-        <div>
+        <div class="workspace-briefing__copy">
             <h3>@GetStateHeadline()</h3>
             <p>@GetStateHint()</p>
+        </div>
+
+        <div class="workspace-briefing__metrics" data-testid="workspace-briefing-metrics">
+            <div>
+                <span>Commander</span>
+                <strong>@CommanderName</strong>
+            </div>
+            <div>
+                <span>Next pass</span>
+                <strong>@GetNextActionLabel()</strong>
+            </div>
+            <div>
+                <span>Deck cards</span>
+                <strong>@(State.Validation?.DeckCardCount ?? TotalDeckCards)</strong>
+            </div>
         </div>
     </section>
 
