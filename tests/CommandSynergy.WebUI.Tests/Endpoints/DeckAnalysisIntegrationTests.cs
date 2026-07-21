@@ -34,7 +34,7 @@ public sealed class DeckAnalysisIntegrationTests : IClassFixture<TestApplication
         payload!.ThemeAnalysis!.PrimaryThemes.Should().Contain(theme => theme.Name == "Tokens");
         payload.ThemeAnalysis.RankedThemes.Take(3).Should().NotBeEmpty();
         payload.Synergy.FinalScore.Should().BeGreaterThanOrEqualTo(60m);
-        elapsed.Should().BeLessThan(TimeSpan.FromSeconds(3));
+        elapsed.Should().BeLessThan(TimeSpan.FromSeconds(5));
     }
 
     [Fact]

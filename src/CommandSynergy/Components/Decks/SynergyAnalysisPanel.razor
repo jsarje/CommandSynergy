@@ -1,6 +1,6 @@
 @using CommandSynergy.Application.Contracts
 
-@if (IsLoading)
+@if (IsLoading && Analysis is null)
 {
     <div class="analysis-panel analysis-panel--loading" data-testid="synergy-analysis-loading">
         <MudProgressCircular Indeterminate="true" Size="Size.Small" />
@@ -23,48 +23,59 @@ else if (Analysis is null)
 }
 else
 {
-    <div class="analysis-synergy" data-testid="analysis-synergy">
-        <div class="analysis-synergy__header">
-            <h4 class="analysis-synergy__label">Synergy</h4>
+    <section class="analysis-panel analysis-panel--ready analysis-synergy" data-testid="analysis-synergy" aria-busy="@IsLoading">
+        <div class="analysis-panel__header">
+            <div>
+                <h4 class="analysis-synergy__label">Synergy</h4>
+                @if (IsLoading)
+                {
+                    <p class="analysis-panel__refresh-banner" data-testid="synergy-analysis-refreshing" role="status" aria-live="polite">
+                        Refreshing. Showing the previous result.
+                    </p>
+                }
+            </div>
             @if (Analysis.ThemeAnalysis?.IsInsufficient == true)
             {
-                <span class="analysis-synergy__score analysis-synergy__score--muted"
+                <span class="analysis-panel__label-pill analysis-panel__label-pill--muted"
+                      data-testid="synergy-analysis-pill"
                       title="Synergy score is hidden for undersized decks">Need 20 cards</span>
             }
             else
             {
-                <span class="analysis-synergy__score"
-                      title="Synergy score (0–100)">@((Analysis.Synergy.FinalScore == 0m ? Analysis.Synergy.Score : Analysis.Synergy.FinalScore).ToString("0.#"))</span>
+                <span class="analysis-panel__label-pill analysis-panel__label-pill--synergy"
+                      data-testid="synergy-analysis-pill"
+                      title="Synergy score (0–100)">
+                    @Analysis.Synergy.Label · @((Analysis.Synergy.FinalScore == 0m ? Analysis.Synergy.Score : Analysis.Synergy.FinalScore).ToString("0.#"))
+                </span>
             }
         </div>
-        @if (Analysis.ThemeAnalysis?.IsInsufficient != true && !string.IsNullOrWhiteSpace(Analysis.Synergy.QualitativeLabel))
-        {
-            <p class="analysis-synergy__label-pill">@Analysis.Synergy.QualitativeLabel</p>
-        }
-        <p class="analysis-synergy__summary">@Analysis.Synergy.Summary</p>
 
-        @if (Analysis.Synergy.CommanderSpecificHits.Count > 0)
-        {
-            <p class="analysis-synergy__hits-label">Commander hits</p>
-            <ul class="analysis-synergy__hits" data-testid="synergy-commander-hits">
-                @foreach (var hit in Analysis.Synergy.CommanderSpecificHits)
-                {
-                    <li class="analysis-synergy__hit">@hit</li>
-                }
-            </ul>
-        }
+        <p class="analysis-panel__summary">@Analysis.Synergy.Summary</p>
 
-        @if (Analysis.Synergy.StapleOverloadIndicators.Count > 0)
+        @foreach (var section in Analysis.Synergy.SupportingSections)
         {
-            <p class="analysis-synergy__staples-label">Staples</p>
-            <ul class="analysis-synergy__staples" data-testid="synergy-staple-overload">
-                @foreach (var staple in Analysis.Synergy.StapleOverloadIndicators)
-                {
-                    <li class="analysis-synergy__staple">@staple</li>
-                }
-            </ul>
+            <section class="analysis-panel__section" aria-labelledby="@GetSectionId(section.Title)">
+                <div class="analysis-panel__section-header">
+                    <h5 id="@GetSectionId(section.Title)">@section.Title</h5>
+                </div>
+                <ul class="analysis-panel__list" data-testid="@GetSectionTestId(section.Title)">
+                    @foreach (var item in section.Items)
+                    {
+                        <li class="analysis-panel__item analysis-panel__item--@item.Tone">
+                            <div>
+                                <strong>@item.Label</strong>
+                                @if (!string.IsNullOrWhiteSpace(item.Description))
+                                {
+                                    <p>@item.Description</p>
+                                }
+                            </div>
+                            <span class="analysis-panel__item-value">@item.Value</span>
+                        </li>
+                    }
+                </ul>
+            </section>
         }
-    </div>
+    </section>
 }
 
 @code {
@@ -85,4 +96,15 @@ else
     /// </summary>
     [Parameter]
     public bool HasError { get; set; }
+
+    private static string GetSectionId(string title) => $"synergy-analysis-{Slugify(title)}";
+
+    private static string GetSectionTestId(string title) => title switch
+    {
+        "Commander hits" => "synergy-commander-hits",
+        "Cautions" => "synergy-staple-overload",
+        _ => $"synergy-analysis-{Slugify(title)}",
+    };
+
+    private static string Slugify(string value) => value.ToLowerInvariant().Replace(" ", "-");
 }

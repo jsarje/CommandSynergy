@@ -81,8 +81,8 @@ public sealed class DeckAnalysisService : IDeckAnalysisCoreService
             : edhrecClient.GetCommanderThemeInsightsAsync(commanderProfile, cancellationToken);
         await Task.WhenAll(comboAnalysisTask, edhrecInsightsTask).ConfigureAwait(false);
 
-        var comboAnalysis = await comboAnalysisTask.ConfigureAwait(false);
-        var edhrecInsights = await edhrecInsightsTask.ConfigureAwait(false);
+        var comboAnalysis = comboAnalysisTask.Result;
+        var edhrecInsights = edhrecInsightsTask.Result;
         var (themeAnalysis, themeSynergy) = await themeAnalysisService.AnalyseAsync(deck, profiles, edhrecInsights, cancellationToken).ConfigureAwait(false);
         var synergyAssessment = MergeSynergyAssessments(baseSynergyAssessment, themeSynergy);
         var bracketAssessment = bracketCalculationService.Calculate(deck, profiles, comboAnalysis, synergyAssessment);
@@ -155,10 +155,116 @@ public sealed class DeckAnalysisService : IDeckAnalysisCoreService
         ThemeScore = assessment.ThemeScore,
         FinalScore = assessment.FinalScore == 0m ? assessment.SynergyScore : assessment.FinalScore,
         QualitativeLabel = assessment.QualitativeLabel,
+        Label = assessment.QualitativeLabel,
         EdhrecEnhanced = assessment.EdhrecEnhanced,
         Summary = assessment.Summary,
         CommanderSpecificHits = assessment.CommanderSpecificHits,
         StapleOverloadIndicators = assessment.StapleOverloadIndicators,
+        SupportingSections = BuildSynergySections(assessment),
+    };
+
+    private static IReadOnlyList<AnalysisSummarySectionContract> BuildSynergySections(SynergyAssessment assessment)
+    {
+        var finalScore = assessment.FinalScore == 0m ? assessment.SynergyScore : assessment.FinalScore;
+        var scoreItems = new List<AnalysisSummaryItemContract>
+        {
+            new()
+            {
+                Label = "Base read",
+                Value = $"{assessment.SynergyScore:0.#}",
+                Description = "Core synergy score before theme-specific refinements are layered in.",
+                Tone = ResolveSynergyTone(assessment.SynergyScore),
+            },
+        };
+
+        if (assessment.ThemeScore > 0m)
+        {
+            scoreItems.Add(new AnalysisSummaryItemContract
+            {
+                Label = "Theme pull",
+                Value = $"{assessment.ThemeScore:0.#}",
+                Description = "Theme analysis checks whether the 99 reinforce a coherent plan.",
+                Tone = ResolveSynergyTone(assessment.ThemeScore),
+            });
+        }
+
+        scoreItems.Add(new AnalysisSummaryItemContract
+        {
+            Label = "Final read",
+            Value = $"{finalScore:0.#}",
+            Description = assessment.EdhrecEnhanced
+                ? "Commander-specific EDHREC data helped sharpen the final read."
+                : "Final read reflects only the in-house synergy model and theme analysis.",
+            Tone = ResolveSynergyTone(finalScore),
+        });
+
+        var hitItems = assessment.CommanderSpecificHits.Count == 0
+            ?
+            [
+                new AnalysisSummaryItemContract
+                {
+                    Label = "Commander hits",
+                    Value = "None surfaced",
+                    Description = "No standout cards are currently reading as exceptional commander-specific glue.",
+                },
+            ]
+            : assessment.CommanderSpecificHits
+                .Take(3)
+                .Select(hit => new AnalysisSummaryItemContract
+                {
+                    Label = hit,
+                    Value = "Supports the plan",
+                    Description = "This card currently reads as a commander-aligned piece rather than generic filler.",
+                    Tone = "positive",
+                })
+                .ToArray();
+
+        var cautionItems = assessment.StapleOverloadIndicators.Count == 0
+            ?
+            [
+                new AnalysisSummaryItemContract
+                {
+                    Label = "Staple drag",
+                    Value = "In check",
+                    Description = "No generic staples are standing out as obvious tension points for the deck's plan.",
+                },
+            ]
+            : assessment.StapleOverloadIndicators
+                .Take(3)
+                .Select(staple => new AnalysisSummaryItemContract
+                {
+                    Label = staple,
+                    Value = "Generic pressure",
+                    Description = "This card reads more like a broad-format staple than a commander-specific synergy piece.",
+                    Tone = "warning",
+                })
+                .ToArray();
+
+        return
+        [
+            new AnalysisSummarySectionContract
+            {
+                Title = "Breakdown",
+                Items = scoreItems,
+            },
+            new AnalysisSummarySectionContract
+            {
+                Title = "Commander hits",
+                Items = hitItems,
+            },
+            new AnalysisSummarySectionContract
+            {
+                Title = "Cautions",
+                Items = cautionItems,
+            },
+        ];
+    }
+
+    private static string ResolveSynergyTone(decimal score) => score switch
+    {
+        >= 80m => "positive",
+        >= 50m => "neutral",
+        _ => "warning",
     };
 
     private static SynergyAssessment MergeSynergyAssessments(SynergyAssessment baseAssessment, SynergyAssessment themeAssessment) => new(

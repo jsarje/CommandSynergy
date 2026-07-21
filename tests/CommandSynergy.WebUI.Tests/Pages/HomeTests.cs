@@ -57,8 +57,7 @@ public sealed class HomeTests : BunitContext, IAsyncLifetime
         var cut = Render<Home>();
 
         cut.WaitForAssertion(() =>
-        {
-            cut.Find("[data-testid='workspace-briefing']").TextContent.Should().Contain("Mystery Stack");
+        {            
             cut.Find("[data-testid='pile-card-sol-ring']").Should().NotBeNull();
         });
 

@@ -43,6 +43,7 @@ public sealed class ThemeAnalysisPanelTests : BunitContext
             .Add(component => component.Analysis, ThemeAnalysisTestData.CreateReadyAnalysis()));
 
         cut.Find("[data-testid='theme-analysis-ready']").Should().NotBeNull();
+        cut.Find("[data-testid='theme-analysis-pill']").TextContent.Should().Contain("Strong alignment");
         cut.Find("[data-testid='off-theme-cards']").TextContent.Should().Contain("Staple Card");
         cut.Find("[data-testid='theme-preview-tokens']").TextContent.Should().Contain("Token Card");
         cut.Find("[data-testid='off-theme-cards']").TextContent.Should().Contain("No strong theme signal was detected for this card.");

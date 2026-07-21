@@ -24,9 +24,26 @@ public static class ThemeAnalysisTestData
             ThemeScore = 68m,
             FinalScore = 70m,
             QualitativeLabel = "Focused",
+            Label = "Focused",
             Summary = "Strong focus.",
             CommanderSpecificHits = Array.Empty<string>(),
             StapleOverloadIndicators = Array.Empty<string>(),
+            SupportingSections =
+            [
+                new AnalysisSummarySectionContract
+                {
+                    Title = "Breakdown",
+                    Items =
+                    [
+                        new AnalysisSummaryItemContract
+                        {
+                            Label = "Final read",
+                            Value = "70",
+                            Description = "Composite synergy read.",
+                        },
+                    ],
+                },
+            ],
         },
         ThemeAnalysis = new ThemeAnalysisContract
         {

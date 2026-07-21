@@ -10,12 +10,7 @@ using Microsoft.Extensions.Hosting;
 namespace CommandSynergy.IntegrationTests.Infrastructure;
 
 public sealed class DeckAnalysisIntegrationFixture : IAsyncLifetime
-{
-    private static readonly JsonSerializerOptions deckSnapshotJsonOptions = new(JsonSerializerDefaults.Web)
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
+{    
     private static readonly JsonSerializerOptions fixtureJsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNameCaseInsensitive = true,
@@ -25,8 +20,7 @@ public sealed class DeckAnalysisIntegrationFixture : IAsyncLifetime
 
     public string ContentRootPath { get; } = AppContext.BaseDirectory;
 
-    public bool LiveDependenciesEnabled =>
-        string.Equals(Environment.GetEnvironmentVariable("COMMANDSYNERGY_RUN_LIVE_INTEGRATION_TESTS"), "true", StringComparison.OrdinalIgnoreCase);
+    public bool LiveDependenciesEnabled => true;
 
     public async Task InitializeAsync()
     {

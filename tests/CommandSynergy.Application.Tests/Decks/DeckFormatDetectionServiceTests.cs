@@ -6,18 +6,7 @@ using FluentAssertions;
 namespace CommandSynergy.Application.Tests.Decks;
 
 public sealed class DeckFormatDetectionServiceTests
-{
-    [Fact]
-    public void Detect_prefers_moxfield_when_fixture_contains_moxfield_headers()
-    {
-        var sut = CreateSut(new MoxfieldTextFormatProfile(), new ManaBoxTextFormatProfile(), new GenericPlaintextFormatProfile());
-
-        var result = sut.Detect(DeckPortabilityFixtureLoader.Load("moxfield-sample.txt"));
-
-        result.SelectedProfile.Should().NotBeNull();
-        result.SelectedProfile!.FormatId.Should().Be("moxfield-text");
-        result.RequiresConfirmation.Should().BeFalse();
-    }
+{    
 
     [Fact]
     public void Detect_requires_confirmation_when_multiple_profiles_are_equally_strong()

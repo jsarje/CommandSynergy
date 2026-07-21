@@ -1,0 +1,637 @@
+{
+  "deckId": "monks",
+  "name": "Monks",
+  "commanderCardId": "bd79e83a-a34b-472c-9317-12af4ed2ca28",
+  "companionCardId": null,
+  "expectedBracketLevel": 2,
+  "minPower": 3.0,
+  "maxPower": 5.0,
+  "minSynergy": 30.0,
+  "maxSynergy": 50.0,
+  "entries": [
+    {
+      "cardId": "bd79e83a-a34b-472c-9317-12af4ed2ca28",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": true,
+      "isCompanion": false
+    },
+    {
+      "cardId": "42e0aa15-639a-4e88-9bd8-ce5e7c7d7649",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "a235cbda-3dc3-4aed-a911-90f26c330157",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "7811dd72-61b9-4067-ac20-cea153e625d2",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "50ef0ac3-e911-4d67-a751-8d86160ae843",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "f98a7264-0a83-42c8-a94d-05ad4c234242",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "41c50b99-4a29-4bef-8d41-c548c8a61dac",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "d5beecd5-4267-454d-87db-24d476e1f352",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "c47c1bf5-f11e-4f86-b20b-5d899a11dc56",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "e0d8c9f6-cbbd-4694-b100-01cfb81036cc",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "76ec3366-98f3-4903-8f7b-cfcdd60e3be1",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "3e3c74ea-40e9-4ad9-a491-c208403b68ad",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "49c37c0e-d363-4033-a069-710241cd9923",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "8beb987c-1b67-4a4e-ae71-58547afad2a0",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "c46a217c-0ed2-4b3c-9a01-ee38d12d76f3",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "4f3b7d39-ce98-48e2-b2bf-0d55b4d3102b",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "b6cbf54e-f30e-4e7b-b17c-217fa424971c",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "490eb213-9ae2-4b45-abec-6f1dfc83792a",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "27ec595f-406b-4539-8d2e-eb98df1a0fc9",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "c5bda1a7-537f-4a80-95a0-c45eb127969b",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "020939d6-72f0-4aa0-9ac2-d16cc896cd7f",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "1c244fc2-70f0-4149-b0d2-d49fc6bac2b0",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "646edf58-4bc5-4d87-af68-b8b006ccb806",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "2e92640d-768b-4357-905f-bea017d351cc",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "c0728027-a1ec-4814-87c4-10c3baced0e0",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "eee11606-5902-41d3-aec6-d6a3da01091b",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "a30f5555-2fbe-4c88-9e4f-1f2e81ea6cfd",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "fc019ffa-4461-4f3d-ab8d-e4d20e77ca0c",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "f1ba7efe-ae5a-4d11-b535-1c2e5e6f5982",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "abb0ba34-6904-4c17-a04d-ea4f12c7cf21",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "e75dccf7-2894-4c4a-b516-3eee73acddd3",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "f3895c0c-0db8-4962-b386-57887fb60701",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "77b88bb8-6bd9-4632-b937-89468fcb5e6a",
+      "quantity": 5,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "bfac9395-7ca5-48dd-ab83-7c26ada12f61",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "db9e6fc9-813d-4a71-8a68-8e0f83fa945d",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "2c747a97-9070-4c1e-b7b7-52637fbb30e1",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "9a8399fc-4cba-44c5-888e-2cfc0f6739f6",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "d4c0fcdb-a312-4976-bcfb-73930c0a556c",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "77c6fa74-5543-42ac-9ead-0e890b188e99",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "08005be9-fbf4-43e6-a742-b1fb8196c4a5",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "4101e3fe-b0e7-4f0f-b9ac-9b61a4d628b3",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "c3170852-60a9-46bc-8183-b1a65fc3b82b",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "97845ece-ceef-468c-a4e3-6fde1413c9f0",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "82d5ce46-7118-4ede-ba1d-c387e7ce16e7",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "a95749cf-dd12-4bca-a74d-01301b9b76df",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "e8a2dd0d-8034-47f7-801d-c893f32f0708",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "2343e69d-f30e-4826-953c-fbf31c6079e6",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "32d2a1ad-210c-444d-9cb7-b78b493db7ea",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "d6bfa227-4309-40ed-952c-279595eab17e",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "b2edd708-46ee-4963-b7e6-b631616d78fe",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "f2a56007-5bca-4edf-9cc4-5f77a273636c",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "a642c7b1-d4d1-4125-a66d-560438e5ee51",
+      "quantity": 4,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "9fd41ad5-6b36-482e-8305-bbc709668470",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "15afcabf-58a8-4650-a6cf-b7f2f01d0671",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "300f766f-9609-4105-9ed5-4299c48f7fa7",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "4816d092-e34b-4397-8599-43d8e85a8f39",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "827ecc44-0b00-4515-8953-bc91fa03705a",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "de4b0d5f-1071-4030-be16-2b4dadbdf9e9",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "d1205482-2f9d-463e-893f-18998aaf09c6",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "bbc99a51-1501-4525-a3cc-f48249b64bed",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "24d4f26e-7f96-4b38-867e-4fac819b2679",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "d85d0f25-a24a-4de0-9b8b-93fb5017bce9",
+      "quantity": 5,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "dd29a0e5-c1de-4e8a-8866-715e9f9cde1f",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "5dc7c9d5-904e-4ab6-9773-5c4f1c6d34c4",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "b56e0037-8143-4c13-83e1-0c3f44e685ea",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "79d6decf-afd5-4e96-b87e-fd7ab7e3c068",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "1bd3fa8a-6c50-4f7f-9ae3-0810eec5e3db",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "4f8931b2-ff3f-4167-8a40-f33460c2d27e",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "e13d0982-2542-4770-8e93-637478a0f84a",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "e55ba092-abc0-49ba-b756-6cb714165fec",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "870ec754-a76c-40ea-9b81-81b3dca1f62c",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "6350b216-4a11-4e33-89ac-ffaf6315ab7d",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "0f7d3839-0bc3-402b-b9ea-c903f82d39da",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "1969b151-3192-4d35-80ca-c4e180601ec8",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "ca53fb19-b8ca-485b-af1a-5117ae54bfe3",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "8693d631-05f6-414d-9e49-6385746e8960",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "efeafc9d-a953-4915-8342-725836d0f645",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "101e47ed-4afe-4d15-b6c3-4ab495965fde",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "9d6a5ed4-54b3-4660-8d41-953336f2fe74",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "dd139d4d-3a40-4015-93de-c838c64156c6",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "cc63cd97-de9e-4d31-babb-aaad1277169e",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "d0e763f7-25b8-444f-8722-614297d0663f",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "9a4c5629-fadd-42b9-850f-9f8586a2ca50",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "ca29f373-7051-4cbe-bda8-e711fda4f9bb",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "4afee6b3-55a4-44e5-b08c-85e0c813cd09",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "1c4efa6c-4f29-41cd-a728-bf0e479ace05",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "f02599bd-c5d8-4bdc-9478-a7bad8185552",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "b3e8f8bd-1c8b-4a7c-96c4-57a247ce9ccc",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    },
+    {
+      "cardId": "67d032f9-4faf-42eb-86ba-3fadfea84a27",
+      "quantity": 1,
+      "assignedPileId": null,
+      "isCommander": false,
+      "isCompanion": false
+    }
+  ],
+  "piles": []
+}

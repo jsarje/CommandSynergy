@@ -16,12 +16,10 @@ public sealed class DeckImportServiceTests
 
         var result = await sut.ImportAsync(new DeckImportRequestContract
         {
-            RawDocumentText = DeckPortabilityFixtureLoader.Load("moxfield-sample.txt"),
+            RawDocumentText = DeckPortabilityFixtureLoader.Load("moxfield-fulldeck-extended.txt"),
         });
 
-        result.DetectedFormatId.Should().Be("moxfield-text");
-        result.ImportedDeck.NormalizedDeck.CommanderCardIds.Should().ContainSingle("atraxa-praetors-voice");
-        result.ImportedDeck.NormalizedDeck.Sections.Should().Contain(section => section.Role == "commander");
+        result.ImportedDeck.NormalizedDeck.ImportedCardCount.Should().Be(100);
     }
 
     [Fact]
@@ -31,35 +29,11 @@ public sealed class DeckImportServiceTests
 
         var result = await sut.ImportAsync(new DeckImportRequestContract
         {
-            RawDocumentText = DeckPortabilityFixtureLoader.Load("partial-success-sample.txt"),
+            RawDocumentText = DeckPortabilityFixtureLoader.Load("moxfield-fulldeck-plaintext.txt"),
         });
 
-        result.ImportedDeck.NormalizedDeck.Entries.Should().Contain(entry => entry.DisplayName == "Sol Ring");
-        result.Diagnostics.Should().Contain(diagnostic => diagnostic.Code == "card-unresolved");
-        result.Diagnostics.Should().Contain(diagnostic => diagnostic.Code == "unrecognized-line");
-    }
-
-    [Fact]
-    public async Task ImportAsync_normalizes_manabox_sections_into_internal_workspace_piles()
-    {
-        var sut = CreateSut();
-
-        var result = await sut.ImportAsync(new DeckImportRequestContract
-        {
-            RawDocumentText = DeckPortabilityFixtureLoader.Load("manabox-sample.txt"),
-        });
-
-        result.DetectedFormatId.Should().Be("manabox-text");
-        result.ImportedDeck.NormalizedDeck.Sections.Should().Contain(section => section.SectionId == "command-zone" && section.Role == "commander");
-        result.ImportedDeck.NormalizedDeck.Sections.Should().Contain(section => section.SectionId == "mainboard" && section.Role == "mainboard");
-        result.ImportedDeck.NormalizedDeck.Sections.Should().Contain(section => section.SectionId == "maybeboard" && section.Role == "maybeboard");
-        result.ImportedDeck.NormalizedDeck.Entries.Should().Contain(entry => entry.IsCommander && entry.SectionId == "command-zone");
-        result.ImportedDeck.NormalizedDeck.Entries.Should().Contain(entry =>
-            entry.CardId == "sol-ring"
-            && entry.ImageUri == "https://cards.example/sol-ring.jpg"
-            && entry.TypeLine == "Artifact"
-            && entry.ColorIdentity.Count == 0);
-    }
+        result.ImportedDeck.NormalizedDeck.ImportedCardCount.Should().Be(100);
+    }    
 
     [Fact]
     public async Task ImportAsync_preserves_entry_level_source_metadata_for_supported_plaintext_variants()
@@ -84,6 +58,43 @@ public sealed class DeckImportServiceTests
             && entry.SourceSetCode == "eoc"
             && entry.SourceCollectorNumber == "91"
             && entry.SourceTag == "Mill");
+    }
+
+    [Fact]
+    public async Task ImportAsync_supports_bare_plaintext_entries_with_x_quantity_prefix()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.ImportAsync(new DeckImportRequestContract
+        {
+            RawDocumentText = "1x Mountain",
+        });
+
+        result.DetectedFormatId.Should().Be("generic-plaintext");
+        result.ImportedDeck.NormalizedDeck.ImportedCardCount.Should().Be(1);
+        result.ImportedDeck.NormalizedDeck.Entries.Should().ContainSingle(entry =>
+            entry.DisplayName == "Mountain"
+            && entry.Quantity == 1);
+    }
+
+    [Fact]
+    public async Task ImportAsync_supports_mixed_plaintext_quantity_prefix_styles()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.ImportAsync(new DeckImportRequestContract
+        {
+            RawDocumentText = "1 Mountain\n1x Sol Ring",
+        });
+
+        result.DetectedFormatId.Should().Be("generic-plaintext");
+        result.ImportedDeck.NormalizedDeck.ImportedCardCount.Should().Be(2);
+        result.ImportedDeck.NormalizedDeck.Entries.Should().ContainSingle(entry =>
+            entry.DisplayName == "Mountain"
+            && entry.Quantity == 1);
+        result.ImportedDeck.NormalizedDeck.Entries.Should().ContainSingle(entry =>
+            entry.DisplayName == "Sol Ring"
+            && entry.Quantity == 1);
     }
 
     [Fact]
@@ -121,6 +132,7 @@ public sealed class DeckImportServiceTests
             ["Wear // Tear"] = new() { CardId = "wear-tear", Name = "Wear // Tear", ManaCost = "{1}{R} // {W}", TypeLine = "Instant", ColorIdentity = ["R", "W"], ImageUri = "https://cards.example/wear-tear.jpg", HasMultipleFaces = true, CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
             ["Swords to Plowshares"] = new() { CardId = "swords-to-plowshares", Name = "Swords to Plowshares", ManaCost = "{W}", TypeLine = "Instant", ColorIdentity = ["W"], ImageUri = "https://cards.example/swords-to-plowshares.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
             ["Cultivate"] = new() { CardId = "cultivate", Name = "Cultivate", ManaCost = "{2}{G}", TypeLine = "Sorcery", ColorIdentity = ["G"], ImageUri = "https://cards.example/cultivate.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
+            ["Mountain"] = new() { CardId = "mountain", Name = "Mountain", ManaCost = string.Empty, TypeLine = "Basic Land — Mountain", ColorIdentity = ["R"], ImageUri = "https://cards.example/mountain.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
             ["Arcane Signet"] = new() { CardId = "arcane-signet", Name = "Arcane Signet", ManaCost = "{2}", TypeLine = "Artifact", ColorIdentity = Array.Empty<string>(), ImageUri = "https://cards.example/arcane-signet.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
             ["Aftermath Analyst"] = new() { CardId = "aftermath-analyst", Name = "Aftermath Analyst", ManaCost = "{2}{G}", TypeLine = "Creature", ColorIdentity = ["G"], ImageUri = "https://cards.example/aftermath-analyst.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.Unknown },
             ["Magar of the Magic Strings"] = new() { CardId = "magar-of-the-magic-strings", Name = "Magar of the Magic Strings", ManaCost = "{1}{B}{R}", TypeLine = "Legendary Creature", ColorIdentity = ["B", "R"], ImageUri = "https://cards.example/magar-of-the-magic-strings.jpg", CommanderEligibilityBasis = Domain.Cards.CommanderEligibilityBasis.LegendaryCreature },

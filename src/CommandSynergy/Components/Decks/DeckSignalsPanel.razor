@@ -25,23 +25,23 @@
     </div>
 
     <section class="workspace-briefing" aria-label="Deck briefing" data-testid="workspace-briefing">
-        <div>
+        <div class="workspace-briefing__copy">
             <h3>@GetStateHeadline()</h3>
             <p>@GetStateHint()</p>
         </div>
 
-        <div class="workspace-briefing__metrics">
+        <div class="workspace-briefing__metrics" data-testid="workspace-briefing-metrics">
             <div>
                 <span>Commander</span>
                 <strong>@CommanderName</strong>
             </div>
             <div>
-                <span>Deck</span>
-                <strong>@DeckName</strong>
+                <span>Next pass</span>
+                <strong>@GetNextActionLabel()</strong>
             </div>
             <div>
-                <span>Next move</span>
-                <strong>@GetNextActionLabel()</strong>
+                <span>Deck cards</span>
+                <strong>@(State.Validation?.DeckCardCount ?? TotalDeckCards)</strong>
             </div>
         </div>
     </section>
@@ -103,6 +103,7 @@
                         aria-controls="@GetDetailPanelId(DeckSignalDetail.Validation)"
                         aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.Validation)"
                         @onclick="() => ToggleDetail(DeckSignalDetail.Validation)">
+                    <i class="workspace-metric-button__indicator" aria-hidden="true">?</i>
                     <span>Legality</span>
                     <strong>@(State.Validation?.IsValid == true ? "Legal" : "Needs work")</strong>
                 </button>
@@ -112,6 +113,7 @@
                         aria-controls="@GetDetailPanelId(DeckSignalDetail.Bracket)"
                         aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.Bracket)"
                         @onclick="() => ToggleDetail(DeckSignalDetail.Bracket)">
+                    <i class="workspace-metric-button__indicator" aria-hidden="true">?</i>
                     <span>Bracket</span>
                     <strong>@(Analysis?.Bracket.Level.ToString() ?? "-")</strong>
                 </button>
@@ -121,6 +123,7 @@
                         aria-controls="@GetDetailPanelId(DeckSignalDetail.Synergy)"
                         aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.Synergy)"
                         @onclick="() => ToggleDetail(DeckSignalDetail.Synergy)">
+                    <i class="workspace-metric-button__indicator" aria-hidden="true">?</i>
                     <span>Synergy</span>
                     <strong>@(Analysis?.Synergy.Score.ToString("0.#") ?? "-")</strong>
                 </button>
@@ -130,6 +133,7 @@
                         aria-controls="@GetDetailPanelId(DeckSignalDetail.PowerLevel)"
                         aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.PowerLevel)"
                         @onclick="() => ToggleDetail(DeckSignalDetail.PowerLevel)">
+                    <i class="workspace-metric-button__indicator" aria-hidden="true">?</i>
                     <span>Power</span>
                     <strong>@(Analysis?.PowerLevel.Score.ToString("0.#") ?? "-")</strong>
                 </button>
@@ -139,6 +143,7 @@
                         aria-controls="@GetDetailPanelId(DeckSignalDetail.ThemeSignals)"
                         aria-expanded="@GetAriaExpandedValue(DeckSignalDetail.ThemeSignals)"
                         @onclick="() => ToggleDetail(DeckSignalDetail.ThemeSignals)">
+                    <i class="workspace-metric-button__indicator" aria-hidden="true">?</i>
                     <span>Top Theme</span>
                     <strong>@(Analysis?.ThemeAnalysis?.CommanderAlignment?.CommanderTopTheme ?? "-")</strong>
                 </button>
@@ -150,70 +155,60 @@
             }
             else if (selectedDetail == DeckSignalDetail.Validation)
             {
-                <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
-                    <MudExpansionPanel Text="Legality/Validation" Expanded="true">
-                        <section id="@GetDetailPanelId(DeckSignalDetail.Validation)" class="workspace-stack">
-                            <div class="workspace-section-heading">
-                                <h3>Validation findings</h3>
-                                <span class="workspace-panel__badge">@State.Findings.Count.ToString("00")</span>
-                            </div>
+                <MudPaper Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
+                    <section id="@GetDetailPanelId(DeckSignalDetail.Validation)" class="workspace-stack">
+                        <div class="workspace-section-heading">
+                            <h3>Validation findings</h3>
+                            <span class="workspace-panel__badge">@State.Findings.Count.ToString("00")</span>
+                        </div>
 
-                            @if (State.Findings.Count == 0)
-                            {
-                                <p class="workspace-panel__empty">No findings yet.</p>
-                            }
-                            else
-                            {
-                                <ul class="workspace-findings" data-testid="validation-findings">
-                                    @foreach (var finding in State.Findings)
-                                    {
-                                        <li class="workspace-finding workspace-finding--@finding.Severity">@finding.Message</li>
-                                    }
-                                </ul>
-                            }
-                        </section>
-                    </MudExpansionPanel>
-                </MudExpansionPanels>
+                        @if (State.Findings.Count == 0)
+                        {
+                            <p class="workspace-panel__empty">No findings yet.</p>
+                        }
+                        else
+                        {
+                            <ul class="workspace-findings" data-testid="validation-findings">
+                                @foreach (var finding in State.Findings)
+                                {
+                                    <li class="workspace-finding workspace-finding--@finding.Severity">@finding.Message</li>
+                                }
+                            </ul>
+                        }
+                    </section>                    
+                </MudPaper>
             }
             else if (selectedDetail == DeckSignalDetail.Bracket)
             {
-                <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
-                    <MudExpansionPanel Text="Bracket" Expanded="true">
-                        <section id="@GetDetailPanelId(DeckSignalDetail.Bracket)">
-                            <BracketAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
-                        </section>
-                    </MudExpansionPanel>
-                </MudExpansionPanels>
+                <MudPaper Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">                    
+                    <section id="@GetDetailPanelId(DeckSignalDetail.Bracket)">
+                        <BracketAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
+                    </section>                    
+                </MudPaper>
             }
             else if (selectedDetail == DeckSignalDetail.Synergy)
             {
-                <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
-                    <MudExpansionPanel Text="Synergy" Expanded="true">
-                        <section id="@GetDetailPanelId(DeckSignalDetail.Synergy)">
-                            <SynergyAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
-                        </section>
-                    </MudExpansionPanel>
-                </MudExpansionPanels>
+                <MudPaper Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
+                    <section id="@GetDetailPanelId(DeckSignalDetail.Synergy)">
+                        <SynergyAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
+                    </section>                    
+                </MudPaper>
             }
             else if (selectedDetail == DeckSignalDetail.PowerLevel)
             {
-                <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
-                    <MudExpansionPanel Text="Power level" Expanded="true">
-                        <section id="@GetDetailPanelId(DeckSignalDetail.PowerLevel)">
-                            <PowerLevelAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
-                        </section>
-                    </MudExpansionPanel>
-                </MudExpansionPanels>
+                <MudPaper Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
+                    <section id="@GetDetailPanelId(DeckSignalDetail.PowerLevel)">
+                        <PowerLevelAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
+                    </section>
+                </MudPaper>
             }
             else if (selectedDetail == DeckSignalDetail.ThemeSignals)
             {
-                <MudExpansionPanels Outlined="true" Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
-                    <MudExpansionPanel Text="Theme signals" Expanded="true">
-                        <section id="@GetDetailPanelId(DeckSignalDetail.ThemeSignals)">
-                            <ThemeAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
-                        </section>
-                    </MudExpansionPanel>
-                </MudExpansionPanels>
+                <MudPaper Elevation="0" Class="workspace-disclosure-set workspace-disclosure-set--analysis" data-testid="analysis-panel">
+                    <section id="@GetDetailPanelId(DeckSignalDetail.ThemeSignals)">
+                        <ThemeAnalysisPanel Analysis="Analysis" IsLoading="IsRefreshingInsights" HasError="IsRecoveryState" />
+                    </section>                
+                </MudPaper>
             }
         </div>
     }

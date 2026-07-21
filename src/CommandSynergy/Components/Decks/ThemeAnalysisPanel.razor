@@ -29,26 +29,27 @@ else if (Analysis.ThemeAnalysis.IsInsufficient)
 }
 else
 {
-    <section class="theme-analysis theme-analysis--ready"
+    <section class="analysis-panel theme-analysis theme-analysis--ready"
              data-testid="theme-analysis-ready"
              role="region"
              aria-labelledby="theme-analysis-title"
              aria-busy="@IsLoading">
-        <div class="theme-analysis__header">
+        <div class="analysis-panel__header theme-analysis__header">
             <div>
                 <h4 id="theme-analysis-title">Themes</h4>
                 @if (IsLoading)
                 {
-                    <p class="theme-analysis__refresh-banner" data-testid="theme-analysis-refreshing" role="status" aria-live="polite">
+                    <p class="analysis-panel__refresh-banner theme-analysis__refresh-banner" data-testid="theme-analysis-refreshing" role="status" aria-live="polite">
                         Refreshing. Showing the previous result.
                     </p>
                 }
                 @if (!string.IsNullOrWhiteSpace(Analysis.ThemeAnalysis.RefreshSummary))
                 {
-                    <p class="theme-analysis__message">@Analysis.ThemeAnalysis.RefreshSummary</p>
+                    <p class="analysis-panel__summary theme-analysis__message">@Analysis.ThemeAnalysis.RefreshSummary</p>
                 }
             </div>
-            <span class="theme-analysis__alignment theme-analysis__alignment--@Analysis.ThemeAnalysis.CommanderAlignment.Level.ToLowerInvariant()">
+            <span class="analysis-panel__label-pill theme-analysis__alignment theme-analysis__alignment--@Analysis.ThemeAnalysis.CommanderAlignment.Level.ToLowerInvariant()"
+                  data-testid="theme-analysis-pill">
                 @Analysis.ThemeAnalysis.CommanderAlignment.Level alignment
             </span>
         </div>
@@ -70,9 +71,9 @@ else
             </div>
         }
 
-        <div class="theme-analysis__summary-strip">
+        <div class="analysis-panel__section theme-analysis__summary-strip">
             <span class="theme-analysis__subtle">@Analysis.ThemeAnalysis.CommanderAlignment.CommanderTopTheme</span>
-            <p class="theme-analysis__message">@Analysis.ThemeAnalysis.CommanderAlignment.Summary</p>
+            <p class="analysis-panel__summary theme-analysis__message">@Analysis.ThemeAnalysis.CommanderAlignment.Summary</p>
         </div>
 
         @foreach (var theme in Analysis.ThemeAnalysis.RankedThemes.Take(3))

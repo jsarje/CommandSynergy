@@ -127,8 +127,112 @@ public sealed class PowerLevelCalculationService : IPowerLevelCalculationService
         return new PowerLevelAssessmentContract
         {
             Score = score,
+            Label = ResolveLabel(score),
             Summary = BuildSummary(averageManaValue, fastManaCount, efficientTutorCount, freeInteractionCount, comboCount),
+            SupportingSections = BuildSupportingSections(score, averageManaValue, fastManaCount, efficientTutorCount, freeInteractionCount, comboCount),
         };
+    }
+
+    private static IReadOnlyList<AnalysisSummarySectionContract> BuildSupportingSections(
+        decimal score,
+        decimal? averageManaValue,
+        int fastManaCount,
+        int efficientTutorCount,
+        int freeInteractionCount,
+        int comboCount)
+    {
+        var paceItems = new List<AnalysisSummaryItemContract>();
+
+        paceItems.Add(new AnalysisSummaryItemContract
+        {
+            Label = "Curve",
+            Value = averageManaValue is null
+                ? "Unavailable"
+                : averageManaValue.Value.ToString("0.##", CultureInfo.InvariantCulture),
+            Description = averageManaValue switch
+            {
+                null => "The deck needs more nonland data before its average spell cost can be read.",
+                <= 2.5m => "Lean curve supports earlier double-spell turns and faster pressure.",
+                <= 3.2m => "Middle curve keeps the deck efficient without fully compressing the game plan.",
+                _ => "Heavier curve slows the deck's average start and lowers raw speed.",
+            },
+            Tone = averageManaValue switch
+            {
+                null => "neutral",
+                <= 2.5m => "positive",
+                <= 3.2m => "neutral",
+                _ => "warning",
+            },
+        });
+
+        paceItems.Add(new AnalysisSummaryItemContract
+        {
+            Label = "Finish speed",
+            Value = comboCount == 0 ? "No compact combos" : Pluralize(comboCount, "compact combo"),
+            Description = comboCount == 0
+                ? "Wins appear to come from board development rather than compact combo closes."
+                : "Included combos raise the deck's ceiling and shorten the time needed to close games.",
+            Tone = comboCount == 0 ? "neutral" : "positive",
+        });
+
+        var signalItems = new List<AnalysisSummaryItemContract>
+        {
+            new()
+            {
+                Label = "Fast mana",
+                Value = Pluralize(fastManaCount, "piece"),
+                Description = fastManaCount == 0
+                    ? "No premium acceleration is currently pulling the score upward."
+                    : "Fast mana compresses setup turns and pushes the deck toward higher-powered tables.",
+                Tone = fastManaCount == 0 ? "neutral" : "positive",
+            },
+            new()
+            {
+                Label = "Tutors",
+                Value = Pluralize(efficientTutorCount, "piece"),
+                Description = efficientTutorCount == 0
+                    ? "Lines are less repetitive without efficient search tools."
+                    : "Efficient tutors make the deck more consistent and improve access to its best lines.",
+                Tone = efficientTutorCount == 0 ? "neutral" : "positive",
+            },
+            new()
+            {
+                Label = "Free interaction",
+                Value = Pluralize(freeInteractionCount, "piece"),
+                Description = freeInteractionCount == 0
+                    ? "The deck appears to rely on mana-up interaction windows."
+                    : "Zero- or low-cost interaction lets the deck protect key turns without falling behind.",
+                Tone = freeInteractionCount == 0 ? "neutral" : "positive",
+            },
+        };
+
+        return
+        [
+            new AnalysisSummarySectionContract
+            {
+                Title = "Read",
+                Items = paceItems,
+            },
+            new AnalysisSummarySectionContract
+            {
+                Title = "Signals",
+                Items = signalItems,
+            },
+            new AnalysisSummarySectionContract
+            {
+                Title = "Table fit",
+                Items =
+                [
+                    new AnalysisSummaryItemContract
+                    {
+                        Label = "Current read",
+                        Value = ResolveLabel(score),
+                        Description = "This blends speed, consistency, and combo access into a single top-line read.",
+                        Tone = score >= 7.0m ? "positive" : score < 4.0m ? "warning" : "neutral",
+                    },
+                ],
+            },
+        ];
     }
 
     private static string BuildSummary(
@@ -139,8 +243,8 @@ public sealed class PowerLevelCalculationService : IPowerLevelCalculationService
         int comboCount)
     {
         var curveText = averageManaValue is null
-            ? "curve unavailable"
-            : $"avg MV {averageManaValue.Value.ToString("0.##", CultureInfo.InvariantCulture)}";
+            ? "Curve unavailable"
+            : $"Average ManaCost {averageManaValue.Value.ToString("0.##", CultureInfo.InvariantCulture)}";
 
         return $"{curveText}; {Pluralize(fastManaCount, "fast mana card")}, {Pluralize(efficientTutorCount, "efficient tutor")}, {Pluralize(freeInteractionCount, "free interaction piece")}, and {Pluralize(comboCount, "included combo")}.";
     }
@@ -149,4 +253,13 @@ public sealed class PowerLevelCalculationService : IPowerLevelCalculationService
         count == 1
             ? $"1 {singularLabel}"
             : $"{count.ToString(CultureInfo.InvariantCulture)} {singularLabel}s";
+
+    private static string ResolveLabel(decimal score) => score switch
+    {
+        >= 8.5m => "Explosive",
+        >= 7.0m => "Tuned",
+        >= 5.5m => "Focused",
+        >= 4.0m => "Measured",
+        _ => "Deliberate",
+    };
 }

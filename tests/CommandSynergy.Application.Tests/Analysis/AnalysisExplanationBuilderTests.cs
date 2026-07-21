@@ -81,7 +81,7 @@ public sealed class AnalysisExplanationBuilderTests
             24);
         var emptyRefreshSummary = sut.BuildThemeRefreshSummary([], 0, 12);
 
-        themeSummary.Should().Be("Theme score 77.5/100, final score 81/100 (Tuned). Commander strongly supports the deck's token plan. Every analysed card reinforced at least one theme. EDHREC data nudged the final score.");
+        themeSummary.Should().Be("Theme score 81/100 (Tuned). Commander strongly supports the deck's token plan. Every analysed card reinforced at least one theme.");
         refreshSummary.Should().Be("Primary themes: Tokens, Aristocrats. 2 card(s) are currently off-theme.");
         emptyRefreshSummary.Should().Be("No dominant themes surfaced yet across 12 analysed cards.");
     }

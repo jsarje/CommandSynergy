@@ -105,7 +105,7 @@ static ParsedDeckLine? ParseLine(string rawLine)
     var match = FixtureBuilderOptions.MatchDeckLine(line);
     if (!match.Success)
     {
-        throw new InvalidOperationException($"Could not parse line '{line}'. Expected format '1 Card Name' or '1 Card Name (commander)'.");
+        throw new InvalidOperationException($"Could not parse line '{line}'. Expected format '1 Card Name', '1x Card Name', or tagged variants such as '1 Card Name (commander)'.");
     }
 
     var quantity = int.Parse(match.Groups["quantity"].Value, CultureInfo.InvariantCulture);
@@ -301,7 +301,7 @@ sealed partial record FixtureBuilderOptions(
     }
 
 
-    [GeneratedRegex("^(?<quantity>\\d+)\\s+(?<name>.+?)(?:\\s+\\((?<tag>commander|companion)\\))?$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    [GeneratedRegex("^(?<quantity>\\d+)x?\\s+(?<name>.+?)(?:\\s+\\((?<tag>commander|companion)\\))?$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex DeckLineRegex();
 
 }

@@ -1,9 +1,0 @@
-Atraxa Blink
-
-# Commander
-1 Atraxa, Praetors' Voice
-
-# Mainboard
-1 Sol Ring
-1 Arcane Signet
-1 Cultivate

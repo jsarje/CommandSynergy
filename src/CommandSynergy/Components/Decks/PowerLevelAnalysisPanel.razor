@@ -1,6 +1,6 @@
 @using CommandSynergy.Application.Contracts
 
-@if (IsLoading)
+@if (IsLoading && Analysis is null)
 {
     <div class="analysis-panel analysis-panel--loading" data-testid="power-analysis-loading">
         <MudProgressCircular Indeterminate="true" Size="Size.Small" />
@@ -23,14 +23,50 @@ else if (Analysis is null)
 }
 else
 {
-    <div class="analysis-power" data-testid="analysis-power">
-        <div class="analysis-power__header">
-            <h4 class="analysis-power__label">Power Level</h4>
-            <span class="analysis-power__score"
-                  title="Heuristic power level (1–10)">@Analysis.PowerLevel.Score.ToString("0.0")</span>
+    <section class="analysis-panel analysis-panel--ready analysis-power" data-testid="analysis-power" aria-busy="@IsLoading">
+        <div class="analysis-panel__header">
+            <div>
+                <h4 class="analysis-power__label">Power Level</h4>
+                @if (IsLoading)
+                {
+                    <p class="analysis-panel__refresh-banner" data-testid="power-analysis-refreshing" role="status" aria-live="polite">
+                        Refreshing. Showing the previous result.
+                    </p>
+                }
+            </div>
+            <span class="analysis-panel__label-pill analysis-panel__label-pill--power"
+                  data-testid="power-analysis-pill"
+                  title="Heuristic power level (1–10)">
+                @Analysis.PowerLevel.Label · @Analysis.PowerLevel.Score.ToString("0.0")
+            </span>
         </div>
-        <p class="analysis-power__summary">@Analysis.PowerLevel.Summary</p>
-    </div>
+
+        <p class="analysis-panel__summary">@Analysis.PowerLevel.Summary</p>
+
+        @foreach (var section in Analysis.PowerLevel.SupportingSections)
+        {
+            <section class="analysis-panel__section" aria-labelledby="@GetSectionId(section.Title)">
+                <div class="analysis-panel__section-header">
+                    <h5 id="@GetSectionId(section.Title)">@section.Title</h5>
+                </div>
+                <ul class="analysis-panel__list" data-testid="@GetSectionTestId(section.Title)">
+                    @foreach (var item in section.Items)
+                    {
+                        <li class="analysis-panel__item analysis-panel__item--@item.Tone">
+                            <div>
+                                <strong>@item.Label</strong>
+                                @if (!string.IsNullOrWhiteSpace(item.Description))
+                                {
+                                    <p>@item.Description</p>
+                                }
+                            </div>
+                            <span class="analysis-panel__item-value">@item.Value</span>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
+    </section>
 }
 
 @code {
@@ -51,4 +87,10 @@ else
     /// </summary>
     [Parameter]
     public bool HasError { get; set; }
+
+    private static string GetSectionId(string title) => $"power-analysis-{Slugify(title)}";
+
+    private static string GetSectionTestId(string title) => $"power-analysis-{Slugify(title)}";
+
+    private static string Slugify(string value) => value.ToLowerInvariant().Replace(" ", "-");
 }

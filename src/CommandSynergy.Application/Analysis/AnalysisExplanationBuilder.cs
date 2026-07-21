@@ -58,11 +58,8 @@ public sealed class AnalysisExplanationBuilder : IAnalysisExplanationBuilder
         var offThemeText = offThemeCardCount == 0
             ? "Every analysed card reinforced at least one theme"
             : $"{offThemeCardCount} of {totalCardCount} cards currently read as off-theme";
-        var edhrecText = edhrecEnhanced
-            ? " EDHREC data nudged the final score."
-            : string.Empty;
 
-        return $"Theme score {themeScore:0.#}/100, final score {finalScore:0.#}/100 ({qualitativeLabel}). {alignment.Summary} {offThemeText}.{edhrecText}";
+        return $"Theme score {finalScore:0.#}/100 ({qualitativeLabel}). {alignment.Summary} {offThemeText}.";
     }
 
     /// <summary>

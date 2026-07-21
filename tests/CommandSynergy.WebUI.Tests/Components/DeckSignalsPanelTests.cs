@@ -74,10 +74,9 @@ public sealed class DeckSignalsPanelTests : BunitContext
             .Add(component => component.TotalDeckCards, 100)
             .Add(component => component.IsRefreshingInsights, false));
 
-        cut.Find("[data-testid='workspace-ready']").Should().NotBeNull();
-        cut.Find("[data-testid='workspace-briefing']").TextContent.Should().Contain("Deck needs validation work");
-        cut.Find("[data-testid='workspace-briefing']").TextContent.Should().Contain("Isshin, Two Heavens as One");
-        cut.Find("[data-testid='workspace-briefing']").TextContent.Should().Contain("Fix findings");
+        cut.Find("[data-testid='workspace-ready']").Should().NotBeNull();        
+        cut.Find("[data-testid='workspace-briefing-metrics']").TextContent.Should().Contain("Isshin, Two Heavens as One");
+        cut.Find("[data-testid='workspace-briefing-metrics']").TextContent.Should().Contain("Fix findings");
         cut.Find("[data-testid='analysis-detail-hint']").TextContent.Should().Contain("Click a metric");
         cut.FindAll("[data-testid='validation-findings']").Should().BeEmpty();
         cut.Find("[data-testid='metric-validation-trigger']").GetAttribute("aria-expanded").Should().Be("false");

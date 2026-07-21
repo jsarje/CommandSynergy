@@ -27,7 +27,12 @@
         "ConvertFrom-Json": true,
         "Set-Content": true,
         "git -C C:\\GiT\\CommandSynergy": true,
-        ".\\specify\\scripts\\powershell\\check-prerequisites.ps1": true
+        ".\\specify\\scripts\\powershell\\check-prerequisites.ps1": true,
+        "/^node \\.agents/skills/impeccable/scripts/load-context\\.mjs$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "npx impeccable": true
     }
 }
 

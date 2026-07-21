@@ -5,8 +5,9 @@
 <PageTitle>Something went wrong — Synergy Sphere</PageTitle>
 
 <div class="error-page">
+    <p class="error-page__eyebrow">Workspace interrupted</p>
     <h1>Something went wrong.</h1>
-    <p>An unexpected error interrupted the workspace.</p>
+    <p>An unexpected error interrupted the workspace. Your deck data is still in the browser, but this view needs a clean reload.</p>
 
     @if (ShowRequestId)
     {
@@ -15,7 +16,7 @@
         </p>
     }
 
-    <a href="/" class="error-page__back">← Back to workspace</a>
+    <a href="/" class="error-page__back">Back to workspace</a>
 
     <details class="error-page__dev-details">
         <summary>Developer notes</summary>

@@ -6,12 +6,7 @@ namespace CommandSynergy.Domain.Analysis;
 public interface IBracketEngine
 {
     /// <summary>
-    /// Calculates a bracket assessment from a set of weighted factors and threshold boundaries.
+    /// Calculates a bracket assessment from the supplied normalized bracket inputs.
     /// </summary>
-    BracketAssessment Calculate(
-        IEnumerable<BracketFactor> factors,
-        IReadOnlyList<decimal> levelThresholds,
-        int minimumBracketLevel,
-        int maximumBracketLevel,
-        string summary);
+    BracketAssessment Calculate(BracketResolutionInput input);
 }
