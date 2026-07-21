@@ -85,7 +85,7 @@ jobs:
         run: dotnet build ${{ env.SOLUTION }} -c Release --no-restore
 
       - name: Run tests
-        run: dotnet test ${{ env.SOLUTION }} -c Release --no-build --verbosity normal
+        run: dotnet test ${{ env.SOLUTION }} -c Release --no-build --verbosity normal --filter "Category!=LocalOnly"
 
   publish:
     name: Publish ${{ matrix.name }}

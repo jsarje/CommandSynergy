@@ -12,6 +12,12 @@ dotnet build src/CommandSynergy.slnx
 dotnet test src/CommandSynergy.slnx
 ```
 
+Run the live dependency integration tests locally only:
+
+```powershell
+dotnet test src/CommandSynergy.slnx --filter "Category=LocalOnly"
+```
+
 Refresh the local metadata snapshot (ingestion tool):
 
 ```powershell
