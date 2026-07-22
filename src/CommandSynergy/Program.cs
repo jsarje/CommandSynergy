@@ -66,6 +66,8 @@ if (!disableHttpsRedirect)
     app.UseHttpsRedirection();
 }
 
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
