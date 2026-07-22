@@ -16,8 +16,13 @@ RUN dotnet restore "CommandSynergy/CommandSynergy.csproj"
 COPY . .
 
 # Build and publish
+# Note: do NOT pass --no-restore here. The earlier `dotnet restore` step runs
+# against csproj files only (before source is copied) and, on Linux, that
+# leaves the framework's implicit static web assets (_framework/blazor.web.js,
+# _framework/blazor.server.js) unresolved, causing 404s for Blazor Auto/Server
+# render mode at runtime even though the build otherwise succeeds.
 WORKDIR "/src/CommandSynergy"
-RUN dotnet publish "CommandSynergy.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
+RUN dotnet publish "CommandSynergy.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled AS final
