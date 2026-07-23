@@ -7,6 +7,7 @@ using CommandSynergy.Client.Services;
 using CommandSynergy.Endpoints;
 using CommandSynergy.Infrastructure;
 using MudBlazor.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    
+    // Clear default loopback restrictions so headers passed from Caddy inside Docker network are accepted
+    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 builder.Services
     .AddCommandSynergyApplication(builder.Configuration)
     .AddCommandSynergyInfrastructure(builder.Configuration);
@@ -53,11 +65,8 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    if (!disableHttpsRedirect)
-    {
-        app.UseHsts();
-    }
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.    
+    app.UseHsts();    
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 
@@ -65,6 +74,8 @@ if (!disableHttpsRedirect)
 {
     app.UseHttpsRedirection();
 }
+
+app.UseForwardedHeaders();
 
 app.UseAntiforgery();
 
