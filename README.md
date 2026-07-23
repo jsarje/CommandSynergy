@@ -43,28 +43,46 @@ CommandSynergy is a developer-focused .NET 10 Blazor Web App to build, validate,
 ```yaml
 services:
   synergy-sphere:
-    image: ghcr.io/jsarje/commandsynergy-web:main
-    ports:
-      - "8080:8080"
+    container_name: synergy-sphere
+    image: ghcr.io/jsarje/commandsynergy-web:0    
+    user: "0:0"
     environment:
       ASPNETCORE_HTTP_PORTS: "8080"
+      DisableHttpsRedirection: "true"
       CardMetadata__SnapshotDirectory: /data/card-metadata
+    expose:
+      - "8080"
     volumes:
       - shared-data:/data/card-metadata
+    restart: unless-stopped
 
   ingestion:
-    image: ghcr.io/jsarje/commandsynergy-ingestion:main
+    image: ghcr.io/jsarje/commandsynergy-ingestion:0
     profiles: [ "manual" ]
+    user: "0:0"
     environment:
       CardMetadata__SnapshotDirectory: /data/card-metadata
     volumes:
       - shared-data:/data/card-metadata
+      
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"     # Required for HTTP -> HTTPS redirects & SSL challenges
+      - "443:443"   # HTTPS
+    volumes:
+      - $PWD/conf:/etc/caddy:ro
+      - caddy_data:/data      # Crucial: Persists Let's Encrypt certs between restarts
+      - caddy_config:/config
+    depends_on:
+      - synergy-sphere
 
   ofelia:
     image: mcuadros/ofelia:latest
     command: daemon --docker
     depends_on:
-      - blazor-app
+      - synergy-sphere
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
@@ -76,6 +94,10 @@ services:
 volumes:
   shared-data:
     name: shared-data
+  caddy_data:
+    name: caddy_data
+  caddy_config:
+    name: caddy_config
 ```
 
 1. Save the example as `docker-compose.yml`, then pull the published images with `docker compose pull`.
