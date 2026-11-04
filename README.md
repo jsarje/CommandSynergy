@@ -1,5 +1,7 @@
 # CommandSynergy
 
+[![AI Ready](https://img.shields.io/badge/AI--Ready-yes-brightgreen?style=flat)](https://github.com/johnpapa/ai-ready)
+
 CommandSynergy is a developer-focused .NET 10 Blazor Web App to build, validate, and analyze Commander (EDH) Magic: The Gathering decks using server-authoritative rules and a local Parquet-backed card metadata snapshot.
 
 > [!NOTE]
