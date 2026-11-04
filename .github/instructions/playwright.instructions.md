@@ -1,6 +1,6 @@
 ---
 description: 'Playwright .NET test generation instructions'
-applyTo: '**PlaywrightTests/**/*.cs'
+applyTo: 'tests/CommandSynergy.PlaywrightTests/**/*.cs'
 ---
 
 # Playwright .NET Test Generation Instructions
