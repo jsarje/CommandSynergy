@@ -9,6 +9,12 @@ using Microsoft.Extensions.Options;
 
 namespace CommandSynergy.Application.Tests.Performance;
 
+[CollectionDefinition("NonParallelPerformance", DisableParallelization = true)]
+public sealed class NonParallelPerformanceCollection
+{
+}
+
+[Collection("NonParallelPerformance")]
 public sealed class DeckAnalysisPerformanceTests
 {
     [Fact]
@@ -66,6 +72,8 @@ public sealed class DeckAnalysisPerformanceTests
                 })
                 .ToArray(),
         };
+
+        _ = await sut.AnalyzeAsync(deckSnapshot);
 
         var started = Stopwatch.GetTimestamp();
         var response = await sut.AnalyzeAsync(deckSnapshot);
