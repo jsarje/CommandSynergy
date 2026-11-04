@@ -5,7 +5,7 @@
 ### Added
 
 - Added AI contributor guidance, focused reviewer agents, issue forms, a pull request template, and change-shipping instructions.
-- Added live browser verification guidance and a bounded test for imported deck library invariants.
+- Added live browser verification guidance.
 
 ## [0.1.1-alpha] - 2026-07-24
 

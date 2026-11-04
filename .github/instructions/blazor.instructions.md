@@ -23,7 +23,7 @@ applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 - Use data binding effectively with @bind.
 - Leverage Dependency Injection for services in Blazor.
 - Structure Blazor components and services following Separation of Concerns.
-- Always use the latest version C#, currently C# 13 features like record types, pattern matching, and global usings.
+- Always use the latest version of C#, currently C# 14.
 
 ## Error Handling and Validation
 

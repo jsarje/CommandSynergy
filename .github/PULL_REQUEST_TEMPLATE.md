@@ -8,7 +8,7 @@ What problem does this change solve?
 
 ## How to test
 
-- [ ] `dotnet test src\CommandSynergy.slnx`
+- [ ] `dotnet test src/CommandSynergy.slnx`
 - [ ] Describe any manual browser verification, if applicable.
 
 ## Checklist
@@ -16,4 +16,4 @@ What problem does this change solve?
 - [ ] Added or updated tests for behavior changes.
 - [ ] Updated the relevant feature spec, API contract, or verification recipe.
 - [ ] Checked every affected row in the maintenance matrix in `AGENTS.md`.
-- [ ] A person reviewed any change under `.github\workflows\`.
+- [ ] A person reviewed any change under `.github/workflows/`.

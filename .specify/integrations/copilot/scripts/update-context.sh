@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# update-context.sh — Copilot integration: create/update .github/copilot-instructions.md
+# update-context.sh — Copilot integration: update AGENTS.md
 #
-# This is the copilot-specific implementation that produces the GitHub
-# Copilot instructions file. The shared dispatcher reads
-# .specify/integration.json and calls this script.
+# GitHub Copilot reads AGENTS.md as the canonical repository guidance.
+# .github/copilot-instructions.md remains a pointer to that file.
+# The shared dispatcher reads .specify/integration.json and calls this script.
 #
 # NOTE: This script is not yet active. It will be activated in Stage 7
 # when the shared update-agent-context.sh replaces its case statement
