@@ -17,9 +17,9 @@ From the repository root, run:
 dotnet test tests\CommandSynergy.WebUI.Tests\CommandSynergy.WebUI.Tests.csproj --filter FullyQualifiedName~ImportedDeckLibraryStateModelTests
 ```
 
-`ImportedDeckLibraryStateModelTests` explores the real state service, not a copy of its transition logic. It starts with an empty library and explores every reachable state through paths of up to five commands from a fixed set: save either of two decks with or without activation, activate a saved deck or none, remove either deck, and clear the library. It checks both invariants after every command and reports the shortest command sequence that breaks one.
+`ImportedDeckLibraryStateModelTests` explores the real state service, not a copy of its transition logic. It starts with an empty library and explores every reachable state through paths of up to five commands from a fixed set: save either of two decks with or without activation, update either saved deck, activate a saved deck or none, remove either deck, and clear the library. It checks both invariants after every command and reports the shortest command sequence that breaks one.
 
-The check covers serial calls to `SaveImportedDeckAsync`, `SetActiveDeckAsync`, `RemoveImportedDeckAsync`, and `ClearAsync`. It uses two fixed deck IDs, only activates a deck already in the library, and stops at five commands. It does not cover browser storage, serialization, concurrent calls, arbitrary deck IDs, or libraries with more than two decks.
+The check covers serial calls to `SaveImportedDeckAsync`, `UpdateDeckAsync`, `SetActiveDeckAsync`, `RemoveImportedDeckAsync`, and `ClearAsync`. Updates target a deck already in the library. It uses two fixed deck IDs, only activates a deck already in the library, and stops at five commands. It does not cover browser storage, serialization, concurrent calls, arbitrary deck IDs, or libraries with more than two decks.
 
 ## Read a failure
 
@@ -29,8 +29,8 @@ Do not change product code to silence a counterexample unless the intended behav
 
 ## Keep the check in sync
 
-Coverage record: `src\CommandSynergy.Client\Services\ImportedDeckLibraryState.cs`, methods `SaveImportedDeckAsync`, `SetActiveDeckAsync`, `RemoveImportedDeckAsync`, and `ClearAsync`.
+Coverage record: `src\CommandSynergy.Client\Services\ImportedDeckLibraryState.cs`, methods `SaveImportedDeckAsync`, `UpdateDeckAsync`, `SetActiveDeckAsync`, `RemoveImportedDeckAsync`, and `ClearAsync`.
 
-Last confirmed against source commit `b89d3444736181cd46adf9329d9bb449d59e475a`.
+Last confirmed against source commit `06e9baa7132fc21c9613063eb21a622c55b08527`.
 
 When one of the covered methods changes, inspect its new behavior against the test's commands and invariants, then run the check. Move the sync commit forward only after you confirm that the test still describes the code at that commit.
