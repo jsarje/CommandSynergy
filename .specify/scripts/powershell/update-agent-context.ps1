@@ -46,7 +46,6 @@ $NEW_PLAN = $IMPL_PLAN
 # Agent file paths
 $CLAUDE_FILE   = Join-Path $REPO_ROOT 'CLAUDE.md'
 $GEMINI_FILE   = Join-Path $REPO_ROOT 'GEMINI.md'
-$COPILOT_FILE  = Join-Path $REPO_ROOT '.github/copilot-instructions.md'
 $CURSOR_FILE   = Join-Path $REPO_ROOT '.cursor/rules/specify-rules.mdc'
 $QWEN_FILE     = Join-Path $REPO_ROOT 'QWEN.md'
 $AGENTS_FILE   = Join-Path $REPO_ROOT 'AGENTS.md'
@@ -394,7 +393,7 @@ function Update-SpecificAgent {
     switch ($Type) {
         'claude'   { Update-AgentFile -TargetFile $CLAUDE_FILE   -AgentName 'Claude Code' }
         'gemini'   { Update-AgentFile -TargetFile $GEMINI_FILE   -AgentName 'Gemini CLI' }
-        'copilot'  { Update-AgentFile -TargetFile $COPILOT_FILE  -AgentName 'GitHub Copilot' }
+        'copilot'  { Update-AgentFile -TargetFile $AGENTS_FILE   -AgentName 'GitHub Copilot' }
         'cursor-agent' { Update-AgentFile -TargetFile $CURSOR_FILE   -AgentName 'Cursor IDE' }
         'qwen'     { Update-AgentFile -TargetFile $QWEN_FILE     -AgentName 'Qwen Code' }
         'opencode' { Update-AgentFile -TargetFile $AGENTS_FILE   -AgentName 'opencode' }
@@ -459,7 +458,6 @@ function Update-AllExistingAgents {
     
     if (-not (Update-IfNew -FilePath $CLAUDE_FILE   -AgentName 'Claude Code')) { $ok = $false }
     if (-not (Update-IfNew -FilePath $GEMINI_FILE   -AgentName 'Gemini CLI')) { $ok = $false }
-    if (-not (Update-IfNew -FilePath $COPILOT_FILE  -AgentName 'GitHub Copilot')) { $ok = $false }
     if (-not (Update-IfNew -FilePath $CURSOR_FILE   -AgentName 'Cursor IDE')) { $ok = $false }
     if (-not (Update-IfNew -FilePath $QWEN_FILE     -AgentName 'Qwen Code')) { $ok = $false }
     if (-not (Update-IfNew -FilePath $AGENTS_FILE   -AgentName 'Codex/opencode/Amp/Kiro/Bob/Pi/Forge/Goose')) { $ok = $false }

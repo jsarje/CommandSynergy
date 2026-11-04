@@ -17,6 +17,8 @@ public sealed class ImportedDeckLibraryStateModelTests
         new("save DECK-A without activation", LibraryOperation.Save, "DECK-A", false),
         new("save deck-b and activate", LibraryOperation.Save, "deck-b", true),
         new("save deck-b without activation", LibraryOperation.Save, "deck-b", false),
+        new("update deck-a", LibraryOperation.Update, "deck-a"),
+        new("update deck-b", LibraryOperation.Update, "deck-b"),
         new("activate deck-a", LibraryOperation.SetActive, "deck-a"),
         new("activate deck-b", LibraryOperation.SetActive, "deck-b"),
         new("clear active selection", LibraryOperation.SetActive),
@@ -78,9 +80,14 @@ public sealed class ImportedDeckLibraryStateModelTests
     }
 
     private static bool IsApplicable(LibraryCommand command, ImportedDeckLibraryDocument library) =>
-        command.Operation != LibraryOperation.SetActive
-        || command.DeckId is null
-        || library.Decks.Any(deck => string.Equals(deck.ImportedDeckId, command.DeckId, StringComparison.OrdinalIgnoreCase));
+        command.Operation switch
+        {
+            LibraryOperation.SetActive => command.DeckId is null
+                || library.Decks.Any(deck => string.Equals(deck.ImportedDeckId, command.DeckId, StringComparison.OrdinalIgnoreCase)),
+            LibraryOperation.Update => command.DeckId is not null
+                && library.Decks.Any(deck => string.Equals(deck.ImportedDeckId, command.DeckId, StringComparison.OrdinalIgnoreCase)),
+            _ => true,
+        };
 
     private static async Task ExecuteAsync(ImportedDeckLibraryState state, LibraryCommand command)
     {
@@ -88,6 +95,19 @@ public sealed class ImportedDeckLibraryStateModelTests
         {
             case LibraryOperation.Save when command.DeckId is { } deckId:
                 await state.SaveImportedDeckAsync(CreateDeck(deckId), command.SetActive);
+                break;
+            case LibraryOperation.Update when command.DeckId is { } deckId:
+                var previousActiveDeckId = state.Library.ActiveDeckId;
+                var updatedDeck = CreateDeck(deckId) with { Name = $"Updated {deckId}" };
+                await state.UpdateDeckAsync(updatedDeck);
+
+                Assert.True(
+                    string.Equals(previousActiveDeckId, state.Library.ActiveDeckId, StringComparison.OrdinalIgnoreCase),
+                    $"Updating '{deckId}' changed the active deck from '{previousActiveDeckId}' to '{state.Library.ActiveDeckId}'.");
+                Assert.Contains(
+                    state.Library.Decks,
+                    deck => string.Equals(deck.ImportedDeckId, deckId, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(deck.Name, updatedDeck.Name, StringComparison.Ordinal));
                 break;
             case LibraryOperation.SetActive:
                 await state.SetActiveDeckAsync(command.DeckId);
@@ -159,6 +179,7 @@ public sealed class ImportedDeckLibraryStateModelTests
     private enum LibraryOperation
     {
         Save,
+        Update,
         SetActive,
         Remove,
         Clear,

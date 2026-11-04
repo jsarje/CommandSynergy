@@ -15,7 +15,8 @@ Run `dotnet restore src/CommandSynergy.slnx` from the repository root on a fresh
 $runId = [guid]::NewGuid().ToString('N')
 $runRoot = Join-Path (Get-Location) "artifacts\verification\$runId"
 $evidenceDir = Join-Path $runRoot 'evidence'
-$dataDir = Join-Path $runRoot 'scratch\card-metadata'
+$scratchDir = Join-Path $runRoot 'scratch'
+$dataDir = Join-Path $scratchDir 'card-metadata'
 New-Item -ItemType Directory -Force -Path $evidenceDir, $dataDir | Out-Null
 
 $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)
@@ -29,6 +30,7 @@ $baseUrl = "http://127.0.0.1:$port"
     Port = $port
     BaseUrl = $baseUrl
     RepositoryRoot = (Get-Location).Path
+    ScratchDirectory = $scratchDir
     DataDirectory = $dataDir
     EvidenceDirectory = $evidenceDir
 } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $evidenceDir 'run.json')
@@ -44,7 +46,7 @@ Development mode serves the app's static web assets. Without it, the workspace c
 
 ## Doctor
 
-Run this read-only check before driving an instance whenever its state looks wrong. Set `$evidenceDir` to the path recorded in `run.json`.
+Run this read-only check as soon as the app starts and before driving it. Set `$evidenceDir` to the path recorded in `run.json`.
 
 ```powershell
 $run = Get-Content -Raw -LiteralPath (Join-Path $evidenceDir 'run.json') | ConvertFrom-Json
@@ -67,7 +69,7 @@ if ($response.StatusCode -ne 200 -or
 
 Then call Browser canvas `read_page`. Confirm the workspace is interactive and its title and controls match this checkout. `dotnet --version` must report .NET 10. The app has no build-revision endpoint, so the process path is the available check that the listener belongs to the current worktree. There is no authentication to validate.
 
-If the port belongs to another process, do not drive it. Pick another free port and launch a new run.
+If the check cannot confirm that this worktree owns the listener, do not drive it or stop another process. Pick another free port, launch a new run, and repeat the Doctor check.
 
 ## Drive
 
@@ -85,7 +87,7 @@ header.click();
 return header.textContent.trim();
 ```
 
-This clicks the actual visible control. Do not call component methods, write application state from JavaScript, or use test endpoints as a substitute for a user journey. Card search uses the production Scryfall client when the snapshot has no match. Leave that boundary real for end-to-end proof.
+This clicks the actual visible control. Do not call component methods, write application state from JavaScript, or use test endpoints as a substitute for a user journey. The only JavaScript state change allowed is cleanup: remove `command-synergy.imported-decks` from this run's fresh origin after you delete the test deck through Deck Library. Card search uses the production Scryfall client when the snapshot has no match. Leave that boundary real for end-to-end proof.
 
 ## Evidence
 
@@ -97,7 +99,7 @@ Exercise the real user path and capture both the action and the result. For muta
 
 Delete only test data created by this run. First delete any saved test deck through Deck Library's confirmation dialog. Reload the page and verify that the library is empty. The app may keep an empty serialized library value, so remove only `command-synergy.imported-decks` from this run's unique browser origin and verify that key is absent.
 
-Read `run.json` and confirm that the listening process path matches the expected `CommandSynergy.exe` under `RepositoryRoot`. Stop that exact process ID or stop the dedicated PowerShell command session that started it. Never kill a process by name. Verify that the process is gone and the recorded port has no listener. Remove only the recorded `scratch` directory. Keep `evidence`, including `run.json`, proof snapshots, logs, and screenshots, after teardown.
+Read `run.json` and confirm that the listening process path matches the expected `CommandSynergy.exe` under `RepositoryRoot`. Stop that exact process ID or stop the dedicated PowerShell command session that started it. Never kill a process by name. Verify that the process is gone and the recorded port has no listener. Remove only the path recorded in `ScratchDirectory`. Keep `evidence`, including `run.json`, proof snapshots, logs, and screenshots, after teardown.
 
 ## Helpers
 

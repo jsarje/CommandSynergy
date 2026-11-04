@@ -25,9 +25,11 @@ Preconditions:
 
 - **Open import.** Choose `Open Deck Library`, then expand `Import a deck`. If Browser canvas does not expose a reference for the accordion header, use the visible-text click from the verify skill with `Import a deck`.
 - **Import a list.** Keep the source format at `Auto-detect`, enter `1 Sol Ring` in `Paste deck`, and choose `Import deck`. The library count increases to one and the saved row is named `Sol Ring`. The app may show search and import diagnostics while it resolves the card.
-- **Resolve a duplicate.** Import the same list again. The `duplicate-import-resolution` region offers `Update existing deck` and `Import as new deck`. Choose one and verify the corresponding library count and name.
-- **Preview an export.** Expand `Export`, keep the default `moxfield-text` target, and choose `Generate preview`. The `Export preview` field contains `1 Sol Ring`.
-- **Proof.** Save the action and result snapshots for the import, duplicate decision, and export preview. Check localStorage after import and after reload to prove the imported deck persists.
+- **Resolve a duplicate.** Import the same list again. Choose `Update existing deck` in the `duplicate-import-resolution` region. Verify that the library count stays at one and the row is still named `Sol Ring`.
+- **Open the imported deck.** If `Sol Ring` is not selected, choose `Select` on its row. Choose `Open selected deck` and confirm that the workspace mainboard contains `Sol Ring`.
+- **Set a commander.** Search for `Shu Yun, the Silent Tempest` in the workspace and choose `Set as commander` on its legal card result. Confirm that the command zone shows Shu Yun.
+- **Preview an export.** Expand `Export`, keep the default `moxfield-text` target, and choose `Generate preview`. Confirm that the `Export preview` field contains both `Sol Ring` and `Shu Yun, the Silent Tempest`.
+- **Proof.** Save the action and result snapshots for the import, duplicate decision, opening the saved deck, setting the commander, and export preview. Check localStorage after import and after reload to prove the imported deck persists.
 
 ## Gotchas
 

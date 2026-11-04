@@ -2,11 +2,44 @@
 
 ## Commands
 
-- Restore with `dotnet restore src\CommandSynergy.slnx`.
-- Build with `dotnet build src\CommandSynergy.slnx`.
-- Run the automated suite with `dotnet test src\CommandSynergy.slnx`.
-- Run live integration tests locally with `dotnet test src\CommandSynergy.slnx --filter "Category=LocalOnly"`.
-- Refresh card metadata with `dotnet run --project src\CommandSynergy.Ingestion\CommandSynergy.Ingestion.csproj`.
+- Restore with `dotnet restore src/CommandSynergy.slnx`.
+- Build with `dotnet build src/CommandSynergy.slnx`.
+- Run the automated suite with `dotnet test src/CommandSynergy.slnx`.
+- Run live integration tests locally with `dotnet test src/CommandSynergy.slnx --filter "Category=LocalOnly"`.
+- Refresh card metadata with `dotnet run --project src/CommandSynergy.Ingestion/CommandSynergy.Ingestion.csproj`.
+
+## Active technologies
+
+- .NET 10 and C# 14 with ASP.NET Core Blazor Web App, Interactive Auto render mode, MudBlazor, Parquet.Net, typed HttpClient for Scryfall, xUnit, bUnit, and FluentAssertions.
+- Local Parquet snapshot files provide authoritative card metadata. Derived search index data stays in memory.
+- Browser localStorage persists imported decks, the active deck selection, and import state.
+- `System.Text.RegularExpressions` handles slug generation and uses the NonBacktracking engine where required.
+- `Microsoft.Extensions.Http.Resilience` supports the EDHREC HTTP client.
+- EDHREC commander data uses an in-memory cache with a 15-minute TTL.
+- The local `cards.parquet` snapshot has an additive `ThemeSignals` column.
+
+## Project structure
+
+```text
+src/
+CommandSynergy.slnx
+CommandSynergy/
+CommandSynergy.Client/
+CommandSynergy.Domain/
+CommandSynergy.Application/
+CommandSynergy.Infrastructure/
+CommandSynergy.Ingestion/
+
+tests/
+CommandSynergy.Domain.Tests/
+CommandSynergy.Application.Tests/
+CommandSynergy.Infrastructure.Tests/
+CommandSynergy.WebUI.Tests/
+```
+
+## Code style
+
+.NET 10 and C# 14. Follow standard conventions and Clean Architecture dependency direction.
 
 ## Repository-specific constraints
 
@@ -18,12 +51,12 @@
 
 ## Add an API endpoint
 
-1. Define request and response contracts under `src\CommandSynergy.Application\Contracts\`.
-2. Add the endpoint under `src\CommandSynergy\Endpoints\`.
-3. Map the endpoint in `src\CommandSynergy\Program.cs`.
-4. Add endpoint tests under `tests\CommandSynergy.WebUI.Tests\Endpoints\` and update `tests\CommandSynergy.WebUI.Tests\ContractSerializationTests.cs` when serialized contracts change.
-5. Update the matching file under `specs\*\contracts\` and the API list in `README.md` when they document the changed behavior.
-6. Run `dotnet test src\CommandSynergy.slnx`.
+1. Define request and response contracts under `src/CommandSynergy.Application/Contracts/`.
+2. Add the endpoint under `src/CommandSynergy/Endpoints/`.
+3. Map the endpoint in `src/CommandSynergy/Program.cs`.
+4. Add endpoint tests under `tests/CommandSynergy.WebUI.Tests/Endpoints/` and update `tests/CommandSynergy.WebUI.Tests/ContractSerializationTests.cs` when serialized contracts change.
+5. Update the matching file under `specs/*/contracts/` and the API list in `README.md` when they document the changed behavior.
+6. Run `dotnet test src/CommandSynergy.slnx`.
 
 ## Recent review feedback
 
@@ -33,24 +66,56 @@ Recent Copilot reviews found missing mutation coverage in the imported-deck stat
 
 | Change | Also update |
 |---|---|
-| API endpoint or response contract | `tests\CommandSynergy.WebUI.Tests\Endpoints\`, `tests\CommandSynergy.WebUI.Tests\ContractSerializationTests.cs`, the matching `specs\*\contracts\` file, and the API list in `README.md` when applicable |
-| Card metadata fields or ingestion mapping | `src\CommandSynergy.Ingestion\Program.cs` and `tests\CommandSynergy.Infrastructure.Tests\CardMetadata\` |
-| Imported deck persistence or selection | `tests\CommandSynergy.WebUI.Tests\Verification\ImportedDeckLibraryStateModelTests.cs`, `.github\skills\imported-deck-library\SKILL.md`, and `.github\skills\verify\features\deck-library.md` |
-| Workspace interaction | `tests\CommandSynergy.WebUI.Tests\Components\DeckWorkspaceViewModelTests.cs` and the matching recipe under `.github\skills\verify\features\` |
+| API endpoint or response contract | `tests/CommandSynergy.WebUI.Tests/Endpoints/`, `tests/CommandSynergy.WebUI.Tests/ContractSerializationTests.cs`, the matching `specs/*/contracts/` file, and the API list in `README.md` when applicable |
+| Card metadata fields or ingestion mapping | `src/CommandSynergy.Ingestion/Program.cs` and `tests/CommandSynergy.Infrastructure.Tests/CardMetadata/` |
+| Imported deck persistence or selection | `tests/CommandSynergy.WebUI.Tests/Verification/ImportedDeckLibraryStateModelTests.cs`, `.github/skills/imported-deck-library/SKILL.md`, and `.github/skills/verify/features/deck-library.md` |
+| Workspace interaction | `tests/CommandSynergy.WebUI.Tests/Components/DeckWorkspaceViewModelTests.cs` and the matching recipe under `.github/skills/verify/features/` |
+
+## Implementation notes
+
+- Parquet.Net 5.2.0 does not support `DateTimeOffset` or `DateTimeOffset?` in row types. Store UTC ticks as `long?` and convert in mapping code.
+- Render `AnalysisPanel` in this order: `IsLoading`, `HasError`, null analysis, then results. Checking for null before `HasError` hides errors when `Analysis` is null.
+- For atomic Parquet upserts, load all rows, filter by `CardId`, append the new row, write to `.tmp`, then call `File.Move(overwrite: true)`.
+- For bulk snapshot refreshes, use `CommandSynergy.Ingestion` to download Scryfall `oracle_cards` and replace `cards.parquet` atomically. Runtime fallback in `CardMetadataQueryService` is read-only and must not mutate Parquet during user requests.
+
+## Design Context
+
+### Users
+
+- Magic: The Gathering players crafting their perfect Commander deck during focused deckbuilding sessions.
+- The core job is to build a decklist and evaluate its bracket and power level with confidence.
+
+### Brand Personality
+
+- Warm, mechanical, and opinionated.
+- The UI should feel like a crafted deckbuilding instrument rather than a generic admin dashboard.
+
+### Aesthetic Direction
+
+- Light-first, tactile, and archival rather than glossy or futuristic.
+- Pair tabletop warmth with analytical precision.
+- Avoid generic SaaS patterns and neutral dashboard styling.
+
+### Design Principles
+
+- Make deckbuilding feel deliberate and consequential.
+- Use strong hierarchy to surface bracket signals, deck-state changes, and key decisions quickly.
+- Favor confident presentation over filler and generic chrome.
+- Maintain WCAG AA accessibility; motion can be expressive, but clarity and control come first.
 
 ## Documentation
 
-Developer setup and security notes live in `CONTRIBUTING.md`. Product and design notes live in `PRODUCT.md` and `DESIGN.md`. Feature specifications and API contracts live in `specs\`. Browser verification instructions live in `.github\skills\verify\`. The repository has no separate documentation site or documentation build.
+Developer setup and security notes live in `CONTRIBUTING.md`. Product and design notes live in `PRODUCT.md` and `DESIGN.md`. Feature specifications and API contracts live in `specs/`. Browser verification instructions live in `.github/skills/verify/`. The repository has no separate documentation site or documentation build.
 
 ## Done means
 
-- `dotnet restore src\CommandSynergy.slnx` exits successfully.
-- `dotnet build src\CommandSynergy.slnx` exits successfully.
-- `dotnet test src\CommandSynergy.slnx` exits successfully.
+- `dotnet restore src/CommandSynergy.slnx` exits successfully.
+- `dotnet build src/CommandSynergy.slnx` exits successfully.
+- `dotnet test src/CommandSynergy.slnx` exits successfully.
 - Every behavior change has a test that fails without the change.
 
-## Never merges without a human
+## Never merge without a human
 
 A person has to have **read this diff** before it lands. Telling an agent "merge it when you're done" is approving a goal, not this change, so it does not count for anything on this list. Everywhere else it counts fine, which is the point of having a list.
 
-- Any change under `.github\workflows\`.
+- Any change under `.github/workflows/`.

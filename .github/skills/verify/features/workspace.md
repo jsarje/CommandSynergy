@@ -28,7 +28,7 @@ Preconditions:
 - **Search a card.** Read the page, type `Sol Ring` into the search input, then choose `Search`. The results include `Sol Ring`. Scryfall can return multiple printings; identify the exact `Sol Ring` result before choosing an action.
 - **Add it to the mainboard.** Choose `Add to deck` for the exact `Sol Ring` result. The app bar shows `1 cards`, `Mainboard` shows `1 cards`, and the mainboard card is `Sol Ring`.
 - **Set a commander.** Start a fresh workspace, search for `Shu Yun, the Silent Tempest`, and choose `Set as commander`. The briefing's `Commander` value and the command zone both show `Shu Yun, the Silent Tempest`.
-- **Open suggestions.** With a commander set, choose `Open` in the `Suggestions` panel. The filter controls and `Magic suggestions` action appear. A suggestion result requires a successful suggestions request; an empty result alone does not prove that the request succeeded.
+- **Request suggestions.** With a commander set, choose `Open` in the `Suggestions` panel, then choose `Magic suggestions`. Wait for the `Loading` indicator to clear. Record the recommendation cards, the no-results status, or the unavailable status. Opening the panel or seeing an empty idle state does not prove that a request ran.
 - **Proof.** Save the before and after `read_page` output. Capture the search result and the changed mainboard with Browser canvas `screenshot_page`. For a commander journey, capture the briefing and command zone after the result settles.
 
 ## Gotchas
