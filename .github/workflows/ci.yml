@@ -4,7 +4,6 @@ on:
   pull_request:
     branches: [ main ]
     paths-ignore:
-      - '.github/**'
       - '.agents/**'
       - '.impeccable/**'
       - '.specify/**'
@@ -59,7 +58,29 @@ jobs:
 
       - name: Run tests
         run: |
-          dotnet test ${{ env.SOLUTION }} -c Release --no-build --verbosity normal --filter "Category!=LocalOnly" --logger "trx;LogFileName=TestResults.trx"
+          dotnet test ${{ env.SOLUTION }} -c Release --no-build --verbosity normal --filter "Category!=LocalOnly&Category!=Playwright" --logger "trx;LogFileName=TestResults.trx"
+
+      - name: Install Playwright browsers
+        run: pwsh tests/CommandSynergy.PlaywrightTests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Start web app
+        run: |
+          ASPNETCORE_ENVIRONMENT=Development DisableHttpsRedirection=true dotnet run --project src/CommandSynergy --configuration Release --no-build --urls http://127.0.0.1:5136 > "$RUNNER_TEMP/commandsynergy.log" 2>&1 &
+
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:5136/ > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          cat "$RUNNER_TEMP/commandsynergy.log"
+          exit 1
+
+      - name: Run Playwright tests
+        env:
+          COMMANDSYNERGY_BASE_URL: http://127.0.0.1:5136/
+        run: dotnet test tests/CommandSynergy.PlaywrightTests/CommandSynergy.PlaywrightTests.csproj -c Release --no-build --verbosity normal --filter "Category=Playwright" --logger "trx;LogFileName=PlaywrightTestResults.trx"
 
       - name: Upload test results
         if: always()

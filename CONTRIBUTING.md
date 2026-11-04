@@ -24,6 +24,30 @@ Refresh the local metadata snapshot (ingestion tool):
 dotnet run --project src/CommandSynergy.Ingestion/CommandSynergy.Ingestion.csproj
 ```
 
+## Browser integration tests
+
+Install PowerShell 7, then install Playwright and its Chromium browser once:
+
+```powershell
+pwsh -File scripts/setup-playwright.ps1
+```
+
+In another terminal, start the web app:
+
+```powershell
+$env:DisableHttpsRedirection = "true"
+dotnet run --project src/CommandSynergy --urls http://127.0.0.1:5136
+```
+
+Run the browser suite against that app:
+
+```powershell
+$env:COMMANDSYNERGY_BASE_URL = "http://127.0.0.1:5136/"
+dotnet test tests/CommandSynergy.PlaywrightTests/CommandSynergy.PlaywrightTests.csproj
+```
+
+Browser tests are skipped during the regular solution test run unless `COMMANDSYNERGY_BASE_URL` is set. CI starts the app and runs this suite separately.
+
 ## Quality Notes
 
 - External Scryfall access is wrapped in a typed `HttpClient` with standard .NET resilience handlers and safe fallback behavior.
