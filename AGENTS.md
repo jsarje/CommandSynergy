@@ -119,3 +119,13 @@ Developer setup and security notes live in `CONTRIBUTING.md`. Product and design
 A person has to have **read this diff** before it lands. Telling an agent "merge it when you're done" is approving a goal, not this change, so it does not count for anything on this list. Everywhere else it counts fine, which is the point of having a list.
 
 - Any change under `.github/workflows/`.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs are tracked in GitHub Issues via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Use the single-context layout with root `GLOSSARY.md` and `docs/adr/`. See `docs/agents/domain.md`.
